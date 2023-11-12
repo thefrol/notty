@@ -1,0 +1,315 @@
+openapi: 3.0.0
+info:
+  title: Нотти
+  version: '1.0'
+  description: >-
+    Сервис уведомлений Нотти позволяет рассылать смс уведомления. Создавайте
+    рассылки, тегайте клиентов и все смс уйдут в назначенное время.
+paths:
+  /customer/{Id}:
+    get:
+      operationId: GetClient
+      tags:
+        - customer
+      description: 'Создать клиента'
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: полученный клиент
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      operationId: DeleteClient
+      tags:
+        - customer
+      description: ''
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: string
+    post:
+      operationId: UpdateClient
+      tags:
+        - customer
+      description: ''
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+      responses:
+        '200':
+          description: Обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: Данные для изменения клиента не прошли валидацию
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: клиента не существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка при создании клиента
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /customer:
+    post:
+      operationId: CreateClient
+      tags:
+        - customer
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+      responses:
+        '207':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: Данные для создания клиента не прошли валидацию
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка при создании клиента
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /sub/{Id}:
+    get:
+      operationId: GetSubscription
+      tags:
+        - subscription
+      description: ''
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      operationId: DeleteSubscription
+      tags:
+        - subscription
+      description: ''
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Удалено
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: Не найдена такая подписка
+          content:
+            text/plaint:
+              schema:
+                type: string
+        '500':
+          description: Ошибка при удалении
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      operationId: UpdateSubscription
+      tags:
+        - subscription
+      description: ''
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '200':
+          description: Создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          description: Запрос неправильно сформирован, например данные не прошли валидацию
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка при создании
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /sub:
+    post:
+      operationId: CreateSubscription
+      tags:
+        - subscription
+      description: ''
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          description: Запрос неправильно сформирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка при создании
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    Customer:
+      type: object
+      description: Клиент, которому будет приходить рассылка
+      required:
+        - id
+        - phone
+        - tag
+        - operator
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        phone:
+          type: string
+        tag:
+          type: string
+        operator:
+          type: string
+    Subscription:
+      type: object
+      required:
+        - id
+        - start
+        - end
+        - operator_filter
+        - phone_filter
+        - desc
+        - text
+      properties:
+        id:
+          type: string
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        phone_filter:
+          type: string
+        operator_filter:
+          type: string
+        desc:
+          description: 'Описание рассылки, просто для чего она создавалась и тд. '
+          type: string
+        text:
+          description: Текст сообщения в рассылке
+          type: string
+    Error:
+      type: object
+      required:
+        - code
+        - desc
+      properties:
+        code:
+          type: string
+        desc:
+          type: string
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+  - name: customer
+    description: Клиент представляет собой сущеность, которой будут приходить уведомления
+  - name: subscription
+    description: Подписки содержат фильтры, по которым будут выбраны клиенты, которы пришлют уведомления в указанное у подписке время
