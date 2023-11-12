@@ -31,6 +31,7 @@ type Subscription struct {
 	OperatorFilter string    `json:"operator_filter"`
 	PhoneFilter    string    `json:"phone_filter"`
 	Start          time.Time `json:"start"`
+	TagFilter      string    `json:"tag_filter"`
 
 	// Text Текст сообщения в рассылке
 	Text string `json:"text"`

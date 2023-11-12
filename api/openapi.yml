@@ -272,6 +272,7 @@ components:
         - end
         - operator_filter
         - phone_filter
+        - tag_filter
         - desc
         - text
       properties:
@@ -286,6 +287,9 @@ components:
         phone_filter:
           type: string
         operator_filter:
+          type: string
+        tag_filter:
+          text: "фильтр формата ilike, который будет применен на поле тег клиента"
           type: string
         desc:
           description: 'Описание рассылки, просто для чего она создавалась и тд. '

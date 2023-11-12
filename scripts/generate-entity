@@ -1,3 +1,5 @@
+#!/bin/bash
+
 SPEC_FILE=./api/openapi.yml
 PACKAGE=entity
 LOCATION=./internal/entity/generated.go
