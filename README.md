@@ -3,6 +3,7 @@
 + Постгрес с `pgx`
 + миграции с `goose`
 + докер для запуска инфраструктуры
++ интегральные тесты по репозиториям с постгрёй
 
 ## АПИ сервер
 
@@ -21,6 +22,24 @@
 ### Сваггер интерфейс
 
 Доступен по адресу `/docs/`
+
+### Тестирование на Гитлабе
+
+#### Интегральное тестирования хранилищ
+
+Находится в `.gitlab-ci.yml` вот тут
+
+```yaml
+repository_test:
+  stage: test
+  services:
+    - name: postgres
+      alias: test_db
+  script:
+    - export NOTTY_TEST_DB="host=test_db  dbname=test user=test password=test sslmode=disable"
+    - export NOTTY_TEST_NOSKIP=1
+    - go test -v ./test/...
+```
 
 ## Разработка
 

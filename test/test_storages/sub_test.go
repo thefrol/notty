@@ -1,29 +1,25 @@
-package subscriptions
+package storages_test
 
 import (
 	"log"
 	"testing"
 	"time"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/thefrol/notty/internal/entity"
-	_ "gitlab.com/thefrol/notty/internal/migrations"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
+	"gitlab.com/thefrol/notty/internal/storage/subscriptions"
 )
 
-// конечно жесть что у меня тут интегральное тестирование
-// todo
+func Test_SubscriptionWorkflow(t *testing.T) {
+	if !NoSkip && TestDSN == "" {
+		t.Skip("Пропускаю тесты на клиентов")
+	}
 
-const (
-	testDSN = "host=localhost dbname=notty_dev_local user=notty_dev_local password=local.dev.1 port=15432 sslmode=disable"
-)
+	conn := postgres.MustConnect(TestDSN)
 
-func Test_Workflow(t *testing.T) {
-	conn := postgres.MustConnect(testDSN)
-
-	subscriptions := New(conn)
+	subscriptions := subscriptions.New(conn)
 
 	date := time.Date(2011, 2, 2, 13, 21, 3, 12, time.Local)
 
