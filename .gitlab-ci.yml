@@ -1,0 +1,20 @@
+image: golang:1.21-alpine
+
+variables:
+  POSTGRES_DB: "test"
+  POSTGRES_USER: "test"
+  POSTGRES_PASSWORD: "test"
+
+stages:
+  - test
+  #- build
+
+repository_test:
+  stage: test
+  services:
+    - name: postgres
+      alias: test_db
+  script:
+    - export NOTTY_TEST_DB="host=test_db  dbname=test user=test password=test sslmode=disable"
+    - export NOTTY_TEST_NOSKIP=1
+    - go test -v ./test/...

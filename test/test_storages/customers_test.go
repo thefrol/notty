@@ -1,27 +1,22 @@
-package customers
+package storages_test
 
 import (
 	"testing"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/thefrol/notty/internal/entity"
-	_ "gitlab.com/thefrol/notty/internal/migrations"
+	"gitlab.com/thefrol/notty/internal/storage/customers"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 )
 
-// конечно жесть что у меня тут интегральное тестирование
-// todo
+func Test_CustomerWorkflow(t *testing.T) {
+	if !NoSkip && TestDSN == "" {
+		t.Skip("Пропускаю тесты на клиентов")
+	}
+	conn := postgres.MustConnect(TestDSN)
 
-const (
-	testDSN = "host=localhost dbname=notty_dev_local user=notty_dev_local password=local.dev.1 port=15432 sslmode=disable"
-)
-
-func Test_Workflow(t *testing.T) {
-	conn := postgres.MustConnect(testDSN)
-
-	clients := New(conn)
+	clients := customers.New(conn)
 
 	c := entity.Customer{
 		Id:       "test_one",
