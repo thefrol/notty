@@ -1,2 +1,5 @@
 # vscode
 .vscode/
+
+# binaries
+__debug*

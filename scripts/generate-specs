@@ -1,0 +1,9 @@
+#!/bin/bash
+
+SPEC_FILE=./api/openapi.yml
+PACKAGE=generated
+LOCATION=./internal/api/generated/spec.go
+
+oapi-codegen -generate spec -package $PACKAGE $SPEC_FILE > $LOCATION
+
+go mod tidy

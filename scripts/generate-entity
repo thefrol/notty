@@ -1,0 +1,7 @@
+SPEC_FILE=./api/openapi.yml
+PACKAGE=entity
+LOCATION=./internal/entity/generated.go
+
+oapi-codegen -generate types -package $PACKAGE $SPEC_FILE > $LOCATION
+
+go mod tidy
