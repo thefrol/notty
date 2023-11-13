@@ -333,7 +333,7 @@ components:
         - status
       properties:
         id:
-          type: integer
+          type: string
         customer_id:
           type: string
         subscription_id:
