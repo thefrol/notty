@@ -7,7 +7,12 @@
 //	}
 package scan
 
-import "gitlab.com/thefrol/notty/internal/entity"
+import (
+	"database/sql"
+	"log"
+
+	"gitlab.com/thefrol/notty/internal/entity"
+)
 
 type Scanner interface {
 	Scan(...any) error
@@ -40,4 +45,29 @@ func Client(r Scanner) (entity.Customer, error) {
 	}
 
 	return res, nil
+}
+
+func Message(r Scanner) (entity.Message, error) {
+	m := entity.Message{}
+	status := sql.NullString{}
+	t := sql.NullTime{}
+
+	err := r.Scan(
+		&m.Id,
+		&m.CustomerId,
+		&m.SubscriptionId,
+		&m.Text,
+		&m.Phone,
+		&status,
+		&t,
+	)
+	m.Status = status.String
+	if t.Valid {
+		m.Sent = &t.Time
+	}
+	if err != nil {
+		log.Printf("Ошибка при чтении строки запроса %v\n", err)
+		return entity.Message{}, nil
+	}
+	return m, nil
 }
