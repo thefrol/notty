@@ -12,9 +12,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sync"
+	"time"
 
-	"gitlab.com/thefrol/notty/internal/storage/customers"
+	"gitlab.com/thefrol/notty/internal/app"
+	"gitlab.com/thefrol/notty/internal/storage/messages"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 	"gitlab.com/thefrol/notty/internal/storage/subscriptions"
 )
@@ -29,32 +30,13 @@ func main() {
 
 	// соединяемся с БД
 	db := postgres.MustConnect(dsn)
-	subs := subscriptions.New(db)
-	cs := customers.New(db)
 
-	active, err := subs.Active()
-	if err != nil {
-		log.Fatal(err)
+	o := app.Obs{
+		MessagesRepo:      messages.New(db),
+		SubscriptionsRepo: subscriptions.New(db),
 	}
 
-	wg := sync.WaitGroup{}
-	for _, s := range active {
-		s := s
-		ch, err := cs.Filter(s.TagFilter, s.OperatorFilter, 300)
-		if err != nil {
-			fmt.Printf("err: %v\n", err)
-			continue
-		}
+	o.FetchAndWork(3*time.Second, 2)
 
-		wg.Add(1)
-		go func() {
-			for c := range ch {
-				fmt.Println(c, s)
-			}
-			wg.Done()
-		}()
-	}
-
-	wg.Wait()
 	log.Println("all done")
 }
