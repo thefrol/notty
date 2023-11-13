@@ -24,9 +24,9 @@ func Test_SubscriptionWorkflow(t *testing.T) {
 	date := time.Date(2011, 2, 2, 13, 21, 3, 12, time.Local)
 
 	c := entity.Subscription{
-		Id:             "test_one",
+		Id:             "test-one",
 		Start:          date,
-		End:            date,
+		End:            date.Add(time.Hour * 10),
 		Text:           "text",
 		Desc:           "desc",
 		OperatorFilter: "1",

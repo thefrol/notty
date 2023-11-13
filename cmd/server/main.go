@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 
 	"github.com/go-chi/chi"
@@ -20,10 +21,13 @@ func main() {
 	}
 
 	// соединяемся с БД
-	_ = postgres.MustConnect(dsn)
+	db := postgres.MustConnect(dsn)
 
-	// запускаем АПИ
-	notty := api.New()
+	// создаем приложение
+	app := app.New(db)
+
+	// создаем сервис апи
+	notty := api.New(app)
 
 	r := chi.NewRouter()
 	r.Mount("/", notty.OpenAPI())

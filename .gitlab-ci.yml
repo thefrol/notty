@@ -18,3 +18,8 @@ repository_test:
     - export NOTTY_TEST_DB="host=test_db  dbname=test user=test password=test sslmode=disable"
     - export NOTTY_TEST_NOSKIP=1
     - go test -v ./test/...
+
+unit_test:
+  stage: test
+  script:
+    - go test ./...

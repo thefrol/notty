@@ -4,15 +4,17 @@ import (
 	"net/http"
 
 	"gitlab.com/thefrol/notty/internal/api/generated"
+	"gitlab.com/thefrol/notty/internal/app"
 )
 
 // Api представляет собой набор хендлеров для фасада нашего сервера
 type Api struct {
+	app app.App // арр-аррр-аррррр ! пираты
 }
 
 // New создает новый сервис - набор хендлеров
-func New() Api {
-	return Api{}
+func New(app app.App) Api {
+	return Api{app: app}
 }
 
 // OpenAPI создает хендлер по которому будут находиться
@@ -26,46 +28,6 @@ func (a *Api) OpenAPI() http.Handler {
 // эта ручка существует
 func (a *Api) Swagger() http.HandlerFunc {
 	return Docs()
-}
-
-// CreateClient implements generated.ServerInterface.
-func (*Api) CreateClient(w http.ResponseWriter, r *http.Request) {
-	panic("unimplemented")
-}
-
-// CreateSubscription implements generated.ServerInterface.
-func (*Api) CreateSubscription(w http.ResponseWriter, r *http.Request) {
-	panic("unimplemented")
-}
-
-// DeleteClient implements generated.ServerInterface.
-func (*Api) DeleteClient(w http.ResponseWriter, r *http.Request, id string) {
-	panic("unimplemented")
-}
-
-// DeleteSubscription implements generated.ServerInterface.
-func (*Api) DeleteSubscription(w http.ResponseWriter, r *http.Request, id string) {
-	panic("unimplemented")
-}
-
-// GetClient implements generated.ServerInterface.
-func (*Api) GetClient(w http.ResponseWriter, r *http.Request, id string) {
-	panic("unimplemented")
-}
-
-// GetSubscription implements generated.ServerInterface.
-func (*Api) GetSubscription(w http.ResponseWriter, r *http.Request, id string) {
-	panic("unimplemented")
-}
-
-// UpdateClient implements generated.ServerInterface.
-func (*Api) UpdateClient(w http.ResponseWriter, r *http.Request, id string) {
-	panic("unimplemented")
-}
-
-// UpdateSubscription implements generated.ServerInterface.
-func (*Api) UpdateSubscription(w http.ResponseWriter, r *http.Request, id string) {
-	panic("unimplemented")
 }
 
 var _ generated.ServerInterface = (*Api)(nil)
