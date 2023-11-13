@@ -14,9 +14,9 @@ var subs = []entity.Subscription{
 		Desc:           "Подписка, которая смотрит за тегом love. Действует 1444 часа с момента создания",
 		Start:          time.Now(),
 		End:            time.Now().Add(1444 * time.Hour),
-		PhoneFilter:    "",
-		OperatorFilter: "",
-		TagFilter:      "^love$",
+		PhoneFilter:    "%",
+		OperatorFilter: "%",
+		TagFilter:      "%love%",
 	},
 	{
 		Id:             "my-old",
@@ -24,9 +24,9 @@ var subs = []entity.Subscription{
 		Desc:           "Подписка, которая устарела когда-то давно. В 2003 году",
 		Start:          MustParse("2006-01-02", "2003-03-08"),
 		End:            MustParse("2006-01-02", "2003-06-08"),
-		PhoneFilter:    "",
-		OperatorFilter: "",
-		TagFilter:      "",
+		PhoneFilter:    "%",
+		OperatorFilter: "%",
+		TagFilter:      "%",
 	},
 }
 
