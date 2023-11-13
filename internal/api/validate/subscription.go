@@ -11,9 +11,10 @@ import (
 func SubscriptionRequest(sub entity.Subscription) error {
 	var errs []error
 
-	if !idPattern.MatchString(sub.Id) {
-		errs = append(errs, ErrorIdValidation)
-	}
+	// нельзя валидировать ид, он можнт быть пустой
+	// if !idPattern.MatchString(sub.Id) {
+	// 	errs = append(errs, ErrorIdValidation)
+	// }
 
 	if sub.End.Before(sub.Start) {
 		errs = append(errs, ErrorInvalidPeriod)

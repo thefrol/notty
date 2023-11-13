@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.com/thefrol/notty/internal/api/decode"
 	"gitlab.com/thefrol/notty/internal/api/respond"
+	"gitlab.com/thefrol/notty/internal/api/validate"
 )
 
 // CreateClient implements generated.ServerInterface.
@@ -35,6 +36,11 @@ func (a *Api) CreateClient(w http.ResponseWriter, r *http.Request) {
 
 // GetClient implements generated.ServerInterface.
 func (a *Api) GetClient(w http.ResponseWriter, r *http.Request, id string) {
+	if err := validate.Id(id); err != nil {
+		respond.BadRequest(w, "%v", err)
+		return
+	}
+
 	c, err := a.app.CustomerRepository.Get(id)
 	if err != nil {
 		respond.InternalServerError(w, "Не удалось найти клиента с id=%s %v", id, err)
@@ -45,9 +51,15 @@ func (a *Api) GetClient(w http.ResponseWriter, r *http.Request, id string) {
 
 // DeleteClient implements generated.ServerInterface.
 func (a *Api) DeleteClient(w http.ResponseWriter, r *http.Request, id string) {
+	if err := validate.Id(id); err != nil {
+		respond.BadRequest(w, "%v", err)
+		return
+	}
+
 	err := a.app.CustomerRepository.Delete(id)
 	if err != nil {
 		respond.InternalServerError(w, "Не удалось удалить клиента %v", err)
+		return
 	}
 }
 

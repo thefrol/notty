@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"gitlab.com/thefrol/notty/internal/api/decode"
 	"gitlab.com/thefrol/notty/internal/api/respond"
+	"gitlab.com/thefrol/notty/internal/api/validate"
 )
 
 // CreateSubscription implements generated.ServerInterface.
@@ -35,6 +36,11 @@ func (a *Api) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 
 // DeleteSubscription implements generated.ServerInterface.
 func (a *Api) DeleteSubscription(w http.ResponseWriter, r *http.Request, id string) {
+	if err := validate.Id(id); err != nil {
+		respond.BadRequest(w, "%v", err)
+		return
+	}
+
 	err := a.app.SubscriptionRepository.Delete(id)
 	if err != nil {
 		respond.InternalServerError(w, "Не удалось удалить подписку %v", err)
@@ -43,6 +49,11 @@ func (a *Api) DeleteSubscription(w http.ResponseWriter, r *http.Request, id stri
 
 // GetSubscription implements generated.ServerInterface.
 func (a *Api) GetSubscription(w http.ResponseWriter, r *http.Request, id string) {
+	if err := validate.Id(id); err != nil {
+		respond.BadRequest(w, "%v", err)
+		return
+	}
+
 	sub, err := a.app.SubscriptionRepository.Get(id)
 	if err != nil {
 		respond.InternalServerError(w, "Не удалось найти подписку с id=%s %v", id, err)
@@ -53,6 +64,11 @@ func (a *Api) GetSubscription(w http.ResponseWriter, r *http.Request, id string)
 
 // UpdateSubscription implements generated.ServerInterface.
 func (a *Api) UpdateSubscription(w http.ResponseWriter, r *http.Request, id string) {
+	if err := validate.Id(id); err != nil {
+		respond.BadRequest(w, "%v", err)
+		return
+	}
+
 	sub, err := decode.Subscription(r)
 	if err != nil {
 		respond.BadRequest(w, "%v", err) // может тут оставить место только для ошибки?
