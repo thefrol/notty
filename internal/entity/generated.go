@@ -25,7 +25,7 @@ type Error struct {
 // Message defines model for Message.
 type Message struct {
 	CustomerId     string     `json:"customer_id"`
-	Id             int        `json:"id"`
+	Id             string       `json:"id"`
 	Phone          string     `json:"phone"`
 	Sent           *time.Time `json:"sent,omitempty"`
 	Status         string     `json:"status"`

@@ -14,7 +14,7 @@ func init() {
 func upMessages(ctx context.Context, tx *sql.Tx) error {
 	_, err := tx.Exec(
 		`CREATE TABLE messages(
-			id BIGSERIAL PRIMARY KEY,
+			id text PRIMARY KEY,
 			sub_id text,
 			customer_id text,
 			message_text text,
