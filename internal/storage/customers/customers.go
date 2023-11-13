@@ -62,7 +62,7 @@ func (c Customers) Update(cl entity.Customer) (res entity.Customer, err error) {
 			name=$2,
 			phone=$3,
 			operator=$4,
-			tag=$5,
+			tag=$5
 		WHERE
 			id=$1`, cl.Id, cl.Name, cl.Phone, cl.Operator, cl.Tag)
 	if err != nil {

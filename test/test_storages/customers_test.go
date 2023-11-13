@@ -10,6 +10,9 @@ import (
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 )
 
+// тут не надо проверять валидные и невалидные поля
+// Это уже сделали юнит тесты
+
 func Test_CustomerWorkflow(t *testing.T) {
 	if !NoSkip && TestDSN == "" {
 		t.Skip("Пропускаю тесты на клиентов")
@@ -19,10 +22,10 @@ func Test_CustomerWorkflow(t *testing.T) {
 	clients := customers.New(conn)
 
 	c := entity.Customer{
-		Id:       "test_one",
+		Id:       "test-one",
 		Name:     "Dina",
 		Operator: "916",
-		Phone:    "+7916",
+		Phone:    "+79161234533",
 		Tag:      "test_user",
 	}
 	_, err := clients.Create(c)
