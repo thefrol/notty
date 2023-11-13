@@ -18,8 +18,9 @@ func upMessages(ctx context.Context, tx *sql.Tx) error {
 			sub_id text,
 			customer_id text,
 			message_text text,
-			phone_number text,
-			status text) `)
+			phone text,
+			status text,
+			sent timestamptz) `)
 	return err
 }
 
