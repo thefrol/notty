@@ -149,5 +149,9 @@ func (s Subscriptions) Active() ([]entity.Subscription, error) {
 		subs = append(subs, res)
 	}
 
+	if err := rs.Err(); err != nil {
+		return nil, err
+	}
+
 	return subs, nil
 }
