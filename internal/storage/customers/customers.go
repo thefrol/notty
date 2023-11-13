@@ -3,8 +3,10 @@ package customers
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	"gitlab.com/thefrol/notty/internal/entity"
+	"gitlab.com/thefrol/notty/internal/storage/scan"
 )
 
 // Customers это репозиторий для сущности Customer то есть для нашего клиента
@@ -31,8 +33,7 @@ func (c Customers) Get(id string) (res entity.Customer, err error) {
 		WHERE
 			id=$1`, id)
 
-	err = r.Scan(&res.Id, &res.Name, &res.Phone, &res.Operator, &res.Tag)
-	return
+	return scan.Client(r)
 }
 
 func (c Customers) Delete(id string) error {
@@ -96,4 +97,50 @@ func (c Customers) Create(cl entity.Customer) (res entity.Customer, err error) {
 	}
 
 	return c.Get(cl.Id)
+}
+
+// Filter возвращает всех клиентов для определенной рассылки
+// поскольку таких сообщений может быть ну очень много, то
+// то возвращает канал
+func (c Customers) Filter(tag string, operator string, size int) (chan entity.Customer, error) {
+
+	rs, err := c.db.Query(`
+		SELECT
+			id,
+			name,
+			phone,
+			operator,
+			tag	
+		FROM
+			customer c
+		WHERE
+			tag ilike $1
+			AND operator ilike $2
+		`, tag, operator)
+
+	if err != nil {
+		return nil, err
+	}
+	in := make(chan entity.Customer, size)
+
+	go func() {
+		defer rs.Close()
+
+		for rs.Next() {
+			c, err := scan.Client(rs)
+			if err != nil {
+				log.Printf("Ошибка при чтении строки запроса %v\n", err)
+				return
+			}
+			in <- c
+
+		}
+
+		if err := rs.Err(); err != nil {
+			log.Printf("Ошибка при чтении запроса %v\n", err)
+		}
+		close(in)
+	}()
+
+	return in, nil
 }

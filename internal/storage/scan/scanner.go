@@ -31,3 +31,13 @@ func Subscription(r Scanner) (entity.Subscription, error) {
 
 	return res, nil
 }
+
+func Client(r Scanner) (entity.Customer, error) {
+	res := entity.Customer{}
+	err := r.Scan(&res.Id, &res.Name, &res.Phone, &res.Operator, &res.Tag)
+	if err != nil {
+		return entity.Customer{}, err
+	}
+
+	return res, nil
+}
