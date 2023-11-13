@@ -15,9 +15,10 @@ func CustomerRequest(c entity.Customer) error {
 		errs = append(errs, ErrorPhoneValidation)
 	}
 
-	if !idPattern.MatchString(c.Id) {
-		errs = append(errs, ErrorIdValidation)
-	}
+	// не можно валидировать ид) он же может быть пустой
+	// if !idPattern.MatchString(c.Id) {
+	// 	errs = append(errs, ErrorIdValidation)
+	// }
 
 	// todo проверка оператора по МТС, билайн, мегафон это цифра или короткий код
 	return errors.Join(errs...)

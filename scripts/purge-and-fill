@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Очищает, а затем наполняет базу данных
+# Используется для тестирования
+#
+# Должно запускаться после скрипка start-postgres,
+# тогда подхватит переменную окружения и будет работать с уже
+# запущенной в докере базой
+
+export NOTTY_DSN=$NOTTY_DB_LOCAL
+echo $NOTTY_DB_LOCAL
+
+go run ./tool/purge
+go run ./tool/populate
