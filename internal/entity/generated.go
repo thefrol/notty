@@ -22,6 +22,17 @@ type Error struct {
 	Desc string `json:"desc"`
 }
 
+// Message defines model for Message.
+type Message struct {
+	CustomerId     string     `json:"customer_id"`
+	Id             int        `json:"id"`
+	Phone          string     `json:"phone"`
+	Sent           *time.Time `json:"sent,omitempty"`
+	Status         string     `json:"status"`
+	SubscriptionId string     `json:"subscription_id"`
+	Text           string     `json:"text"`
+}
+
 // Subscription defines model for Subscription.
 type Subscription struct {
 	// Desc Описание рассылки, просто для чего она создавалась и тд.
