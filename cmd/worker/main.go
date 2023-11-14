@@ -28,9 +28,10 @@ const WorkerCount = 50
 const (
 	retryWait  = 3
 	retryCount = 3
-	token      = "123123"
-	endpoint   = "https://probe.fbrq.cloud/v1/send"
+	endpoint   = "https://probe.fbrq.cloud/v1/send/"
 )
+
+var token = os.Getenv("ENDPOINT_TOKEN")
 
 func main() {
 	// конфигурируем
