@@ -10,12 +10,11 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"sync"
 	"time"
 
-	"gitlab.com/thefrol/notty/internal/entity"
+	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/postman"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 	"gitlab.com/thefrol/notty/internal/storage/subscriptions"
@@ -25,6 +24,12 @@ import (
 const batchSize = 50
 const timeout = 3 * time.Second
 const WorkerCount = 50
+
+const (
+	retryWait  = 3
+	retryCount = 3
+	token      = "123123"
+)
 
 func main() {
 	// конфигурируем
@@ -38,96 +43,35 @@ func main() {
 	db := postgres.MustConnect(dsn)
 
 	//создаем сервисы
-	mes := stream.Messages(db)
+	MessageStreaming := stream.Messages(db)
 
-	subs := subscriptions.New(db)
+	SubscriptionService := subscriptions.New(db)
 
-	post := postman.Poster{}
+	PostingService := postman.New("123", retryWait, retryCount, token)
 
+	notty := app.Notifyer{
+		Messages:      MessageStreaming,
+		Poster:        PostingService,
+		Subscriptions: SubscriptionService,
+	}
 	//и за дело
 
 	for {
+		// спим какое-то время. Тут бы заменить по сути на тикер
 		time.Sleep(timeout)
+		wg := sync.WaitGroup{}
 
-		// проверяем сколько рассылок активно
-		active, err := subs.Active()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if len(active) == 0 {
-			// если никого, то спим
-			continue
-		}
-
-		// если же есть, то плодим горутины
-		// у нас работает конвеер
-		//
-		// Некоторые этапы можно посерьезней распараллелить,
-		// вопрос просто в желании, мне кажется параллелить
-		// надо только отправку
-
-		protos, err := mes.Generate(batchSize)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		msgs, err := mes.Create(protos)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// отправляем в куче горутин
-		var dones []chan entity.Message
-		for i := 0; i < WorkerCount; i++ {
-			done, err := post.Work(msgs)
-			if err != nil {
-				log.Fatal(err)
-			}
-			dones = append(dones, done)
-		}
-
-		/// собираем все в кучу и обновляем
-		end, err := mes.Update(FanIn(dones...))
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		terminate(end)
-
-	}
-
-}
-
-func FanIn(ins ...chan entity.Message) chan entity.Message {
-	out := make(chan entity.Message)
-
-	wg := sync.WaitGroup{}
-	for _, in := range ins {
+		// ищем новые сообщения
 		wg.Add(1)
-
-		in := in
 		go func() {
-			defer wg.Done()
-
-			for m := range in {
-				out <- m
-			}
+			notty.FindAndSend(batchSize, WorkerCount)
+			wg.Done()
 		}()
-	}
-	go func() {
+
+		// и одновременно пытаемся отправить неотправленные, но
+		// могущие быть отправленными
+
+		// ждем когда оба процесса закончатся
 		wg.Wait()
-
-		fmt.Println("каналы закрыты")
-		close(out)
-
-	}()
-
-	return out
-}
-
-func terminate(ins ...chan entity.Message) {
-	end := FanIn(ins...)
-	for _ = range end {
 	}
 }
