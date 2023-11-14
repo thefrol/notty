@@ -49,6 +49,8 @@ func (p Poster) Send(m entity.Message) error {
 		text:  m.Text,
 	}
 
+	fmt.Printf("Отправка %+v\n", r)
+
 	resp, err := p.client.R().
 		SetBody(r).
 		Post(p.EndPoint)
@@ -69,7 +71,7 @@ func (p Poster) Work(in chan entity.Message) (chan entity.Message, error) {
 	go func() {
 
 		for m := range in {
-			fmt.Printf("Отправка %+v\n", m)
+
 			err := p.Send(m)
 
 			// обрабатываем ошибки
