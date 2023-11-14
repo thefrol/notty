@@ -29,6 +29,7 @@ const (
 	retryWait  = 3
 	retryCount = 3
 	token      = "123123"
+	endpoint   = "https://probe.fbrq.cloud/v1/send"
 )
 
 func main() {
@@ -47,7 +48,7 @@ func main() {
 
 	SubscriptionService := subscriptions.New(db)
 
-	PostingService := postman.New("123", retryWait, retryCount, token)
+	PostingService := postman.New(endpoint, retryWait, retryCount, token)
 
 	notty := app.Notifyer{
 		Messages:      MessageStreaming,
