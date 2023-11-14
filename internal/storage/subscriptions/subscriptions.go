@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"gitlab.com/thefrol/notty/internal/entity"
-	"gitlab.com/thefrol/notty/internal/storage/scan"
 )
 
 // todo мда, назавание глупое, надо же рассылка а не подписка
@@ -37,7 +36,16 @@ func (c Subscriptions) Get(id string) (res entity.Subscription, err error) {
 		WHERE
 			id=$1`, id)
 
-	return scan.Subscription(r)
+	err = r.Scan(
+		&res.Id,
+		&res.Text,
+		&res.Start,
+		&res.End,
+		&res.OperatorFilter,
+		&res.PhoneFilter,
+		&res.TagFilter,
+		&res.Desc)
+	return
 }
 
 func (c Subscriptions) Delete(id string) error {
@@ -114,44 +122,4 @@ func (c Subscriptions) Create(cl entity.Subscription) (res entity.Subscription, 
 	}
 
 	return c.Get(cl.Id)
-}
-
-// Active возвращает список активных рассылок
-func (s Subscriptions) Active() ([]entity.Subscription, error) {
-	var subs []entity.Subscription
-
-	rs, err := s.db.Query(`
-		SELECT
-			id,
-			msg_text, 
-			sub_start,
-			sub_end,
-			operator_filter,
-			phone_filter,
-			tag_filter,
-			description
-		FROM 
-			subscription
-		WHERE
-			sub_start<now()
-			AND now()<sub_end`)
-	if err != nil {
-		return nil, err
-	}
-	defer rs.Close()
-
-	for rs.Next() {
-		res, err := scan.Subscription(rs)
-		if err != nil {
-			return nil, err
-		}
-
-		subs = append(subs, res)
-	}
-
-	if err := rs.Err(); err != nil {
-		return nil, err
-	}
-
-	return subs, nil
 }
