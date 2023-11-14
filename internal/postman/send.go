@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -38,22 +39,32 @@ var (
 )
 
 func (p Poster) Send(m entity.Message) error {
+
 	ph, err := strconv.Atoi(m.Phone[1:])
 	if err != nil {
 		return ErrorInvalidData
 	}
 
+	id := rand.Int63()
+
 	r := NotifyRequest{
-		ID:    rand.Int63(),
+		ID:    id,
 		phone: ph,
 		text:  m.Text,
+	}
+
+	u, err := url.JoinPath(p.EndPoint, strconv.Itoa(int(id)))
+	if err != nil {
+		return err
 	}
 
 	fmt.Printf("Отправка %+v\n", r)
 
 	resp, err := p.client.R().
 		SetBody(r).
-		Post(p.EndPoint)
+		Post(u)
+
+	fmt.Println("RESPONSE:", resp.StatusCode())
 
 	if err != nil {
 		return err
@@ -61,6 +72,10 @@ func (p Poster) Send(m entity.Message) error {
 
 	if resp.StatusCode() == 400 {
 		return ErrorInvalidData
+	}
+
+	if resp.StatusCode() != 200 {
+		return fmt.Errorf("Неизвестная ошибка %v", err)
 	}
 
 	return nil
