@@ -1,6 +1,10 @@
 package postman
 
 import (
+	"errors"
+	"fmt"
+	"math/rand"
+	"strconv"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -29,25 +33,56 @@ type NotifyRequest struct {
 	text  string
 }
 
-func (p Poster) Send(m entity.Message) {
+var (
+	ErrorInvalidData = errors.New("bad request")
+)
 
-	p.client.R().
-		SetBody(msg).
+func (p Poster) Send(m entity.Message) error {
+	ph, err := strconv.Atoi(m.Phone[1:])
+	if err != nil {
+		return ErrorInvalidData
+	}
+
+	r := NotifyRequest{
+		ID:    rand.Int63(),
+		phone: ph,
+		text:  m.Text,
+	}
+
+	resp, err := p.client.R().
+		SetBody(r).
 		Post(p.EndPoint)
+
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode() == 400 {
+		return ErrorInvalidData
+	}
+
+	return nil
 }
 
 func (p Poster) Work(in chan entity.Message) (chan entity.Message, error) {
 	done := make(chan entity.Message)
 	go func() {
-		count := 0
-		for m := range in {
-			count += 1
-			time.Sleep(5 * time.Second)
 
-			if count%2 == 0 {
-				m.Failed()
+		for m := range in {
+			fmt.Printf("Отправка %+v\n", m)
+			err := p.Send(m)
+
+			// обрабатываем ошибки
+			// и помечаем сообщение
+			if err != nil {
+				if errors.Is(err, ErrorInvalidData) {
+					m.Invalid()
+				} else {
+					m.Failed()
+				}
+			} else {
+				m.SentNow()
 			}
-			m.SentNow()
 			done <- m
 		}
 		close(done)
