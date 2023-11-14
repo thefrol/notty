@@ -68,8 +68,37 @@ func (app Notifyer) FindAndSend(batch int, workers int) {
 
 }
 
-// помошники по конкуретной работе
+func (app Notifyer) TryToResend(batch, workers int) {
+	// получим зафейленные ранее сообщения
+	in, err := app.Messages.Failed(batch)
+	if err != nil {
+		return
+	}
 
+	// отправляем в кучу горутин
+	var dones []chan entity.Message
+	for i := 0; i < workers; i++ {
+		done, err := app.Poster.Work(in)
+		if err != nil {
+			log.Fatal(err)
+		}
+		dones = append(dones, done)
+	}
+
+	// логика такая что тут бы заглушку поставить,
+	// типа только один тред может работать
+
+	/// собираем все в кучу и обновляем
+	end, err := app.Messages.Update(FanIn(dones...))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// и все выбрасываем
+	terminate(end)
+}
+
+// помошники по конкуретной работе
 func FanIn(ins ...chan entity.Message) chan entity.Message {
 	out := make(chan entity.Message)
 
