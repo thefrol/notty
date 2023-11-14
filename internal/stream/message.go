@@ -42,6 +42,25 @@ func (stream MessageStream) Generate(batch int) (chan dto.Prototype, error) {
 	return out, nil
 }
 
+func (stream MessageStream) Failed(batch int) (chan entity.Message, error) {
+
+	b, err := stream.MessageRepository.ByStatus(entity.StatusFailed, batch)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make(chan entity.Message)
+
+	go func() {
+		for _, msg := range b {
+			out <- msg
+		}
+		close(out)
+	}()
+
+	return out, nil
+}
+
 func (stream MessageStream) SetStatus(in chan entity.Message, status string) (chan entity.Message, error) {
 	out := make(chan entity.Message)
 	go func() {

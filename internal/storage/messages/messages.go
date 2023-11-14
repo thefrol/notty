@@ -69,6 +69,41 @@ func (m Messages) Get(id string) (res entity.Message, err error) {
 	return scan.Message(r)
 }
 
+func (c Messages) ByStatus(status string, n int) ([]entity.Message, error) {
+	rs, err := c.db.Query(`
+	SELECT
+		id,
+		customer_id,
+		sub_id,
+		message_text,
+		phone,
+		status,
+		sent timestamptz
+	FROM
+		Messages
+	WHERE
+		status=$1`, status)
+	if err != nil {
+		return nil, err
+	}
+
+	//обрабатываем запрос
+	batch := make([]entity.Message, 0, n)
+	for rs.Next() {
+		msg, err := scan.Message(rs)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		batch = append(batch, msg)
+	}
+
+	if err := rs.Err(); err != nil {
+		return nil, err
+	}
+	return batch, nil
+}
+
 func (c Messages) Delete(id string) error {
 	rs, err := c.db.Exec(`
 		DELETE
