@@ -4,18 +4,21 @@ import (
 	"database/sql"
 
 	"gitlab.com/thefrol/notty/internal/storage/customers"
+	"gitlab.com/thefrol/notty/internal/storage/messages"
 	"gitlab.com/thefrol/notty/internal/storage/subscriptions"
 )
 
 type App struct {
 	CustomerRepository     customers.Customers
 	SubscriptionRepository subscriptions.Subscriptions
+	MessageRepository      messages.Messages
 }
 
 func New(db *sql.DB) App {
 	return App{
 		CustomerRepository:     customers.New(db),
 		SubscriptionRepository: subscriptions.New(db),
+		MessageRepository:      messages.New(db),
 	}
 }
 

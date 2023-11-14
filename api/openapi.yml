@@ -242,6 +242,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /message/{Id}:
+    get:
+      operationId: GetMessage
+      tags:
+        - message
+      description: 'получает данные о сообщении'
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
     Customer:
@@ -297,6 +322,31 @@ components:
         text:
           description: Текст сообщения в рассылке
           type: string
+    Message:
+      type: object
+      required:
+        - id
+        - customer_id
+        - subscription_id
+        - text
+        - phone
+        - status
+      properties:
+        id:
+          type: string
+        customer_id:
+          type: string
+        subscription_id:
+          type: string
+        text:
+          type: string
+        phone:
+          type: string
+        status:
+          type: string
+        sent:
+          type: string
+          format: date-time
     Error:
       type: object
       required:
@@ -317,3 +367,5 @@ tags:
     description: Клиент представляет собой сущеность, которой будут приходить уведомления
   - name: subscription
     description: Подписки содержат фильтры, по которым будут выбраны клиенты, которы пришлют уведомления в указанное у подписке время
+  - name: message
+    description: Сообщение, отправленное, готовящееся к отправке или отмененное
