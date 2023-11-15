@@ -90,6 +90,7 @@ kubectl apply -f ./deploy/k8s
 + Сделан [Dockerfile](./Dockerfile)
 + Сделан [docker-compose.yml](./deploy/docker-compose.yml)
 + [Deployments и sevice](./deploy/k8s/) для кубернетес
++ Проработать недоступность сервиса отправки смс
 
 ### Сваггер интерфейс
 
