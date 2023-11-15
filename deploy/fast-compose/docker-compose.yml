@@ -7,6 +7,8 @@ services:
       - POSTGRES_USER=notty
       - POSTGRES_PASSWORD=notty.notty.1
       - POSTGRES_DB=notty
+    depends_on:
+      - db
   web:
     image: registry.gitlab.com/thefrol/notty:server
     restart: always
@@ -20,4 +22,6 @@ services:
     environment:
       NOTTY_DSN: host=db user=notty password=notty.notty.1 dbname=notty
       ENDPOINT_TOKEN: ${TOKEN}
+    depends_on:
+      - db
 
