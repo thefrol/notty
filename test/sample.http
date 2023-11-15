@@ -1,0 +1,45 @@
+# Этот запрос сработает
+
+POST http://localhost/customer
+Content-Type: application/json
+
+{
+    "name": "Иван Тестов",
+    "tag": "test",
+    "operator": "mts",
+    "phone":"+76662223311"
+}
+
+###
+
+# А этот нет
+
+POST http://localhost/customer
+Content-Type: application/json
+
+{
+    "name": "Иван Тестов",
+    "tag": "test",
+    "operator": "bee",
+    "phone":"86662223311"
+}
+
+
+###
+
+# А тут Ване отправится сообщение
+# по тегу
+
+POST http://localhost/sub
+Content-Type: application/json
+
+{
+  "desc": "Это тестовая рассылка отправит человеку сообщение",
+  "start": "2019-08-24T14:15:22Z",
+  "end": "2035-08-24T14:15:22Z",
+  "operator_filter": "%",
+  "phone_filter": "%",
+  "tag_filter": "test",
+  "text": "Привет! Это рассылка"
+}
+
