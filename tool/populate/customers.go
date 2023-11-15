@@ -19,6 +19,13 @@ var custs = []entity.Customer{
 		Name:     "Лизавета Н.",
 	},
 	{
+		Id:       "layla666",
+		Phone:    "+71262325566",
+		Tag:      "hate",
+		Operator: "yota",
+		Name:     "Попова М.",
+	},
+	{
 		Id:       "random",
 		Phone:    "+71262325566",
 		Tag:      "someone",
