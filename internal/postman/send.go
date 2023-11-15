@@ -1,6 +1,7 @@
 package postman
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -24,7 +25,9 @@ func New(endpoint string, retryWaitSeconds int, retryCount int, token string) Po
 		client: resty.New().
 			SetRetryWaitTime(time.Second * time.Duration(retryWaitSeconds)).
 			SetRetryCount(retryCount).
-			SetAuthToken(token),
+			SetAuthToken(token).
+			SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}),
+		// todo bug надо как-то из докера научиться проверять сертификаты
 	}
 }
 
