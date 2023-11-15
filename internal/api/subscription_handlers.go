@@ -85,3 +85,14 @@ func (a *Api) UpdateSubscription(w http.ResponseWriter, r *http.Request, id stri
 
 	respond.Subscription(w, res)
 }
+
+// SubscriptionStats implements generated.ServerInterface.
+func (a *Api) SubscriptionStats(w http.ResponseWriter, r *http.Request, id string) {
+	counts, err := a.app.SubscriptionRepository.CountByStatuses(id)
+	if err != nil {
+		respond.BadRequest(w, "Не могу получить статистику %v", err)
+		return
+	}
+
+	respond.WithMap(w, counts)
+}

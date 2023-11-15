@@ -26,6 +26,9 @@ type ServerInterface interface {
 	// (POST /customer/{Id})
 	UpdateClient(w http.ResponseWriter, r *http.Request, id string)
 
+	// (GET /message/{Id})
+	GetMessage(w http.ResponseWriter, r *http.Request, id string)
+
 	// (POST /sub)
 	CreateSubscription(w http.ResponseWriter, r *http.Request)
 
@@ -37,6 +40,9 @@ type ServerInterface interface {
 
 	// (POST /sub/{Id})
 	UpdateSubscription(w http.ResponseWriter, r *http.Request, id string)
+
+	// (GET /sub/{Id}/stats)
+	SubscriptionStats(w http.ResponseWriter, r *http.Request, id string)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -63,6 +69,11 @@ func (_ Unimplemented) UpdateClient(w http.ResponseWriter, r *http.Request, id s
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// (GET /message/{Id})
+func (_ Unimplemented) GetMessage(w http.ResponseWriter, r *http.Request, id string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // (POST /sub)
 func (_ Unimplemented) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -80,6 +91,11 @@ func (_ Unimplemented) GetSubscription(w http.ResponseWriter, r *http.Request, i
 
 // (POST /sub/{Id})
 func (_ Unimplemented) UpdateSubscription(w http.ResponseWriter, r *http.Request, id string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /sub/{Id}/stats)
+func (_ Unimplemented) SubscriptionStats(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -185,6 +201,32 @@ func (siw *ServerInterfaceWrapper) UpdateClient(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
+// GetMessage operation middleware
+func (siw *ServerInterfaceWrapper) GetMessage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "Id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "Id", runtime.ParamLocationPath, chi.URLParam(r, "Id"), &id)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetMessage(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
 // CreateSubscription operation middleware
 func (siw *ServerInterfaceWrapper) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -269,6 +311,32 @@ func (siw *ServerInterfaceWrapper) UpdateSubscription(w http.ResponseWriter, r *
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateSubscription(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// SubscriptionStats operation middleware
+func (siw *ServerInterfaceWrapper) SubscriptionStats(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "Id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "Id", runtime.ParamLocationPath, chi.URLParam(r, "Id"), &id)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SubscriptionStats(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -404,6 +472,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/customer/{Id}", wrapper.UpdateClient)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/message/{Id}", wrapper.GetMessage)
+	})
+	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/sub", wrapper.CreateSubscription)
 	})
 	r.Group(func(r chi.Router) {
@@ -414,6 +485,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/sub/{Id}", wrapper.UpdateSubscription)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/sub/{Id}/stats", wrapper.SubscriptionStats)
 	})
 
 	return r

@@ -12,6 +12,11 @@ type Api struct {
 	app app.App // арр-аррр-аррррр ! пираты
 }
 
+// GetMessage implements generated.ServerInterface.
+func (a *Api) GetMessage(w http.ResponseWriter, r *http.Request, id string) {
+	panic("not implemented")
+}
+
 // New создает новый сервис - набор хендлеров
 func New(app app.App) Api {
 	return Api{app: app}

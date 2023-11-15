@@ -116,6 +116,8 @@ func (c Subscriptions) Create(cl entity.Subscription) (res entity.Subscription, 
 	return c.Get(cl.Id)
 }
 
+// Это уже блок скорее сервиса, чем репозитория
+
 // Active возвращает список активных рассылок
 func (s Subscriptions) Active() ([]entity.Subscription, error) {
 	var subs []entity.Subscription
@@ -154,4 +156,52 @@ func (s Subscriptions) Active() ([]entity.Subscription, error) {
 	}
 
 	return subs, nil
+}
+
+// var statuses = [...]string{
+// 	entity.StatusSent,
+// 	entity.StatusFailed,
+// 	entity.StatusInvalid,
+// 	"created"} //todo
+
+// куда интересно такие хелпер запросы пихать?
+// Active возвращает список активных рассылок
+func (s Subscriptions) CountByStatuses(id string) (map[string]int, error) {
+	rs, err := s.db.Query(`
+		SELECT
+			status,
+			COUNT(status)
+		FROM 
+			Subscription s
+		LEFT JOIN
+			messages
+			ON s.id=sub_id
+		WHERE
+			s.id=$1
+			AND status IS NOT NULL
+		GROUP BY
+			status`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rs.Close()
+
+	res := make(map[string]int, 10) // todo magic number
+	for rs.Next() {
+		var (
+			status string
+			count  int
+		)
+		err = rs.Scan(&status, &count)
+		if err != nil {
+			return nil, err
+		}
+		res[status] = count
+	}
+
+	if err := rs.Err(); err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
