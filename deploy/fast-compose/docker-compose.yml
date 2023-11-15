@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=notty
+      - POSTGRES_PASSWORD=notty.notty.1
+      - POSTGRES_DB=notty
+  web:
+    image: registry.gitlab.com/thefrol/notty:server
+    restart: always
+    environment:
+      - NOTTY_DSN=host=db user=notty password=notty.notty.1 dbname=notty
+    ports:
+      - '80:8080'
+  send:
+    image: registry.gitlab.com/thefrol/notty:worker
+    restart: always
+    environment:
+      NOTTY_DSN: host=db user=notty password=notty.notty.1 dbname=notty
+      ENDPOINT_TOKEN: ${TOKEN}
+
