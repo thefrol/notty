@@ -80,6 +80,7 @@ TOKEN=<your_token> ./scripts/run-local
 + Юнит тестирование, и ***интегральное тестирование** в пайплайне на гитлабе
 + Сделан [Dockerfile](./Dockerfile)
 + Сделан [docker-compose.yml](./deploy/docker-compose.yml)
++ [Deployments и sevice](./deploy/k8s/) для кубернетес
 
 ### Сваггер интерфейс
 
