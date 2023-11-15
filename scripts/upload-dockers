@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Создать и загрузить образы в реестр гитлаба
+
+REPO=registry.gitlab.com/thefrol/notty
+IMAGES=(server worker)
+
+for image in ${IMAGES[@]}; do
+    tag=$REPO:$image
+
+    docker build -t $tag --build-arg cmd=$image .
+    docker push $tag
+done

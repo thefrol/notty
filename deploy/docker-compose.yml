@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=notty
+      - POSTGRES_PASSWORD=notty.notty.1
+      - POSTGRES_DB=notty
+      
+  web:
+    build:
+      context: ..
+      args:
+        cmd: server
+    restart: always
+    environment:
+      - NOTTY_DSN=host=db user=notty password=notty.notty.1 dbname=notty
+    ports:
+      - '80:8080'
+    depends_on:
+      - db
+
+  send:
+    build:
+      context: ..
+      args:
+        cmd: worker
+    restart: always
+    environment:
+      NOTTY_DSN: host=db user=notty password=notty.notty.1 dbname=notty
+      ENDPOINT_TOKEN: ${TOKEN}
+    depends_on:
+      - db
+
