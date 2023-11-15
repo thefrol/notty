@@ -1,17 +1,20 @@
 openapi: 3.0.0
 info:
-  title: Нотти
+  title: Нотти. Сервис смс-уведомлений
   version: '1.0'
-  description: >-
-    Сервис уведомлений Нотти позволяет рассылать смс уведомления. Создавайте
-    рассылки, тегайте клиентов и все смс уйдут в назначенное время.
+  description: |
+    Отправит уведомления с фильтрацией по тегам и    операторам. Не пропускает мат.     За счет конкурентности готов отправлять по миллиону сообщений в минуту.
+
+    Через  добавляются клиенты и рассылки. У каждой рассылки можно указать время начала и окончания. Если рассылка сейчас активна, то из клиентов отфильтруются те, что подходят по тегам и операторам, и отправит им сообщение.
+
+    Под капотом база данных с двумя микросервисами. Один держит веб-интерфейс, другой проверяет базу и отправляет сообщения. 
 paths:
   /customer/{Id}:
     get:
       operationId: GetClient
       tags:
         - customer
-      description: 'Создать клиента'
+      description: Позволяет получить клиента по айдишнику
       parameters:
         - in: path
           name: Id
@@ -33,9 +36,9 @@ paths:
                 $ref: '#/components/schemas/Error'
     delete:
       operationId: DeleteClient
+      description: Удаление клиента по айдишнику
       tags:
         - customer
-      description: ''
       parameters:
         - in: path
           name: Id
@@ -51,9 +54,9 @@ paths:
                 type: string
     post:
       operationId: UpdateClient
+      description: Обновить клиента по айди
       tags:
         - customer
-      description: ''
       parameters:
         - in: path
           name: Id
@@ -95,7 +98,7 @@ paths:
       operationId: CreateClient
       tags:
         - customer
-      description: ''
+      description: Создает клиента. Айдишник можно указывать, а можно не указывать
       parameters: []
       requestBody:
         content:
@@ -126,7 +129,7 @@ paths:
       operationId: GetSubscription
       tags:
         - subscription
-      description: ''
+      description: 'Получить рассылку по айдишнику'
       parameters:
         - in: path
           name: Id
@@ -150,7 +153,7 @@ paths:
       operationId: DeleteSubscription
       tags:
         - subscription
-      description: ''
+      description: 'Удалить рассылку'
       parameters:
         - in: path
           name: Id
@@ -180,7 +183,7 @@ paths:
       operationId: UpdateSubscription
       tags:
         - subscription
-      description: ''
+      description: Обновить рассылку
       parameters:
         - in: path
           name: Id
@@ -211,12 +214,39 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+  /sub/{Id}/stats:
+    get:
+      operationId: SubscriptionStats
+      tags:
+        - subscription
+      description: 'Возвращает статистику по текущей рассылке. Сколько отправлено и получено'
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Found
+          content:
+            application/json:
+              schema: # map[string]
+                type: object
+                additionalProperties: 
+                  type: integer
+        '400':
+          description: Запрос неправильно сформирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /sub:
     post:
       operationId: CreateSubscription
       tags:
         - subscription
-      description: ''
+      description: Создать рассылку. Если не указать айдишник, то создастся UUID
       parameters: []
       requestBody:
         content:
@@ -271,7 +301,7 @@ components:
   schemas:
     Customer:
       type: object
-      description: Клиент, которому будет приходить рассылка
+      description: Клиент, которому будет приходить рассылка. Имеет номер телефона, имя оператора и тег, по которому его сможет найти рассылка.
       required:
         - id
         - phone
@@ -281,15 +311,26 @@ components:
       properties:
         id:
           type: string
+          description: айдишник сообщения, английские буквы и тире. Подойдет UUID
+          example: ivan-testov
         name:
           type: string
+          desctiption: имя человека
+          example: Иван Тестов
         phone:
           type: string
+          description: номер телефона в формате +71112223344
+          example: "+79161112233"
         tag:
           type: string
+          description: тег, по которому можно будет таргетировать рассылку
+          example: moscow-best
         operator:
           type: string
+          description: оператор, строка 
+          example: mts
     Subscription:
+      description: Не смотря на название, это сущности рассылки. Имеет время начала, до которого сообщения рассылаться не будут, и время окончания, после которого тоже не будут рассылаться сообщения. Есть фильтр по тегам и оператору, которые работают в формате постревкого ILIKE. 
       type: object
       required:
         - id
@@ -303,23 +344,33 @@ components:
       properties:
         id:
           type: string
+          description: айдишник, английские буквы и тире. Может быть UUID
+          example: send-to-best-clients
         start:
           type: string
           format: date-time
+          description: время начала, до этого времени рассылаться не будет
         end:
           type: string
           format: date-time
+          description: время окончания, после этого времени рассылаться не будет
         phone_filter:
           type: string
+          description: фильтр по номеру телефона, сейчас не используется
         operator_filter:
           type: string
+          description: фильтр по оператору, работает как ILIKE в SQL
+          example: '%'
         tag_filter:
-          text: "фильтр формата ilike, который будет применен на поле тег клиента"
+          description: фильтр по оператору, работает как ILIKE в SQL
           type: string
+          example: 'moscow-%'
         desc:
-          description: 'Описание рассылки, просто для чего она создавалась и тд. '
+          description: Описание рассылки, просто для чего она создавалась и тд.
           type: string
+          example: 'Рассылка кредитов нахаляву'
         text:
+          example: Добрый день! Вам одобрен кредит по 0%
           description: Текст сообщения в рассылке
           type: string
     Message:
@@ -364,8 +415,8 @@ components:
       bearerFormat: JWT
 tags:
   - name: customer
-    description: Клиент представляет собой сущеность, которой будут приходить уведомления
+    description: Конкретный человек, у него есть номер телефона и тег. По этим тегам можно потом таргетировать рассылку
   - name: subscription
-    description: Подписки содержат фильтры, по которым будут выбраны клиенты, которы пришлют уведомления в указанное у подписке время
+    description: 
   - name: message
-    description: Сообщение, отправленное, готовящееся к отправке или отмененное
+    description: Сообщение
