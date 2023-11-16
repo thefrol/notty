@@ -6,6 +6,7 @@ import (
 
 	"gitlab.com/tanna.dev/openapi-doc-http-handler/elements"
 	"gitlab.com/thefrol/notty/internal/api/generated"
+	"gitlab.com/thefrol/notty/pkg/swagger"
 )
 
 // ErrorEndpoint создает такую ручку, в которой все время при обращении
@@ -17,6 +18,14 @@ func ErrorEndpoint(msg string) http.HandlerFunc {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(msg))
 	}
+}
+
+func SwaggerUI() http.HandlerFunc {
+	sw, err := generated.GetSwagger()
+	if err != nil {
+		return ErrorEndpoint("Сваггер интерфейс не получается запустить, не возможно пропарсить спеку  вставленну в бинарник")
+	}
+	return swagger.Handler(sw)
 }
 
 // Docs создает ручку для сваггера, которую можно прицепить к роутеру

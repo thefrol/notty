@@ -1,6 +1,8 @@
 package api
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -56,6 +58,10 @@ func (a *Api) GetSubscription(w http.ResponseWriter, r *http.Request, id string)
 
 	sub, err := a.app.SubscriptionRepository.Get(id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			respond.NotFound(w, "Рассылка с id %s не обнаружена", id)
+			return
+		}
 		respond.InternalServerError(w, "Не удалось найти подписку с id=%s %v", id, err)
 		return
 	}

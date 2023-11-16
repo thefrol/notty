@@ -1,17 +1,69 @@
 openapi: 3.0.0
 info:
   title: Нотти. Сервис смс-уведомлений
-  version: '1.0'
+  version: '1.1'
   description: |
-    Отправит уведомления с фильтрацией по тегам и    операторам. Не пропускает мат.     За счет конкурентности готов отправлять по миллиону сообщений в минуту.
+    Отправит уведомления с фильтрацией по тегам и    операторам. Не пропускает мат. За счет конкурентности готов отправлять по миллиону сообщений в минуту.
 
-    Через  добавляются клиенты и рассылки. У каждой рассылки можно указать время начала и окончания. Если рассылка сейчас активна, то из клиентов отфильтруются те, что подходят по тегам и операторам, и отправит им сообщение.
+    Через веб-апи добавляются клиенты и рассылки. У каждой рассылки можно указать время начала и окончания. Если рассылка сейчас активна, то из клиентов отфильтруются те, что подходят по тегам и операторам, и отправит им сообщение.
+
+    Сервис [развертывается за 10 сек](https://gitlab.com/thefrol/notty#быстрое-развертывание-без-скачивания-репозитория)
 
     Под капотом база данных с двумя микросервисами. Один держит веб-интерфейс, другой проверяет базу и отправляет сообщения. 
+
+    [Документация и репозиторий](https://gitlab.com/thefrol/notty)
+
+    Все [допзадания отмечены тут](https://gitlab.com/thefrol/notty#допзадания)
 paths:
+
+  ##
+  ## КЛИЕНТЫ
+  ##
+
+  /customer:
+    post:
+      summary: Добавить клиента
+      operationId: CreateClient
+      tags:
+        - customer
+      description: |
+        Создает клиента. Айдишник можно указывать, а можно нет
+
+        Телефон указывается в формате +72223334455, поддерживаются и коды других стран. Тег и оператор задаются в произовльном формате. Стоит указывать их так, чтобы потом можно было найти при помощи поиска по шалону, когда будете создавать рассылку.
+
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: Данные для создания клиента не прошли валидацию
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка при создании клиента
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+
   /customer/{Id}:
+    summary: "Получить уже существующего клиента"
     get:
       operationId: GetClient
+      summary: Возвращает клиента
       tags:
         - customer
       description: Позволяет получить клиента по айдишнику
@@ -19,6 +71,8 @@ paths:
         - in: path
           name: Id
           required: true
+          description: Идентификатор клиента состоит из анлийских букв цифр и тире
+          example: my-best-client
           schema:
             type: string
       responses:
@@ -35,6 +89,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     delete:
+      summary: Удалить клиента
       operationId: DeleteClient
       description: Удаление клиента по айдишнику
       tags:
@@ -53,6 +108,7 @@ paths:
               schema:
                 type: string
     post:
+      summary: Изменить клиента
       operationId: UpdateClient
       description: Обновить клиента по айди
       tags:
@@ -93,39 +149,54 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /customer:
+
+  ##
+  ## Рассылки
+  ##
+
+  /sub:
     post:
-      operationId: CreateClient
+      summary: Создать рассылку
+      operationId: CreateSubscription
       tags:
-        - customer
-      description: Создает клиента. Айдишник можно указывать, а можно не указывать
+        - subscription
+      description: |
+        Если не указать айдишник, то создастся UUID
+
+        Фильтры задаются в формате ILIKE, как в SQL. То есть, например, стоит поставить фильтр "clients.%", то подойдут клиенты "clients.best", "clients.moscow" итд.
+
+        В поле Desc задается описание рассылки, чтобы не забывать зачем она нужна. Например, эта рассылает новым клиентам, а эта про черную пятницу.
+
+        В поле текст нельзя указывать мат, такая рассылка просто не создастся
       parameters: []
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Customer'
+              $ref: '#/components/schemas/Subscription'
       responses:
-        '207':
+        '201':
           description: Created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Customer'
+                $ref: '#/components/schemas/Subscription'
         '400':
-          description: Данные для создания клиента не прошли валидацию
+          description: Запрос неправильно сформирован
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '500':
-          description: Ошибка при создании клиента
+          description: Ошибка при создании
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
   /sub/{Id}:
     get:
+      summary: Получить уже существующую рассылку
       operationId: GetSubscription
       tags:
         - subscription
@@ -150,6 +221,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
     delete:
+      summary: Удалить рассылку
       operationId: DeleteSubscription
       tags:
         - subscription
@@ -180,6 +252,7 @@ paths:
               schema:
                 type: string
     post:
+      summary: Обновить рассылку
       operationId: UpdateSubscription
       tags:
         - subscription
@@ -217,9 +290,10 @@ paths:
   /sub/{Id}/stats:
     get:
       operationId: SubscriptionStats
+      summary: Получить статистику по рассылке
       tags:
         - subscription
-      description: 'Возвращает статистику по текущей рассылке. Сколько отправлено и получено'
+      description: Возвращает статистику по текущей рассылке. Сколько отправлено и получено'
       parameters:
         - in: path
           name: Id
@@ -241,39 +315,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-  /sub:
-    post:
-      operationId: CreateSubscription
-      tags:
-        - subscription
-      description: Создать рассылку. Если не указать айдишник, то создастся UUID
-      parameters: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Subscription'
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Subscription'
-        '400':
-          description: Запрос неправильно сформирован
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Ошибка при создании
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
+
   /message/{Id}:
     get:
+      summary: Получить инфу про конкретное сообщение
       operationId: GetMessage
       tags:
         - message
@@ -406,8 +451,10 @@ components:
       properties:
         code:
           type: string
+          example: "404"
         desc:
           type: string
+          example: "Not found"
   securitySchemes:
     BearerAuth:
       type: http
@@ -415,8 +462,17 @@ components:
       bearerFormat: JWT
 tags:
   - name: customer
-    description: Конкретный человек, у него есть номер телефона и тег. По этим тегам можно потом таргетировать рассылку
+    description: Реестр клиентов. Все, что поможет создать и управлять списком клиентов. 
+    externalDocs:
+      description: Узнай больше
+      url: https://gitlab.com/thefrol/notty
   - name: subscription
-    description: 
+    description: Несмотря на противоречивое название, тут находятся именно рассылки :)
+    externalDocs:
+      description: Узнай больше
+      url: https://gitlab.com/thefrol/notty
   - name: message
-    description: Сообщение
+    description: Отправленные сообщения
+    externalDocs:
+      description: Узнай больше
+      url: https://gitlab.com/thefrol/notty

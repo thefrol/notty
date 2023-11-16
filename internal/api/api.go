@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"gitlab.com/thefrol/notty/internal/api/generated"
+	"gitlab.com/thefrol/notty/internal/api/respond"
 	"gitlab.com/thefrol/notty/internal/app"
 )
 
@@ -14,7 +15,7 @@ type Api struct {
 
 // GetMessage implements generated.ServerInterface.
 func (a *Api) GetMessage(w http.ResponseWriter, r *http.Request, id string) {
-	panic("not implemented")
+	respond.InternalServerError(w, "Не реализовано :(")
 }
 
 // New создает новый сервис - набор хендлеров
