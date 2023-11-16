@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# это как upload-dockers, только тот для баша,
+# а этот для более жесткого sh
+
+# Создать и загрузить образы в реестр гитлаба
+
+REPO=registry.gitlab.com/thefrol/notty
+
+images="server worker"
+
+for image in ${images};do
+    tag=$REPO:$image
+
+    docker build -t $tag --build-arg cmd=$image .
+    docker push $tag
+done
