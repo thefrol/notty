@@ -20,12 +20,12 @@ func ErrorEndpoint(msg string) http.HandlerFunc {
 	}
 }
 
-func SwaggerUI() http.HandlerFunc {
+func SwaggerUI(title string) http.HandlerFunc {
 	sw, err := generated.GetSwagger()
 	if err != nil {
 		return ErrorEndpoint("Сваггер интерфейс не получается запустить, не возможно пропарсить спеку  вставленну в бинарник")
 	}
-	return swagger.Handler(sw)
+	return swagger.Handler(sw, title)
 }
 
 // Docs создает ручку для сваггера, которую можно прицепить к роутеру

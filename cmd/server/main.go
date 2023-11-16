@@ -33,7 +33,7 @@ func main() {
 
 	r.Mount("/", notty.OpenAPI())
 	r.Get("/docs", api.Docs())
-	r.Get("/ui", api.SwaggerUI())
+	r.Get("/ui", api.SwaggerUI("Нотти!"))
 
 	http.ListenAndServe(":8080", r)
 }
