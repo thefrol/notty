@@ -1,6 +1,8 @@
 package api
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -31,6 +33,7 @@ func (a *Api) CreateClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusCreated)
 	respond.Customer(w, res)
 }
 
@@ -43,6 +46,10 @@ func (a *Api) GetClient(w http.ResponseWriter, r *http.Request, id string) {
 
 	c, err := a.app.CustomerRepository.Get(id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			respond.NotFound(w, "Клиент с id %s не обнаружен", id)
+			return
+		}
 		respond.InternalServerError(w, "Не удалось найти клиента с id=%s %v", id, err)
 		return
 	}

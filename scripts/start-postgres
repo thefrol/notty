@@ -9,6 +9,7 @@ DB_PASS=local.dev.1
 DB_NAME=notty_dev_local
 DB_PORT=15432
 
+docker rm notty_postgres
 sudo docker run --name notty_postgres \
     -e POSTGRES_DB=$DB_NAME \
     -e POSTGRES_USER=$DB_USER \

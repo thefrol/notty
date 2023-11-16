@@ -30,8 +30,10 @@ func main() {
 	notty := api.New(app)
 
 	r := chi.NewRouter()
+
 	r.Mount("/", notty.OpenAPI())
 	r.Get("/docs", api.Docs())
+	r.Get("/ui", api.SwaggerUI())
 
 	http.ListenAndServe(":8080", r)
 }
