@@ -3,3 +3,6 @@
 
 # binaries
 __debug*
+
+# notes for myself
+.mentor*
