@@ -43,9 +43,13 @@ func (p *Prototypes) Spawn(n int) ([]dto.Prototype, error) {
 				c.tag ILIKE s.tag_filter
 				AND c.operator ILIKE s.operator_filter
 				AND m.status IS NULL
+				AND s.sub_start < now() 
+				AND now() < s.sub_end 
 			LIMIT
 				$1
 			`, n) // все статусы уже отдельно обработаем, тут выкинем только неотправленные
+
+	//todo надо срочно тесты на рассылки
 
 	if err != nil {
 		return nil, err
