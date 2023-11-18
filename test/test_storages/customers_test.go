@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/thefrol/notty/internal/entity"
-	"gitlab.com/thefrol/notty/internal/storage/customers"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
+	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 )
 
 // тут не надо проверять валидные и невалидные поля
@@ -19,7 +19,7 @@ func Test_CustomerWorkflow(t *testing.T) {
 	}
 	conn := postgres.MustConnect(TestDSN)
 
-	clients := customers.New(conn)
+	clients := sqlrepo.New(conn)
 
 	c := entity.Customer{
 		Id:       "test-one",
@@ -28,7 +28,7 @@ func Test_CustomerWorkflow(t *testing.T) {
 		Phone:    "+79161234533",
 		Tag:      "test_user",
 	}
-	_, err := clients.Create(c)
+	err := clients.Create(c)
 	require.NoError(t, err)
 
 	g, err := clients.Get(c.Id)

@@ -25,9 +25,9 @@ func (a *Api) CreateClient(w http.ResponseWriter, r *http.Request) {
 	// если айдишник не указан - создадим сами
 	if c.Id == "" {
 		c.Id = uuid.New().String()
-	}
+	} // todo что-то надо сделать с этим
 
-	res, err := a.app.CustomerRepository.Create(c) // todo а что если такой клиент существует??
+	res, err := a.app.Customers.Create(c) // todo а что если такой клиент существует??
 	if err != nil {
 		http.Error(w, "не удалось создать клиента"+err.Error(), http.StatusInternalServerError) // todo отвечать структурой
 		return
@@ -44,7 +44,7 @@ func (a *Api) GetClient(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	c, err := a.app.CustomerRepository.Get(id)
+	c, err := a.app.Customers.Get(id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			respond.NotFound(w, "Клиент с id %s не обнаружен", id)
@@ -63,7 +63,7 @@ func (a *Api) DeleteClient(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	err := a.app.CustomerRepository.Delete(id)
+	err := a.app.Customers.Delete(id)
 	if err != nil {
 		respond.InternalServerError(w, "Не удалось удалить клиента %v", err)
 		return
@@ -80,7 +80,7 @@ func (a *Api) UpdateClient(w http.ResponseWriter, r *http.Request, id string) {
 
 	c.Id = id // заменяем айдишник на тот, что стоит в запросе
 
-	res, err := a.app.CustomerRepository.Update(c) // todo а что если такой клиент существует??
+	res, err := a.app.Customers.Update(c) // todo а что если такой клиент существует??
 	if err != nil {
 		http.Error(w, "не удалось обновить клиента"+err.Error(), http.StatusInternalServerError) // todo отвечать структурой
 		return

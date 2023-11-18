@@ -6,7 +6,9 @@ import (
 	"os"
 
 	"gitlab.com/thefrol/notty/internal/app"
+	"gitlab.com/thefrol/notty/internal/service"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
+	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 
 	"github.com/go-chi/chi"
 	"gitlab.com/thefrol/notty/internal/api"
@@ -23,8 +25,12 @@ func main() {
 	// соединяемся с БД
 	db := postgres.MustConnect(dsn)
 
+	// создаем сервиси и репозитории
+	cr := sqlrepo.New(db)
+	cs := service.NewCustomers(cr)
+
 	// создаем приложение
-	app := app.New(db)
+	app := app.New(db, cs)
 
 	// создаем сервис апи
 	notty := api.New(app)

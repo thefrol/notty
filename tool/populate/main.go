@@ -7,8 +7,8 @@ import (
 	"log"
 	"os"
 
-	"gitlab.com/thefrol/notty/internal/storage/customers"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
+	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 	"gitlab.com/thefrol/notty/internal/storage/subscriptions"
 )
 
@@ -33,10 +33,10 @@ func main() {
 
 	// Добавим клиентов
 
-	customerRepo := customers.New(conn)
+	customerRepo := sqlrepo.New(conn)
 
 	for _, c := range custs {
-		_, err := customerRepo.Create(c)
+		err := customerRepo.Create(c)
 		if err != nil {
 			log.Println(err)
 		}
