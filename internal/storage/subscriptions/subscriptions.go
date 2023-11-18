@@ -2,6 +2,7 @@ package subscriptions
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"gitlab.com/thefrol/notty/internal/entity"
@@ -9,6 +10,10 @@ import (
 )
 
 // todo мда, назавание глупое, надо же рассылка а не подписка
+
+var (
+	ErrorNotFound = errors.New("subscription not found")
+)
 
 // Subscriptions это репозиторий для сущности Subscription то есть для наших рассылок
 type Subscriptions struct {
@@ -37,7 +42,14 @@ func (c Subscriptions) Get(id string) (res entity.Subscription, err error) {
 		WHERE
 			id=$1`, id)
 
-	return scan.Subscription(r)
+	s, err := scan.Subscription(r)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return entity.Subscription{}, ErrorNotFound // todo сделать app.NotFound
+		}
+		return entity.Subscription{}, err
+	}
+	return s, nil
 }
 
 func (c Subscriptions) Delete(id string) error {
@@ -163,45 +175,3 @@ func (s Subscriptions) Active() ([]entity.Subscription, error) {
 // 	entity.StatusFailed,
 // 	entity.StatusInvalid,
 // 	"created"} //todo
-
-// куда интересно такие хелпер запросы пихать?
-// Active возвращает список активных рассылок
-func (s Subscriptions) CountByStatuses(id string) (map[string]int, error) {
-	rs, err := s.db.Query(`
-		SELECT
-			status,
-			COUNT(status)
-		FROM 
-			Subscription s
-		LEFT JOIN
-			messages
-			ON s.id=sub_id
-		WHERE
-			s.id=$1
-			AND status IS NOT NULL
-		GROUP BY
-			status`, id)
-	if err != nil {
-		return nil, err
-	}
-	defer rs.Close()
-
-	res := make(map[string]int, 10) // todo magic number
-	for rs.Next() {
-		var (
-			status string
-			count  int
-		)
-		err = rs.Scan(&status, &count)
-		if err != nil {
-			return nil, err
-		}
-		res[status] = count
-	}
-
-	if err := rs.Err(); err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}

@@ -13,34 +13,46 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-
+	// Добавить клиента
 	// (POST /customer)
 	CreateClient(w http.ResponseWriter, r *http.Request)
-
+	// Удалить клиента
 	// (DELETE /customer/{Id})
 	DeleteClient(w http.ResponseWriter, r *http.Request, id string)
-
+	// Возвращает клиента
 	// (GET /customer/{Id})
 	GetClient(w http.ResponseWriter, r *http.Request, id string)
-
+	// Изменить клиента
 	// (POST /customer/{Id})
 	UpdateClient(w http.ResponseWriter, r *http.Request, id string)
-
+	// Получить статистику по клиенту
+	// (GET /customer/{Id}/stats)
+	CustomerStats(w http.ResponseWriter, r *http.Request, id string)
+	// Получить инфу про конкретное сообщение
 	// (GET /message/{Id})
 	GetMessage(w http.ResponseWriter, r *http.Request, id string)
-
+	// Получить статистику сообщений
+	// (GET /stats)
+	FullStats(w http.ResponseWriter, r *http.Request)
+	// Получить статистику сообщений по айдишнику клиента
+	// (GET /stats/customer/{Id})
+	StatsByCustomerId(w http.ResponseWriter, r *http.Request, id string)
+	// Получить статистику сообщений по айдишнику рассылки
+	// (GET /stats/subs/{Id})
+	StatsBySubscriptionId(w http.ResponseWriter, r *http.Request, id string)
+	// Создать рассылку
 	// (POST /sub)
 	CreateSubscription(w http.ResponseWriter, r *http.Request)
-
+	// Удалить рассылку
 	// (DELETE /sub/{Id})
 	DeleteSubscription(w http.ResponseWriter, r *http.Request, id string)
-
+	// Получить уже существующую рассылку
 	// (GET /sub/{Id})
 	GetSubscription(w http.ResponseWriter, r *http.Request, id string)
-
+	// Обновить рассылку
 	// (POST /sub/{Id})
 	UpdateSubscription(w http.ResponseWriter, r *http.Request, id string)
-
+	// Получить статистику по рассылке
 	// (GET /sub/{Id}/stats)
 	SubscriptionStats(w http.ResponseWriter, r *http.Request, id string)
 }
@@ -49,51 +61,85 @@ type ServerInterface interface {
 
 type Unimplemented struct{}
 
+// Добавить клиента
 // (POST /customer)
 func (_ Unimplemented) CreateClient(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Удалить клиента
 // (DELETE /customer/{Id})
 func (_ Unimplemented) DeleteClient(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Возвращает клиента
 // (GET /customer/{Id})
 func (_ Unimplemented) GetClient(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Изменить клиента
 // (POST /customer/{Id})
 func (_ Unimplemented) UpdateClient(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Получить статистику по клиенту
+// (GET /customer/{Id}/stats)
+func (_ Unimplemented) CustomerStats(w http.ResponseWriter, r *http.Request, id string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Получить инфу про конкретное сообщение
 // (GET /message/{Id})
 func (_ Unimplemented) GetMessage(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Получить статистику сообщений
+// (GET /stats)
+func (_ Unimplemented) FullStats(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Получить статистику сообщений по айдишнику клиента
+// (GET /stats/customer/{Id})
+func (_ Unimplemented) StatsByCustomerId(w http.ResponseWriter, r *http.Request, id string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Получить статистику сообщений по айдишнику рассылки
+// (GET /stats/subs/{Id})
+func (_ Unimplemented) StatsBySubscriptionId(w http.ResponseWriter, r *http.Request, id string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Создать рассылку
 // (POST /sub)
 func (_ Unimplemented) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Удалить рассылку
 // (DELETE /sub/{Id})
 func (_ Unimplemented) DeleteSubscription(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Получить уже существующую рассылку
 // (GET /sub/{Id})
 func (_ Unimplemented) GetSubscription(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Обновить рассылку
 // (POST /sub/{Id})
 func (_ Unimplemented) UpdateSubscription(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Получить статистику по рассылке
 // (GET /sub/{Id}/stats)
 func (_ Unimplemented) SubscriptionStats(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -201,6 +247,32 @@ func (siw *ServerInterfaceWrapper) UpdateClient(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
+// CustomerStats operation middleware
+func (siw *ServerInterfaceWrapper) CustomerStats(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "Id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "Id", runtime.ParamLocationPath, chi.URLParam(r, "Id"), &id)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CustomerStats(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
 // GetMessage operation middleware
 func (siw *ServerInterfaceWrapper) GetMessage(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -218,6 +290,73 @@ func (siw *ServerInterfaceWrapper) GetMessage(w http.ResponseWriter, r *http.Req
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetMessage(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// FullStats operation middleware
+func (siw *ServerInterfaceWrapper) FullStats(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.FullStats(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// StatsByCustomerId operation middleware
+func (siw *ServerInterfaceWrapper) StatsByCustomerId(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "Id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "Id", runtime.ParamLocationPath, chi.URLParam(r, "Id"), &id)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.StatsByCustomerId(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r.WithContext(ctx))
+}
+
+// StatsBySubscriptionId operation middleware
+func (siw *ServerInterfaceWrapper) StatsBySubscriptionId(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var err error
+
+	// ------------- Path parameter "Id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "Id", runtime.ParamLocationPath, chi.URLParam(r, "Id"), &id)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "Id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.StatsBySubscriptionId(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -472,7 +611,19 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/customer/{Id}", wrapper.UpdateClient)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/customer/{Id}/stats", wrapper.CustomerStats)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/message/{Id}", wrapper.GetMessage)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/stats", wrapper.FullStats)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/stats/customer/{Id}", wrapper.StatsByCustomerId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/stats/subs/{Id}", wrapper.StatsBySubscriptionId)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/sub", wrapper.CreateSubscription)

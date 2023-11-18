@@ -2,7 +2,9 @@ package app
 
 import (
 	"database/sql"
+	"errors"
 
+	"gitlab.com/thefrol/notty/internal/stats"
 	"gitlab.com/thefrol/notty/internal/storage/customers"
 	"gitlab.com/thefrol/notty/internal/storage/messages"
 	"gitlab.com/thefrol/notty/internal/storage/subscriptions"
@@ -12,6 +14,7 @@ type App struct {
 	CustomerRepository     customers.Customers
 	SubscriptionRepository subscriptions.Subscriptions
 	MessageRepository      messages.Messages
+	Statistics             stats.Service
 }
 
 func New(db *sql.DB) App {
@@ -19,8 +22,47 @@ func New(db *sql.DB) App {
 		CustomerRepository:     customers.New(db),
 		SubscriptionRepository: subscriptions.New(db),
 		MessageRepository:      messages.New(db),
+		Statistics:             *stats.New(db),
 	}
 }
+
+func (a App) FullStats() (stats.Statistics, error) {
+	return a.Statistics.Filter("%", "%", "%")
+}
+
+func (a App) StatsBySubscription(id string) (stats.Statistics, error) {
+	sub, err := a.SubscriptionRepository.Get(id)
+	if err != nil {
+		//if err=subscriptions.ErrorNotFound
+		return stats.Statistics{}, ErrorSubscriptionNotFound
+	}
+
+	s, err := a.Statistics.Filter(sub.Id, "%", "%")
+	if err != nil {
+		return stats.Statistics{}, nil
+	}
+
+	return s, nil
+}
+
+func (a App) StatsByClient(id string) (stats.Statistics, error) {
+	cl, err := a.CustomerRepository.Get(id)
+	if err != nil {
+		return stats.Statistics{}, ErrorClientNotFound
+	}
+
+	s, err := a.Statistics.Filter("%", cl.Id, "%")
+	if err != nil {
+		return stats.Statistics{}, nil
+	}
+
+	return s, nil
+}
+
+var (
+	ErrorSubscriptionNotFound = errors.New("subscription not found")
+	ErrorClientNotFound       = errors.New("client not found")
+)
 
 // todo
 //

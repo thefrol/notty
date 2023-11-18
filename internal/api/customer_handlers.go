@@ -88,3 +88,8 @@ func (a *Api) UpdateClient(w http.ResponseWriter, r *http.Request, id string) {
 
 	respond.Customer(w, res)
 }
+
+// CustomerStats implements generated.ServerInterface.
+func (a *Api) CustomerStats(w http.ResponseWriter, r *http.Request, id string) {
+	a.StatsByCustomerId(w, r, id)
+}
