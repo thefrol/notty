@@ -32,32 +32,64 @@ paths:
         Создает клиента. Айдишник можно указывать, а можно нет
 
         Телефон указывается в формате +72223334455, поддерживаются и коды других стран. Тег и оператор задаются в произовльном формате. Стоит указывать их так, чтобы потом можно было найти при помощи поиска по шалону, когда будете создавать рассылку.
-
-      parameters: []
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Customer'
+            examples:
+              'Иван Тестов':
+                summary: айди можно пропустить
+                value:
+                  name: Иван Тестов
+                  phone: "+71112223344"
+                  tag: clients.Moscow
+                  operator: mts
+              'Лиза Суперская':
+                summary: айди можно указать
+                value:
+                  id: liza-topchik
+                  name: Лиза Суперская
+                  phone: "+71112223344"
+                  tag: clients.Sakhalin
+                  operator: beeline
       responses:
-        '201':
-          description: Created
+        201:
+          description: Создан
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Customer'
-        '400':
-          description: Данные для создания клиента не прошли валидацию
+        400:
+          description: Ошибка валидации
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-        '500':
-          description: Ошибка при создании клиента
+              examples:
+                'неправильный айди':
+                  summary: Запрос не прошел валидацию по id
+                  value:
+                    code: invalid id
+                    desc: Запрос не прошел валидацию # todo подставить правильную строку
+                'неправильный телефон':
+                  summary: Неправильный телефон
+                  value:
+                    code: invalid phone
+                    desc: Неправильно задан телефон # todo подставить правильную строку       
+        500:
+          description: Неизвестная ошибка
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              examples:
+                'Внутренняя ошибка':
+                  summary: какая-то вретренняя ошибка
+                  value:
+                    code: unknown error
+                    desc: sql error near ( in FROM... # todo подставить правильную строку
+
 
 
 

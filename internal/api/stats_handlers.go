@@ -35,7 +35,7 @@ func (a *Api) StatsBySubscriptionId(w http.ResponseWriter, r *http.Request, id s
 func (a *Api) StatsByCustomerId(w http.ResponseWriter, r *http.Request, id string) {
 	stats, err := a.app.StatsByClient(id)
 	if err != nil {
-		if errors.Is(err, app.ErrorClientNotFound) {
+		if errors.Is(err, app.ErrorCustomerNotFound) {
 			respond.NotFound(w, "клиент с id %s не найден: %v", id, err)
 			return
 		}
