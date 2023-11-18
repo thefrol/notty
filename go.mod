@@ -7,6 +7,7 @@ require (
 	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-resty/resty/v2 v2.10.0
+	github.com/gojuno/minimock/v3 v3.1.3
 	github.com/google/uuid v1.3.1
 	github.com/jackc/pgx/v5 v5.5.0
 	github.com/mailru/easyjson v0.7.7
