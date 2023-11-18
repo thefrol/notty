@@ -85,3 +85,8 @@ Content-Type: application/json
 
 GET http://158.160.121.21/sub/test-sub/stats
 Content-Type: application/json
+
+# И общую статистику
+
+GET http://158.160.121.21/stats
+Content-Type: application/json

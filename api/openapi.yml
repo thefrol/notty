@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Нотти. Сервис смс-уведомлений
-  version: '1.1'
+  version: '1.3'
   description: |
     Отправит уведомления с фильтрацией по тегам и    операторам. Не пропускает мат. За счет конкурентности готов отправлять по миллиону сообщений в минуту.
 
@@ -147,6 +147,40 @@ paths:
                 $ref: '#/components/schemas/Error'
         '500':
           description: Ошибка при создании клиента
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /customer/{Id}/stats:
+    get:
+      operationId: CustomerStats
+      summary: Получить статистику по клиенту
+      tags:
+        - customer
+      description: Возвращает статистику по клиенту. Сколько отправлено и получено сообщений
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Found
+          content:
+            application/json:
+              schema: # map[string]
+                type: object
+                additionalProperties: 
+                  type: integer
+        '404':
+          description: Клиент не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Запрос неправильно сформирован
           content:
             application/json:
               schema:
@@ -311,6 +345,12 @@ paths:
                 type: object
                 additionalProperties: 
                   type: integer
+        '404':
+          description: Рассылка не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '400':
           description: Запрос неправильно сформирован
           content:
@@ -344,6 +384,112 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  /stats: # наверное под статистику стоит выделить отдельный маршрут
+    get:
+      summary: Получить статистику сообщений
+      operationId: FullStats
+
+      tags:
+        - stats
+      description: 'получает статистику по всем сообщениям'
+      # поля с какого по какое время
+      #
+      # parameters:
+      #   - in: path
+      #     name: Id
+      #     required: true
+      #     schema:
+      #       type: string
+      responses:
+        '200':
+          description: Статистика получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stats'
+
+        '500':
+          description: ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+  /stats/subs/{Id}: # наверное под статистику стоит выделить отдельный маршрут
+    get:
+      summary: Получить статистику сообщений по айдишнику рассылки
+      operationId: StatsBySubscriptionId
+      parameters:
+        - in: path
+          name: Id
+          description: Айдишник рассылки
+          required: true
+          schema:
+            type: string
+
+      tags:
+        - stats
+      description: получает статистику по существующей рассылке
+      responses:
+        '200':
+          description: Статистика получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stats'
+        '404':
+          description: Рассылка не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '500':
+          description: ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /stats/customer/{Id}: # наверное под статистику стоит выделить отдельный маршрут
+    get:
+      summary: Получить статистику сообщений по айдишнику клиента
+      operationId: StatsByCustomerId
+      parameters:
+        - in: path
+          name: Id
+          description: Айдишник рассылки
+          required: true
+          schema:
+            type: string
+
+      tags:
+        - stats
+      description: получает статистику по существующему клиенту
+      responses:
+        '200':
+          description: Статистика получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stats'
+        '404':
+          description: Клиент не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '500':
+          description: ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
 components:
   schemas:
     Customer:
@@ -457,6 +603,10 @@ components:
         desc:
           type: string
           example: "Not found"
+    Stats: # map[string]
+      type: object
+      additionalProperties: 
+        type: integer
   securitySchemes:
     BearerAuth:
       type: http
@@ -475,6 +625,11 @@ tags:
       url: https://gitlab.com/thefrol/notty
   - name: message
     description: Отправленные сообщения
+    externalDocs:
+      description: Узнай больше
+      url: https://gitlab.com/thefrol/notty
+  - name: stats
+    description: Статистика
     externalDocs:
       description: Узнай больше
       url: https://gitlab.com/thefrol/notty

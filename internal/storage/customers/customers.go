@@ -2,11 +2,16 @@ package customers
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/internal/storage/scan"
+)
+
+var (
+	ErrorNotFound = errors.New("client not found")
 )
 
 // Customers это репозиторий для сущности Customer то есть для нашего клиента
@@ -33,7 +38,14 @@ func (c Customers) Get(id string) (res entity.Customer, err error) {
 		WHERE
 			id=$1`, id)
 
-	return scan.Client(r)
+	s, err := scan.Client(r)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return entity.Customer{}, ErrorNotFound
+		}
+		return entity.Customer{}, err
+	}
+	return s, nil
 }
 
 func (c Customers) Delete(id string) error {

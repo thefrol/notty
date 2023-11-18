@@ -80,7 +80,16 @@ Content-Type: application/json
 
 
 ###
+
 #Посмотрим статистику отправок
 
 GET http://localhost:8080/sub/test-sub/stats
+Content-Type: application/json
+
+
+###
+
+# И общую статистику
+
+GET http://localhost:8080//stats
 Content-Type: application/json
