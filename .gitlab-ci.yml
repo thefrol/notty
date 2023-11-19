@@ -39,7 +39,7 @@ coverage:
     - export NOTTY_TEST_NOSKIP=1
   script:
     - . ./scripts/coverage
-  coverage: /^\(statements\)(?:\s+)?(\d+(?:\.\d+)?%)/
+  coverage: /\(statements\)(?:\s+)?(\d+(?:\.\d+)?%)/
 
 update_registry:
   stage: build
