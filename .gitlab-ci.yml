@@ -28,11 +28,18 @@ unit_test:
   script:
     - go test ./...
 
+# тут с интегральными тестами сразу считаем покрытие
 coverage:
   stage: test
+  services:
+    - name: postgres
+      alias: test_db
   script:
-    - go test -v -coverpkg=./... ./...
-  coverage: /^coverage:\s(\d+(?:\.\d+)?%)/
+    - export NOTTY_TEST_DB="host=test_db  dbname=test user=test password=test sslmode=disable"
+    - export NOTTY_TEST_NOSKIP=1
+  script:
+    - . ./scripts/coverage
+  coverage: /^\(statements\)(?:\s+)?(\d+(?:\.\d+)?%)/
 
 update_registry:
   stage: build

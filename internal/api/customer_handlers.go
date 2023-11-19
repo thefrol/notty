@@ -1,14 +1,13 @@
 package api
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 
-	"github.com/google/uuid"
 	"gitlab.com/thefrol/notty/internal/api/decode"
 	"gitlab.com/thefrol/notty/internal/api/respond"
 	"gitlab.com/thefrol/notty/internal/api/validate"
+	"gitlab.com/thefrol/notty/internal/app"
 )
 
 // CreateClient implements generated.ServerInterface.
@@ -19,17 +18,12 @@ func (a *Api) CreateClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// todo во эта часть -логика, которая должна быть более высокого уровня, в App
-	// func (a App) CreateCustomer(customer) Customer
-
-	// если айдишник не указан - создадим сами
-	if c.Id == "" {
-		c.Id = uuid.New().String()
-	} // todo что-то надо сделать с этим
-
 	res, err := a.app.Customers.Create(c) // todo а что если такой клиент существует??
 	if err != nil {
-		http.Error(w, "не удалось создать клиента"+err.Error(), http.StatusInternalServerError) // todo отвечать структурой
+		if errors.Is(err, app.ErrorCustomerExists) {
+			respond.Errorf(w, http.StatusConflict, "Клинт уже с id %s существует ", c.Id)
+		}
+		respond.InternalServerError(w, "Неизвестная ошибка %s", err)
 		return
 	}
 
@@ -46,7 +40,7 @@ func (a *Api) GetClient(w http.ResponseWriter, r *http.Request, id string) {
 
 	c, err := a.app.Customers.Get(id)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, app.ErrorCustomerNotFound) {
 			respond.NotFound(w, "Клиент с id %s не обнаружен", id)
 			return
 		}
@@ -65,6 +59,10 @@ func (a *Api) DeleteClient(w http.ResponseWriter, r *http.Request, id string) {
 
 	err := a.app.Customers.Delete(id)
 	if err != nil {
+		if errors.Is(err, app.ErrorCustomerNotFound) {
+			respond.NotFound(w, "Клиент с id %s не обнаружен", id)
+			return
+		}
 		respond.InternalServerError(w, "Не удалось удалить клиента %v", err)
 		return
 	}
@@ -82,6 +80,10 @@ func (a *Api) UpdateClient(w http.ResponseWriter, r *http.Request, id string) {
 
 	res, err := a.app.Customers.Update(c) // todo а что если такой клиент существует??
 	if err != nil {
+		if errors.Is(err, app.ErrorCustomerNotFound) {
+			respond.NotFound(w, "Клиент с id %s не обнаружен", id)
+			return
+		}
 		http.Error(w, "не удалось обновить клиента"+err.Error(), http.StatusInternalServerError) // todo отвечать структурой
 		return
 	}

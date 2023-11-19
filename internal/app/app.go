@@ -61,6 +61,7 @@ func (a App) StatsByClient(id string) (stats.Statistics, error) {
 var (
 	ErrorSubscriptionNotFound = errors.New("subscription not found")
 	ErrorCustomerNotFound     = errors.New("client not found")
+	ErrorCustomerExists       = errors.New("client exists")
 )
 
 // todo
