@@ -14,7 +14,7 @@ import (
 
 func Test_SubscriptionWorkflow(t *testing.T) {
 	if !NoSkip && TestDSN == "" {
-		t.Skip("Пропускаю тесты на клиентов")
+		t.Skip("Пропускаю тесты на рассылки")
 	}
 
 	conn := postgres.MustConnect(TestDSN)
