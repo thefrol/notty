@@ -63,7 +63,7 @@ func (c Customers) Delete(id string) error {
 	}
 
 	if rs, err := rs.RowsAffected(); err != nil && rs != int64(1) {
-		return fmt.Errorf("ошибка создания клиента, считаем что он ненайден %w", err)
+		return fmt.Errorf("ошибка удаления клиента, считаем что он ненайден %w", err)
 	}
 
 	return nil
@@ -117,6 +117,7 @@ func (c Customers) Create(cl entity.Customer) error {
 // то возвращает канал
 func (c Customers) Filter(tag string, operator string, size int) (chan entity.Customer, error) {
 	// todo это откуда-то не отсюда
+	// надо удалить
 	rs, err := c.db.Query(`
 		SELECT
 			id,

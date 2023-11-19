@@ -77,6 +77,18 @@ paths:
                   value:
                     code: invalid phone
                     desc: Неправильно задан телефон # todo подставить правильную строку       
+        409:
+          description: Клиент уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                'клиент существует':
+                  summary: Такой клиент уже существует
+                  value:
+                    code: customer exists
+                    desc: Клиент с id my-client-234 уже существует #
         500:
           description: Неизвестная ошибка
           content:

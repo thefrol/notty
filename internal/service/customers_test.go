@@ -74,6 +74,8 @@ func Test_DeleteCustomer(t *testing.T) {
 
 	id := "test-id"
 
+	mc.GetMock.Expect(id).Return(entity.Customer{Id: id}, nil)
+
 	mc.DeleteMock.Expect(id).Return(nil)
 
 	// actual business
@@ -83,5 +85,7 @@ func Test_DeleteCustomer(t *testing.T) {
 	assert.Equal(t, calledOnce, len(mc.DeleteMock.Calls()))
 
 }
+
+// todo testCreate
 
 const calledOnce = 1
