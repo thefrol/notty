@@ -37,7 +37,6 @@ coverage:
   script:
     - export NOTTY_TEST_DB="host=test_db  dbname=test user=test password=test sslmode=disable"
     - export NOTTY_TEST_NOSKIP=1
-  script:
     - . ./scripts/coverage
   coverage: /\(statements\)(?:\s+)?(\d+(?:\.\d+)?%)/
 
