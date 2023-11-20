@@ -28,7 +28,7 @@ const (
 
 type ApiTestSuite struct {
 	suite.Suite
-	api               api.Api
+	api               api.Server
 	customersRepoMock *mock.CustomerRepositoryMock
 	handlers          http.Handler
 }

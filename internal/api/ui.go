@@ -1,10 +1,8 @@
 package api
 
 import (
-	"log"
 	"net/http"
 
-	"gitlab.com/tanna.dev/openapi-doc-http-handler/elements"
 	"gitlab.com/thefrol/notty/internal/api/generated"
 	"gitlab.com/thefrol/notty/pkg/swagger"
 )
@@ -20,20 +18,13 @@ func ErrorEndpoint(msg string) http.HandlerFunc {
 	}
 }
 
-func SwaggerUI(title string) http.HandlerFunc {
+// Swagger возвращает ручку, на которой держится сваггер текущей спецификации
+// если доку не удалось создать, то там будет выводиться ошибка, но всегда
+// эта ручка существует
+func (a *Server) Swagger() http.HandlerFunc {
 	sw, err := generated.GetSwagger()
 	if err != nil {
 		return ErrorEndpoint("Сваггер интерфейс не получается запустить, не возможно пропарсить спеку  вставленну в бинарник")
 	}
-	return swagger.Handler(sw, title)
-}
-
-// Docs создает ручку для сваггера, которую можно прицепить к роутеру
-func Docs() http.HandlerFunc {
-	h, err := elements.NewHandler(generated.GetSwagger())
-	if err != nil {
-		log.Println("Cant handle swagger")
-		return ErrorEndpoint("Это правильный адрес, но сваггер страничку не удалось создать. Не пропарсилась спека.")
-	}
-	return h
+	return swagger.Handler(sw, sw.Info.Title)
 }
