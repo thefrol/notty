@@ -1,27 +1,26 @@
-package app
+package server
 
 import (
 	"database/sql"
-	"errors"
 
+	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/stats"
 	"gitlab.com/thefrol/notty/internal/storage/messages"
-	"gitlab.com/thefrol/notty/internal/storage/subscriptions"
 )
 
 type App struct {
-	Customers              CustomerService
-	SubscriptionRepository subscriptions.Subscriptions
-	MessageRepository      messages.Messages
-	Statistics             stats.Service
+	Customers         CustomerService
+	Subscriptions     SubscriptionService
+	MessageRepository messages.Messages
+	Statistics        stats.Service
 }
 
-func New(db *sql.DB, customers CustomerService) App {
+func New(db *sql.DB, customers CustomerService, subscriptions SubscriptionService) App {
 	return App{
-		Customers:              customers,
-		SubscriptionRepository: subscriptions.New(db),
-		MessageRepository:      messages.New(db),
-		Statistics:             *stats.New(db),
+		Customers:         customers,
+		Subscriptions:     subscriptions,
+		MessageRepository: messages.New(db),
+		Statistics:        *stats.New(db),
 	}
 }
 
@@ -30,10 +29,10 @@ func (a App) FullStats() (stats.Statistics, error) {
 }
 
 func (a App) StatsBySubscription(id string) (stats.Statistics, error) {
-	sub, err := a.SubscriptionRepository.Get(id)
+	sub, err := a.Subscriptions.Get(id)
 	if err != nil {
 		//if err=subscriptions.ErrorNotFound
-		return stats.Statistics{}, ErrorSubscriptionNotFound
+		return stats.Statistics{}, app.ErrorSubscriptionNotFound
 	}
 
 	s, err := a.Statistics.Filter(sub.Id, "%", "%")
@@ -47,7 +46,7 @@ func (a App) StatsBySubscription(id string) (stats.Statistics, error) {
 func (a App) StatsByClient(id string) (stats.Statistics, error) {
 	cl, err := a.Customers.Get(id)
 	if err != nil {
-		return stats.Statistics{}, ErrorCustomerNotFound
+		return stats.Statistics{}, app.ErrorCustomerNotFound
 	}
 
 	s, err := a.Statistics.Filter("%", cl.Id, "%")
@@ -57,12 +56,6 @@ func (a App) StatsByClient(id string) (stats.Statistics, error) {
 
 	return s, nil
 }
-
-var (
-	ErrorSubscriptionNotFound = errors.New("subscription not found")
-	ErrorCustomerNotFound     = errors.New("client not found")
-	ErrorCustomerExists       = errors.New("client exists")
-)
 
 // todo
 //

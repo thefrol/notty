@@ -1,10 +1,11 @@
-package subscriptions
+package sqlrepo
 
 import (
 	"database/sql"
 	"errors"
 	"fmt"
 
+	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/internal/storage/scan"
 )
@@ -20,7 +21,7 @@ type Subscriptions struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) Subscriptions {
+func NewSubscriptions(db *sql.DB) Subscriptions {
 	return Subscriptions{
 		db: db,
 	}
@@ -45,7 +46,7 @@ func (c Subscriptions) Get(id string) (res entity.Subscription, err error) {
 	s, err := scan.Subscription(r)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return entity.Subscription{}, ErrorNotFound // todo сделать app.NotFound
+			return entity.Subscription{}, app.ErrorSubscriptionNotFound // todo сделать app.NotFound
 		}
 		return entity.Subscription{}, err
 	}
@@ -71,7 +72,7 @@ func (c Subscriptions) Delete(id string) error {
 	return nil
 }
 
-func (c Subscriptions) Update(cl entity.Subscription) (res entity.Subscription, err error) {
+func (c Subscriptions) Update(cl entity.Subscription) error {
 	r, err := c.db.Exec(`
 		UPDATE
 			Subscription
@@ -88,19 +89,19 @@ func (c Subscriptions) Update(cl entity.Subscription) (res entity.Subscription, 
 		cl.End, cl.OperatorFilter, cl.PhoneFilter,
 		cl.TagFilter, cl.Desc)
 	if err != nil {
-		return entity.Subscription{}, err
+		return err
 	}
 
 	if rs, err := r.RowsAffected(); err != nil && rs != int64(1) {
-		return entity.Subscription{}, fmt.Errorf("ошибка апдейта клиента %w", err)
+		return fmt.Errorf("ошибка апдейта клиента %w", err)
 	}
 
-	return c.Get(cl.Id)
+	return nil
 }
 
 //todo запросы надо скомпилировать
 
-func (c Subscriptions) Create(cl entity.Subscription) (res entity.Subscription, err error) {
+func (c Subscriptions) Create(cl entity.Subscription) error {
 	r, err := c.db.Exec(`
 		INSERT INTO
 			Subscription(
@@ -118,14 +119,14 @@ func (c Subscriptions) Create(cl entity.Subscription) (res entity.Subscription, 
 		cl.End, cl.OperatorFilter, cl.PhoneFilter,
 		cl.TagFilter, cl.Desc)
 	if err != nil {
-		return entity.Subscription{}, err
+		return err
 	}
 
 	if rs, err := r.RowsAffected(); err != nil && rs != int64(1) {
-		return entity.Subscription{}, fmt.Errorf("ошибка создания клиента %w", err)
+		return fmt.Errorf("ошибка создания клиента %w", err)
 	}
 
-	return c.Get(cl.Id)
+	return nil
 }
 
 // Это уже блок скорее сервиса, чем репозитория
@@ -169,9 +170,3 @@ func (s Subscriptions) Active() ([]entity.Subscription, error) {
 
 	return subs, nil
 }
-
-// var statuses = [...]string{
-// 	entity.StatusSent,
-// 	entity.StatusFailed,
-// 	entity.StatusInvalid,
-// 	"created"} //todo

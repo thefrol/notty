@@ -19,7 +19,7 @@ func Test_CustomerWorkflow(t *testing.T) {
 	}
 	conn := postgres.MustConnect(TestDSN)
 
-	clients := sqlrepo.New(conn)
+	clients := sqlrepo.NewCustomers(conn)
 
 	c := entity.Customer{
 		Id:       "test-one",

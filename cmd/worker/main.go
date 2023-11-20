@@ -14,10 +14,9 @@ import (
 	"sync"
 	"time"
 
-	"gitlab.com/thefrol/notty/internal/app"
+	"gitlab.com/thefrol/notty/internal/app/worker"
 	"gitlab.com/thefrol/notty/internal/postman"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
-	"gitlab.com/thefrol/notty/internal/storage/subscriptions"
 	"gitlab.com/thefrol/notty/internal/stream"
 )
 
@@ -47,14 +46,13 @@ func main() {
 	//создаем сервисы
 	MessageStreaming := stream.Messages(db)
 
-	SubscriptionService := subscriptions.New(db)
+	//SubscriptionRepo := sqlrepo.NewSubscriptions(db)
 
 	PostingService := postman.New(endpoint, retryWait, retryCount, token)
 
-	notty := app.Notifyer{
-		Messages:      MessageStreaming,
-		Poster:        PostingService,
-		Subscriptions: SubscriptionService,
+	notty := worker.Notifyer{
+		Messages: MessageStreaming,
+		Poster:   PostingService,
 	}
 	//и за дело
 

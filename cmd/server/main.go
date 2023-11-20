@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gitlab.com/thefrol/notty/internal/app"
+	app "gitlab.com/thefrol/notty/internal/app/server"
 	"gitlab.com/thefrol/notty/internal/config/server"
 	"gitlab.com/thefrol/notty/internal/service"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
@@ -18,11 +18,14 @@ func main() {
 	db := postgres.MustConnect(cfg.DSN)
 
 	// создаем сервиси и репозитории
-	cr := sqlrepo.New(db)
+	cr := sqlrepo.NewCustomers(db)
 	cs := service.NewCustomers(cr)
 
+	sr := sqlrepo.NewSubscriptions(db)
+	ss := service.NewSubscriptions(sr)
+
 	// создаем приложение
-	notty := app.New(db, cs)
+	notty := app.New(db, cs, ss)
 
 	// создаем сервис апи
 	server := api.New(notty)
