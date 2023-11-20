@@ -9,7 +9,7 @@ import (
 )
 
 // FullStats implements generated.ServerInterface.
-func (a *Api) FullStats(w http.ResponseWriter, r *http.Request) {
+func (a *Server) FullStats(w http.ResponseWriter, r *http.Request) {
 	stats, err := a.app.FullStats()
 	if err != nil {
 		respond.InternalServerError(w, "Unknown error %v", err)
@@ -18,7 +18,7 @@ func (a *Api) FullStats(w http.ResponseWriter, r *http.Request) {
 }
 
 // StatsBySubscriptionId implements generated.ServerInterface.
-func (a *Api) StatsBySubscriptionId(w http.ResponseWriter, r *http.Request, id string) {
+func (a *Server) StatsBySubscriptionId(w http.ResponseWriter, r *http.Request, id string) {
 	stats, err := a.app.StatsBySubscription(id)
 	if err != nil {
 		if errors.Is(err, app.ErrorSubscriptionNotFound) {
@@ -32,7 +32,7 @@ func (a *Api) StatsBySubscriptionId(w http.ResponseWriter, r *http.Request, id s
 }
 
 // StatsBySubscriptionId implements generated.ServerInterface.
-func (a *Api) StatsByCustomerId(w http.ResponseWriter, r *http.Request, id string) {
+func (a *Server) StatsByCustomerId(w http.ResponseWriter, r *http.Request, id string) {
 	stats, err := a.app.StatsByClient(id)
 	if err != nil {
 		if errors.Is(err, app.ErrorCustomerNotFound) {

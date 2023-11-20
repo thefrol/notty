@@ -3,6 +3,7 @@ module gitlab.com/thefrol/notty
 go 1.21.1
 
 require (
+	github.com/caarlos0/env/v10 v10.0.0
 	github.com/getkin/kin-openapi v0.120.0
 	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/chi/v5 v5.0.10
@@ -14,7 +15,6 @@ require (
 	github.com/oapi-codegen/runtime v1.0.0
 	github.com/pressly/goose/v3 v3.15.1
 	github.com/stretchr/testify v1.8.4
-	gitlab.com/tanna.dev/openapi-doc-http-handler v0.2.0
 )
 
 require (

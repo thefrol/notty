@@ -11,7 +11,7 @@ import (
 )
 
 // CreateClient implements generated.ServerInterface.
-func (a *Api) CreateClient(w http.ResponseWriter, r *http.Request) {
+func (a *Server) CreateClient(w http.ResponseWriter, r *http.Request) {
 	c, err := decode.Customer(r)
 	if err != nil {
 		respond.BadRequest(w, "%v", err) // может тут оставить место только для ошибки?
@@ -32,7 +32,7 @@ func (a *Api) CreateClient(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetClient implements generated.ServerInterface.
-func (a *Api) GetClient(w http.ResponseWriter, r *http.Request, id string) {
+func (a *Server) GetClient(w http.ResponseWriter, r *http.Request, id string) {
 	if err := validate.Id(id); err != nil {
 		respond.BadRequest(w, "%v", err)
 		return
@@ -51,7 +51,7 @@ func (a *Api) GetClient(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 // DeleteClient implements generated.ServerInterface.
-func (a *Api) DeleteClient(w http.ResponseWriter, r *http.Request, id string) {
+func (a *Server) DeleteClient(w http.ResponseWriter, r *http.Request, id string) {
 	if err := validate.Id(id); err != nil {
 		respond.BadRequest(w, "%v", err)
 		return
@@ -69,7 +69,7 @@ func (a *Api) DeleteClient(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 // UpdateClient implements generated.ServerInterface.
-func (a *Api) UpdateClient(w http.ResponseWriter, r *http.Request, id string) {
+func (a *Server) UpdateClient(w http.ResponseWriter, r *http.Request, id string) {
 	c, err := decode.Customer(r)
 	if err != nil {
 		respond.BadRequest(w, "%v", err) // может тут оставить место только для ошибки?
@@ -92,6 +92,6 @@ func (a *Api) UpdateClient(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 // CustomerStats implements generated.ServerInterface.
-func (a *Api) CustomerStats(w http.ResponseWriter, r *http.Request, id string) {
+func (a *Server) CustomerStats(w http.ResponseWriter, r *http.Request, id string) {
 	a.StatsByCustomerId(w, r, id)
 }

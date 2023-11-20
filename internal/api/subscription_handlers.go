@@ -12,7 +12,7 @@ import (
 )
 
 // CreateSubscription implements generated.ServerInterface.
-func (a *Api) CreateSubscription(w http.ResponseWriter, r *http.Request) {
+func (a *Server) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 	sub, err := decode.Subscription(r)
 	if err != nil {
 		respond.BadRequest(w, "%v", err) // может тут оставить место только для ошибки?
@@ -37,7 +37,7 @@ func (a *Api) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteSubscription implements generated.ServerInterface.
-func (a *Api) DeleteSubscription(w http.ResponseWriter, r *http.Request, id string) {
+func (a *Server) DeleteSubscription(w http.ResponseWriter, r *http.Request, id string) {
 	if err := validate.Id(id); err != nil {
 		respond.BadRequest(w, "%v", err)
 		return
@@ -50,7 +50,7 @@ func (a *Api) DeleteSubscription(w http.ResponseWriter, r *http.Request, id stri
 }
 
 // GetSubscription implements generated.ServerInterface.
-func (a *Api) GetSubscription(w http.ResponseWriter, r *http.Request, id string) {
+func (a *Server) GetSubscription(w http.ResponseWriter, r *http.Request, id string) {
 	if err := validate.Id(id); err != nil {
 		respond.BadRequest(w, "%v", err)
 		return
@@ -69,7 +69,7 @@ func (a *Api) GetSubscription(w http.ResponseWriter, r *http.Request, id string)
 }
 
 // UpdateSubscription implements generated.ServerInterface.
-func (a *Api) UpdateSubscription(w http.ResponseWriter, r *http.Request, id string) {
+func (a *Server) UpdateSubscription(w http.ResponseWriter, r *http.Request, id string) {
 	if err := validate.Id(id); err != nil {
 		respond.BadRequest(w, "%v", err)
 		return
@@ -93,7 +93,7 @@ func (a *Api) UpdateSubscription(w http.ResponseWriter, r *http.Request, id stri
 }
 
 // SubscriptionStats implements generated.ServerInterface.
-func (a *Api) SubscriptionStats(w http.ResponseWriter, r *http.Request, id string) {
+func (a *Server) SubscriptionStats(w http.ResponseWriter, r *http.Request, id string) {
 	// редиректим в другую функцию
 	a.StatsBySubscriptionId(w, r, id)
 }
