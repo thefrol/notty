@@ -102,6 +102,51 @@ flowchart LR
     style service fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
+Код сделан в слоеной манере, близкой к DDD, где более низкоуровневые классы зависят от высокоуровневых
+
+```mermaid
+classDiagram
+namespace Application {
+    class App
+    class Worker
+}
+namespace Services {
+    class Api{
+        ListenAndServe()
+    }
+    class SubscriptionService
+    class StatsService
+    class CustomerService
+
+    class MessageService
+    class SmsSender
+
+}
+namespace Repo {
+    class SubscriptionRepo
+    class StatsAdapter
+    class CustomerRepo
+    class MessagesRepo
+    class MessageSpawner
+}
+
+
+App<--CustomerService
+App<--SubscriptionService
+App<--Api
+App<--StatsService
+App<--MessageService
+CustomerService<--CustomerRepo
+SubscriptionService<--SubscriptionRepo
+StatsService<--StatsAdapter
+
+
+Worker<--MessageService
+Worker<--SmsSender
+MessageService<--MessagesRepo
+MessageService<--MessageSpawner
+```
+
 ### АПИ сервер
 
 + Мигрирует в базу сам, базу нужно указать
