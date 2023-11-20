@@ -8,25 +8,25 @@ import (
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
-type CustomerRepository interface {
-	Create(entity.Customer) error
-	Get(string) (entity.Customer, error)
-	Update(entity.Customer) error
+type SubscriptionRepository interface {
+	Create(entity.Subscription) error
+	Get(string) (entity.Subscription, error)
+	Update(entity.Subscription) error
 	Delete(string) error
 }
 
-type Customers struct {
-	repo CustomerRepository
+type Subscriptions struct {
+	repo SubscriptionRepository
 }
 
-func NewCustomers(repo CustomerRepository) Customers {
-	return Customers{
+func NewSubscriptions(repo SubscriptionRepository) Subscriptions {
+	return Subscriptions{
 		repo: repo,
 	}
 }
 
-// Create implements app.CustomerService.
-func (c Customers) Create(cs entity.Customer) (entity.Customer, error) {
+// Create implements app.SubscriptionService.
+func (c Subscriptions) Create(cs entity.Subscription) (entity.Subscription, error) {
 	//todo это логика app как будто
 
 	if cs.Id == "" {
@@ -34,18 +34,18 @@ func (c Customers) Create(cs entity.Customer) (entity.Customer, error) {
 	} else {
 		_, err := c.Get(cs.Id)
 		if err == nil {
-			return entity.Customer{}, app.ErrorCustomerExists
+			return entity.Subscription{}, app.ErrorSubscriptionExists
 		}
 	}
 	err := c.repo.Create(cs)
 	if err != nil {
-		return entity.Customer{}, err
+		return entity.Subscription{}, err
 	}
 	return cs, nil
 }
 
-// Delete implements app.CustomerService.
-func (c Customers) Delete(id string) error {
+// Delete implements app.SubscriptionService.
+func (c Subscriptions) Delete(id string) error {
 	_, err := c.repo.Get(id)
 	if err != nil {
 		// todo NotFound
@@ -55,34 +55,33 @@ func (c Customers) Delete(id string) error {
 	return c.repo.Delete(id)
 }
 
-// Get implements app.CustomerService.
-func (c Customers) Get(id string) (entity.Customer, error) {
+// Get implements app.SubscriptionService.
+func (c Subscriptions) Get(id string) (entity.Subscription, error) {
 	return c.repo.Get(id)
-
 }
 
-// Update implements app.CustomerService.
-func (c Customers) Update(cs entity.Customer) (entity.Customer, error) {
+// Update implements app.SubscriptionService.
+func (c Subscriptions) Update(cs entity.Subscription) (entity.Subscription, error) {
 	_, err := c.repo.Get(cs.Id)
 	if err != nil {
 		// todo NotFound
 		// должно быть что-то типа RepoNotFound
-		return entity.Customer{}, err
+		return entity.Subscription{}, err
 	}
 	// todo проверки на значения кастомеров если надо, может какие-то поля менять нельяз или типа того
 
 	err = c.repo.Update(cs)
 	if err != nil {
-		return entity.Customer{}, err // todo Not Modified
+		return entity.Subscription{}, err // todo Not Modified
 	}
 
 	res, err := c.Get(cs.Id)
 	if err != nil {
-		return entity.Customer{}, err // todo ??
+		return entity.Subscription{}, err // todo ??
 	}
 
 	return res, nil
 
 }
 
-var _ server.CustomerService = (*Customers)(nil)
+var _ server.SubscriptionService = (*Subscriptions)(nil)

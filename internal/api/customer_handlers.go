@@ -21,7 +21,7 @@ func (a *Server) CreateClient(w http.ResponseWriter, r *http.Request) {
 	res, err := a.app.Customers.Create(c) // todo а что если такой клиент существует??
 	if err != nil {
 		if errors.Is(err, app.ErrorCustomerExists) {
-			respond.Errorf(w, http.StatusConflict, "Клинт уже с id %s существует ", c.Id)
+			respond.Errorf(w, http.StatusConflict, "Клиент уже с id %s существует ", c.Id)
 		}
 		respond.InternalServerError(w, "Неизвестная ошибка %s", err)
 		return
@@ -77,6 +77,7 @@ func (a *Server) UpdateClient(w http.ResponseWriter, r *http.Request, id string)
 	}
 
 	c.Id = id // заменяем айдишник на тот, что стоит в запросе
+	// bug это что такое вообще!!!
 
 	res, err := a.app.Customers.Update(c) // todo а что если такой клиент существует??
 	if err != nil {

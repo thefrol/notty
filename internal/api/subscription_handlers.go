@@ -1,38 +1,33 @@
 package api
 
 import (
-	"database/sql"
 	"errors"
 	"net/http"
 
-	"github.com/google/uuid"
 	"gitlab.com/thefrol/notty/internal/api/decode"
 	"gitlab.com/thefrol/notty/internal/api/respond"
 	"gitlab.com/thefrol/notty/internal/api/validate"
+	"gitlab.com/thefrol/notty/internal/app"
 )
 
 // CreateSubscription implements generated.ServerInterface.
 func (a *Server) CreateSubscription(w http.ResponseWriter, r *http.Request) {
-	sub, err := decode.Subscription(r)
+	c, err := decode.Subscription(r)
 	if err != nil {
 		respond.BadRequest(w, "%v", err) // может тут оставить место только для ошибки?
 		return
 	}
 
-	// todo во эта часть -логика, которая должна быть более высокого уровня, в App
-	// func (a App) CreateSubscription(Subscription) Subscription
-
-	// если айдишник не указан - создадим сами
-	if sub.Id == "" {
-		sub.Id = uuid.New().String()
-	}
-
-	res, err := a.app.SubscriptionRepository.Create(sub) // todo а что если такая подписка существует??
+	res, err := a.app.Subscriptions.Create(c) // todo а что если такой клиент существует??
 	if err != nil {
-		http.Error(w, "не удалось создать подписку"+err.Error(), http.StatusInternalServerError) // todo отвечать структурой
+		if errors.Is(err, app.ErrorSubscriptionExists) {
+			respond.Errorf(w, http.StatusConflict, "Рассылка с id %s существует ", c.Id)
+		}
+		respond.InternalServerError(w, "Неизвестная ошибка %s", err)
 		return
 	}
 
+	w.WriteHeader(http.StatusCreated)
 	respond.Subscription(w, res)
 }
 
@@ -43,9 +38,13 @@ func (a *Server) DeleteSubscription(w http.ResponseWriter, r *http.Request, id s
 		return
 	}
 
-	err := a.app.SubscriptionRepository.Delete(id)
+	err := a.app.Subscriptions.Delete(id)
 	if err != nil {
-		respond.InternalServerError(w, "Не удалось удалить подписку %v", err)
+		if errors.Is(err, app.ErrorSubscriptionNotFound) {
+			respond.NotFound(w, "Рассылка с id %s не обнаружена", id)
+			return
+		}
+		respond.InternalServerError(w, "Не удалось удалить рассылку %v", err)
 	}
 }
 
@@ -56,13 +55,13 @@ func (a *Server) GetSubscription(w http.ResponseWriter, r *http.Request, id stri
 		return
 	}
 
-	sub, err := a.app.SubscriptionRepository.Get(id)
+	sub, err := a.app.Subscriptions.Get(id)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, app.ErrorSubscriptionNotFound) {
 			respond.NotFound(w, "Рассылка с id %s не обнаружена", id)
 			return
 		}
-		respond.InternalServerError(w, "Не удалось найти подписку с id=%s %v", id, err)
+		respond.InternalServerError(w, "Не удалось найти рассылку с id=%s %v", id, err)
 		return
 	}
 	respond.Subscription(w, sub)
@@ -70,22 +69,22 @@ func (a *Server) GetSubscription(w http.ResponseWriter, r *http.Request, id stri
 
 // UpdateSubscription implements generated.ServerInterface.
 func (a *Server) UpdateSubscription(w http.ResponseWriter, r *http.Request, id string) {
-	if err := validate.Id(id); err != nil {
-		respond.BadRequest(w, "%v", err)
-		return
-	}
-
-	sub, err := decode.Subscription(r)
+	c, err := decode.Subscription(r)
 	if err != nil {
 		respond.BadRequest(w, "%v", err) // может тут оставить место только для ошибки?
 		return
 	}
 
-	sub.Id = id // заменяем айдишник на тот, что стоит в запросе
+	c.Id = id // заменяем айдишник на тот, что стоит в запросе
+	// bug это что такое вообще!!!
 
-	res, err := a.app.SubscriptionRepository.Update(sub) // todo а что если такая подписка существует??
+	res, err := a.app.Subscriptions.Update(c) // todo а что если такой клиент существует??
 	if err != nil {
-		http.Error(w, "не удалось обновить подписку"+err.Error(), http.StatusInternalServerError) // todo отвечать структурой
+		if errors.Is(err, app.ErrorSubscriptionNotFound) {
+			respond.NotFound(w, "Рассылка с id %s не обнаружена", id)
+			return
+		}
+		http.Error(w, "не удалось обновить рассылку"+err.Error(), http.StatusInternalServerError) // todo отвечать структурой
 		return
 	}
 

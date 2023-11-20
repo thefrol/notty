@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
-	"gitlab.com/thefrol/notty/internal/storage/subscriptions"
+	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 )
 
 func Test_SubscriptionWorkflow(t *testing.T) {
@@ -19,7 +19,7 @@ func Test_SubscriptionWorkflow(t *testing.T) {
 
 	conn := postgres.MustConnect(TestDSN)
 
-	subscriptions := subscriptions.New(conn)
+	subscriptions := sqlrepo.NewSubscriptions(conn)
 
 	date := time.Date(2011, 2, 2, 13, 21, 3, 12, time.Local)
 
@@ -33,7 +33,7 @@ func Test_SubscriptionWorkflow(t *testing.T) {
 		PhoneFilter:    "123",
 		TagFilter:      "1252",
 	}
-	_, err := subscriptions.Create(c)
+	err := subscriptions.Create(c)
 	require.NoError(t, err)
 
 	g, err := subscriptions.Get(c.Id)

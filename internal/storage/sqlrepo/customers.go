@@ -12,16 +12,12 @@ import (
 	"gitlab.com/thefrol/notty/internal/storage/scan"
 )
 
-var (
-	ErrorNotFound = errors.New("client not found")
-)
-
 // Customers это репозиторий для сущности Customer то есть для нашего клиента
 type Customers struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) Customers {
+func NewCustomers(db *sql.DB) Customers {
 	return Customers{
 		db: db,
 	}

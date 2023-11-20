@@ -24,36 +24,36 @@ import (
 // todo
 
 const (
-	existingUserId = "api-test-user"
+	existingSubscriptionId = "api-test-sub"
 )
 
-type ApiTestSuite struct {
+type SubscriptionTestSuite struct {
 	suite.Suite
-	api               api.Server
-	customersRepoMock *mock.CustomerRepositoryMock
-	handlers          http.Handler
+	api                   api.Server
+	subscriptionsRepoMock *mock.SubscriptionRepositoryMock
+	handlers              http.Handler
 }
 
-func (suite *ApiTestSuite) SetupTest() {
+func (suite *SubscriptionTestSuite) SetupTest() {
 	//make mock cutomers service
 
 	mc := minimock.NewController(suite.T())
-	customersRepo := mock.NewCustomerRepositoryMock(mc)
-	suite.customersRepoMock = customersRepo
-	//preparing customer repo
-	customersRepo.GetMock.Set(func(s1 string) (c1 entity.Customer, err error) {
-		if s1 == existingUserId {
-			return entity.Customer{
-				Id:   existingUserId,
-				Name: "Апий Тестировальный",
+	subscriptionsRepo := mock.NewSubscriptionRepositoryMock(mc)
+	suite.subscriptionsRepoMock = subscriptionsRepo
+	//preparing subscription repo
+	subscriptionsRepo.GetMock.Set(func(s1 string) (c1 entity.Subscription, err error) {
+		if s1 == existingSubscriptionId {
+			return entity.Subscription{
+				Id:   existingSubscriptionId,
+				Desc: "рассылочка моя",
 			}, nil
 		} else {
-			return entity.Customer{}, app.ErrorCustomerNotFound
+			return entity.Subscription{}, app.ErrorSubscriptionNotFound
 		}
 	})
 
-	customersRepo.UpdateMock.Set(func(c1 entity.Customer) (err error) {
-		if c1.Id == existingUserId {
+	subscriptionsRepo.UpdateMock.Set(func(c1 entity.Subscription) (err error) {
+		if c1.Id == existingSubscriptionId {
 			return nil
 		} else {
 			suite.Fail("Запрошен неизвестный айди %s для обновления", c1.Id)
@@ -61,8 +61,8 @@ func (suite *ApiTestSuite) SetupTest() {
 		}
 	})
 
-	customersRepo.DeleteMock.Set(func(id string) (err error) {
-		if id == existingUserId {
+	subscriptionsRepo.DeleteMock.Set(func(id string) (err error) {
+		if id == existingSubscriptionId {
 			return nil
 		} else {
 			suite.Fail("Запрошен неизвестный айди %s для обновления", id)
@@ -70,42 +70,42 @@ func (suite *ApiTestSuite) SetupTest() {
 		}
 	})
 
-	customersRepo.CreateMock.Set(func(c entity.Customer) (err error) {
-		if c.Id == existingUserId {
+	subscriptionsRepo.CreateMock.Set(func(c entity.Subscription) (err error) {
+		if c.Id == existingSubscriptionId {
 			return fmt.Errorf("такой пользователь существует")
 		}
 		return nil
 	})
 
 	// services
-	customerService := service.NewCustomers(customersRepo)
+	subscriptionService := service.NewSubscriptions(subscriptionsRepo)
 
 	// app
-	app := server.New(nil, customerService, nil)
+	app := server.New(nil, nil, subscriptionService)
 	//api
 	suite.api = api.New(app)
 	suite.handlers = suite.api.OpenAPI()
 }
 
-func (suite *ApiTestSuite) TestCustomerGetById() {
+func (suite *SubscriptionTestSuite) TestSubscriptionGetById() {
 	tests := []struct {
 		name             string
 		id               string
 		ReturnCode       int
-		CustomerName     string
+		SubscriptionDesc string
 		validateResponse bool // ошибка при анмаршалинге
 	}{
 		{
 			name:             "апий позитивный",
-			id:               existingUserId,
-			CustomerName:     "Апий Тестировальный",
+			id:               existingSubscriptionId,
+			SubscriptionDesc: "рассылочка моя",
 			ReturnCode:       200,
 			validateResponse: true,
 		},
 		{
 			name:             "Если полльзователя не существует, то вернуть 404",
-			id:               "api-test-user-not-exist",
-			CustomerName:     "не существеющее имя",
+			id:               "api-test-subscription-not-exist",
+			SubscriptionDesc: "не существеющее имя",
 			ReturnCode:       404,
 			validateResponse: false,
 		},
@@ -118,7 +118,7 @@ func (suite *ApiTestSuite) TestCustomerGetById() {
 
 			req := httptest.NewRequest(
 				http.MethodGet,
-				"/customer/"+tt.id,
+				"/sub/"+tt.id,
 				nil)
 
 			suite.handlers.ServeHTTP(rec, req)
@@ -127,7 +127,7 @@ func (suite *ApiTestSuite) TestCustomerGetById() {
 			suite.Equal(tt.ReturnCode, rec.Code)
 
 			// валидируем ответ
-			c := entity.Customer{}
+			c := entity.Subscription{}
 			err := json.NewDecoder(rec.Body).Decode(&c)
 
 			if !tt.validateResponse {
@@ -136,26 +136,26 @@ func (suite *ApiTestSuite) TestCustomerGetById() {
 			suite.NoError(err)
 
 			suite.Equal(c.Id, tt.id)
-			suite.Equal(tt.CustomerName, c.Name)
+			suite.Equal(tt.SubscriptionDesc, c.Desc)
 		})
 	}
 
 }
 
-func (suite *ApiTestSuite) TestDeleteCustomer() {
+func (suite *SubscriptionTestSuite) TestDeleteSubscription() {
 	tests := []struct {
 		name       string
 		id         string
 		ReturnCode int
 	}{
 		{
-			name:       "апий позитивный",
-			id:         existingUserId,
+			name:       "существующая рассылка",
+			id:         existingSubscriptionId,
 			ReturnCode: 200,
 		},
 		{
-			name:       "Если полльзователя не существует, то вернуть 404",
-			id:         "api-test-user-not-exist",
+			name:       "Если рассылки не существует, то вернуть 404",
+			id:         "api-test-subscription-not-exist",
 			ReturnCode: 404,
 		},
 		// а ещё если корявый айдишник - вернуть ошибку валидации
@@ -167,7 +167,7 @@ func (suite *ApiTestSuite) TestDeleteCustomer() {
 
 			req := httptest.NewRequest(
 				http.MethodDelete,
-				"/customer/"+tt.id,
+				"/sub/"+tt.id,
 				nil)
 
 			suite.handlers.ServeHTTP(rec, req)
@@ -179,14 +179,13 @@ func (suite *ApiTestSuite) TestDeleteCustomer() {
 
 }
 
-func (suite *ApiTestSuite) TestUpdateExistingCustomer() {
+func (suite *SubscriptionTestSuite) TestUpdateExistingSubscription() {
 	rec := httptest.NewRecorder()
-	id := existingUserId
+	id := existingSubscriptionId
 
-	c := entity.Customer{
-		Id:    id,
-		Name:  "Новоименный Данил",
-		Phone: "+72223334455",
+	c := entity.Subscription{
+		Id:   id,
+		Desc: "новое описание",
 	}
 
 	data, err := json.Marshal(&c)
@@ -196,7 +195,7 @@ func (suite *ApiTestSuite) TestUpdateExistingCustomer() {
 
 	req := httptest.NewRequest(
 		http.MethodPost,
-		"/customer/"+id,
+		"/sub/"+id,
 		bytes.NewBuffer(data))
 
 	suite.handlers.ServeHTTP(rec, req)
@@ -205,19 +204,17 @@ func (suite *ApiTestSuite) TestUpdateExistingCustomer() {
 
 	suite.Equalf(http.StatusOK, rec.Code, "неправильный код, тело сообщения: %s", bodyString)
 
-	getCallsCount := len(suite.customersRepoMock.GetMock.Calls())
-	updateCallsCount := len(suite.customersRepoMock.UpdateMock.Calls())
+	getCallsCount := len(suite.subscriptionsRepoMock.GetMock.Calls())
+	updateCallsCount := len(suite.subscriptionsRepoMock.UpdateMock.Calls())
 	suite.Equal(2, getCallsCount)
 	suite.Equal(1, updateCallsCount)
 }
 
-func (suite *ApiTestSuite) TestUpdateNotExistingCustomer() {
+func (suite *SubscriptionTestSuite) TestUpdateNotExistingSubscription() {
 	rec := httptest.NewRecorder()
 
-	c := entity.Customer{
-		Id:    "some-inexistant-url",
-		Name:  "Новоименный Данил",
-		Phone: "+72223334455",
+	c := entity.Subscription{
+		Id: "some-inexistant-url",
 	}
 
 	data, err := json.Marshal(&c)
@@ -227,7 +224,7 @@ func (suite *ApiTestSuite) TestUpdateNotExistingCustomer() {
 
 	req := httptest.NewRequest(
 		http.MethodPost,
-		"/customer/"+c.Id,
+		"/sub/"+c.Id,
 		bytes.NewBuffer(data))
 
 	suite.handlers.ServeHTTP(rec, req)
@@ -236,20 +233,18 @@ func (suite *ApiTestSuite) TestUpdateNotExistingCustomer() {
 
 	suite.Equalf(http.StatusNotFound, rec.Code, "неправильный код, тело сообщения: %s", bodyString)
 
-	getCallsCount := len(suite.customersRepoMock.GetMock.Calls())
-	updateCallsCount := len(suite.customersRepoMock.UpdateMock.Calls())
+	getCallsCount := len(suite.subscriptionsRepoMock.GetMock.Calls())
+	updateCallsCount := len(suite.subscriptionsRepoMock.UpdateMock.Calls())
 	suite.Equal(1, getCallsCount)
 	suite.Equal(0, updateCallsCount)
 }
 
 // тут мы задаем id, нужно чтобы он считал с базы
-func (suite *ApiTestSuite) TestCreateNotExistingCustomer() {
+func (suite *SubscriptionTestSuite) TestCreateNotExistingSubscription() {
 	rec := httptest.NewRecorder()
 
-	c := entity.Customer{
-		Id:    "new-id",
-		Name:  "Новоименный Данил",
-		Phone: "+72223334455",
+	c := entity.Subscription{
+		Id: "new-id",
 	}
 
 	data, err := json.Marshal(&c)
@@ -259,7 +254,7 @@ func (suite *ApiTestSuite) TestCreateNotExistingCustomer() {
 
 	req := httptest.NewRequest(
 		http.MethodPost,
-		"/customer",
+		"/sub",
 		bytes.NewBuffer(data))
 
 	suite.handlers.ServeHTTP(rec, req)
@@ -268,17 +263,14 @@ func (suite *ApiTestSuite) TestCreateNotExistingCustomer() {
 
 	suite.Equalf(http.StatusCreated, rec.Code, "неправильный код, тело сообщения: %s", bodyString)
 
-	getCallsCount := len(suite.customersRepoMock.GetMock.Calls())
+	getCallsCount := len(suite.subscriptionsRepoMock.GetMock.Calls())
 	suite.Equal(1, getCallsCount)
 }
 
-func (suite *ApiTestSuite) TestCreateNoId() {
+func (suite *SubscriptionTestSuite) TestCreateNoId() {
 	rec := httptest.NewRecorder()
 
-	c := entity.Customer{
-		Name:  "Новоименный Данил",
-		Phone: "+72223334455",
-	}
+	c := entity.Subscription{}
 
 	data, err := json.Marshal(&c)
 	if err != nil {
@@ -287,7 +279,7 @@ func (suite *ApiTestSuite) TestCreateNoId() {
 
 	req := httptest.NewRequest(
 		http.MethodPost,
-		"/customer",
+		"/sub",
 		bytes.NewBuffer(data))
 
 	suite.handlers.ServeHTTP(rec, req)
@@ -296,17 +288,15 @@ func (suite *ApiTestSuite) TestCreateNoId() {
 
 	suite.Equalf(http.StatusCreated, rec.Code, "неправильный код, тело сообщения: %s", bodyString)
 
-	getCallsCount := len(suite.customersRepoMock.GetMock.Calls())
+	getCallsCount := len(suite.subscriptionsRepoMock.GetMock.Calls())
 	suite.Equal(0, getCallsCount)
 }
 
-func (suite *ApiTestSuite) TestCreateCustomerExists() {
+func (suite *SubscriptionTestSuite) TestCreateSubscriptionExists() {
 	rec := httptest.NewRecorder()
 
-	c := entity.Customer{
-		Id:    existingUserId,
-		Name:  "Новоименный Данил",
-		Phone: "+72223334455",
+	c := entity.Subscription{
+		Id: existingSubscriptionId,
 	}
 
 	data, err := json.Marshal(&c)
@@ -316,7 +306,7 @@ func (suite *ApiTestSuite) TestCreateCustomerExists() {
 
 	req := httptest.NewRequest(
 		http.MethodPost,
-		"/customer",
+		"/sub",
 		bytes.NewBuffer(data))
 
 	suite.handlers.ServeHTTP(rec, req)
@@ -327,6 +317,6 @@ func (suite *ApiTestSuite) TestCreateCustomerExists() {
 
 }
 
-func TestCustomerTestSuite(t *testing.T) {
-	suite.Run(t, new(ApiTestSuite))
+func TestExampleTestSuite(t *testing.T) {
+	suite.Run(t, new(SubscriptionTestSuite))
 }

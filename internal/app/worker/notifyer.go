@@ -1,4 +1,4 @@
-package app
+package worker
 
 import (
 	"fmt"
@@ -7,14 +7,12 @@ import (
 
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/internal/postman"
-	"gitlab.com/thefrol/notty/internal/storage/subscriptions"
 	"gitlab.com/thefrol/notty/internal/stream"
 )
 
 type Notifyer struct {
-	Messages      stream.MessageStream
-	Subscriptions subscriptions.Subscriptions // todo тут должно быть сервис или репо
-	Poster        postman.Poster
+	Messages stream.MessageStream
+	Poster   postman.Poster
 }
 
 // FindAndSend обнаруживает новые сообщения и отправляет
@@ -25,16 +23,6 @@ type Notifyer struct {
 // вопрос просто в желании, мне кажется параллелить
 // надо только отправку
 func (app Notifyer) FindAndSend(batch int, workers int) {
-	// проверяем сколько рассылок активно
-	active, err := app.Subscriptions.Active()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if len(active) == 0 {
-		// если никого, то спим
-		return
-	}
 
 	// если же есть, то плодим горутины
 	protos, err := app.Messages.Generate(batch)
