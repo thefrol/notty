@@ -69,8 +69,8 @@
 
 ```plain
 Message{
-    id*    integer($int64)
-    phone* integer
-    text*  string
+    id      int64     required
+    phone   int       required
+    text    string    required
 }
 ```
