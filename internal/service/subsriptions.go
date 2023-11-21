@@ -84,4 +84,4 @@ func (c Subscriptions) Update(cs entity.Subscription) (entity.Subscription, erro
 
 }
 
-var _ server.SubscriptionService = (*Subscriptions)(nil)
+var _ server.Subscripter = (*Subscriptions)(nil)
