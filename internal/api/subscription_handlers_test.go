@@ -81,7 +81,7 @@ func (suite *SubscriptionTestSuite) SetupTest() {
 	subscriptionService := service.NewSubscriptions(subscriptionsRepo)
 
 	// app
-	app := server.New(nil, nil, subscriptionService)
+	app := server.New(nil, subscriptionService, nil)
 	//api
 	suite.api = api.New(app)
 	suite.handlers = suite.api.OpenAPI()
@@ -317,6 +317,6 @@ func (suite *SubscriptionTestSuite) TestCreateSubscriptionExists() {
 
 }
 
-func TestExampleTestSuite(t *testing.T) {
+func TestSubscriptionsSuite(t *testing.T) {
 	suite.Run(t, new(SubscriptionTestSuite))
 }

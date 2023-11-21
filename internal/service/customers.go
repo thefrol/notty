@@ -85,4 +85,4 @@ func (c Customers) Update(cs entity.Customer) (entity.Customer, error) {
 
 }
 
-var _ server.CustomerService = (*Customers)(nil)
+var _ server.Customerere = (*Customers)(nil)

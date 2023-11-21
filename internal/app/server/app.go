@@ -1,57 +1,58 @@
 package server
 
 import (
-	"database/sql"
-
 	"gitlab.com/thefrol/notty/internal/app"
-	"gitlab.com/thefrol/notty/internal/stats"
-	"gitlab.com/thefrol/notty/internal/storage/messages"
+	"gitlab.com/thefrol/notty/internal/dto"
 )
 
 type App struct {
-	Customers         CustomerService
-	Subscriptions     SubscriptionService
-	MessageRepository messages.Messages
-	Statistics        stats.Service
+	Customers     Customerere
+	Subscriptions Subscripter
+	Statistics    Statister
 }
 
-func New(db *sql.DB, customers CustomerService, subscriptions SubscriptionService) App {
+func New(customers Customerere, subscriptions Subscripter, stats Statister) App {
 	return App{
-		Customers:         customers,
-		Subscriptions:     subscriptions,
-		MessageRepository: messages.New(db),
-		Statistics:        *stats.New(db),
+		Customers:     customers,
+		Subscriptions: subscriptions,
+		Statistics:    stats,
 	}
 }
 
-func (a App) FullStats() (stats.Statistics, error) {
+// для упрощения логики статистики можно было бы выделить вот это копание в сервис,
+// опустить на уровень пониже
+
+// FullStats возвращает статистику по всем сообщениям
+func (a App) FullStats() (dto.Statistics, error) {
 	return a.Statistics.Filter("%", "%", "%")
 }
 
-func (a App) StatsBySubscription(id string) (stats.Statistics, error) {
-	sub, err := a.Subscriptions.Get(id)
+// StatsBySubscription возвращает статистику сообщений по конкретной подписке
+func (a App) StatsBySubscription(id string) (dto.Statistics, error) {
+	_, err := a.Subscriptions.Get(id)
 	if err != nil {
 		//if err=subscriptions.ErrorNotFound
-		return stats.Statistics{}, app.ErrorSubscriptionNotFound
+		return dto.Statistics{}, app.ErrorSubscriptionNotFound
 	}
 
-	s, err := a.Statistics.Filter(sub.Id, "%", "%")
+	s, err := a.Statistics.Filter(id, "%", "%")
 	if err != nil {
-		return stats.Statistics{}, nil
+		return dto.Statistics{}, nil
 	}
 
 	return s, nil
 }
 
-func (a App) StatsByClient(id string) (stats.Statistics, error) {
-	cl, err := a.Customers.Get(id)
+// StatsByClient возвращает статистику сообщений по клиенту
+func (a App) StatsByClient(id string) (dto.Statistics, error) {
+	_, err := a.Customers.Get(id)
 	if err != nil {
-		return stats.Statistics{}, app.ErrorCustomerNotFound
+		return dto.Statistics{}, app.ErrorCustomerNotFound
 	}
 
-	s, err := a.Statistics.Filter("%", cl.Id, "%")
+	s, err := a.Statistics.Filter("%", id, "%")
 	if err != nil {
-		return stats.Statistics{}, nil
+		return dto.Statistics{}, nil
 	}
 
 	return s, nil

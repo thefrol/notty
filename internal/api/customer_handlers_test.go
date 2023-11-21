@@ -81,7 +81,7 @@ func (suite *ApiTestSuite) SetupTest() {
 	customerService := service.NewCustomers(customersRepo)
 
 	// app
-	app := server.New(nil, customerService, nil)
+	app := server.New(customerService, nil, nil)
 	//api
 	suite.api = api.New(app)
 	suite.handlers = suite.api.OpenAPI()

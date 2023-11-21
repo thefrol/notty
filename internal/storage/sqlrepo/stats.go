@@ -1,23 +1,32 @@
-package stats
+// Этот пакет отвечает за сбор статистики, содержит репозиторий, сервис
+// и обьект данных
+//
+// В этом модуле я просто пробую совершенно другую семантику работы с данными.
+// все, что касается одной какой-то сущности или данных будет лежать в одной папке
+package sqlrepo
 
-import "database/sql"
+import (
+	"database/sql"
 
-// Service отвечает за сбор статистики
+	"gitlab.com/thefrol/notty/internal/dto"
+)
+
+// Adapter отвечает за сбор статистики
 // по сообщениям. Тут не хочется разделять
 // на несколько слоев эту логи со статистикой, так
 // что по сути у нас сервис-репозиторий
-type Service struct {
+type Adapter struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *Service {
-	return &Service{
+func NewStatistics(db *sql.DB) *Adapter {
+	return &Adapter{
 		db: db,
 	}
 }
 
 // All возвращает статистику по всем вообщениям,
-func (r Service) All() (Statistics, error) {
+func (r Adapter) All() (dto.Statistics, error) {
 	rs, err := r.db.Query(`
 	SELECT
 		status,
@@ -53,8 +62,8 @@ func (r Service) All() (Statistics, error) {
 	return res, nil
 }
 
-// BySubscription возвращает статистику по рассылкам
-func (r Service) Filter(subId string, customerId string, status string) (Statistics, error) {
+// Filters возвращает статистику по рассылкам
+func (r Adapter) Filter(subId string, customerId string, status string) (dto.Statistics, error) {
 	rs, err := r.db.Query(`
 	SELECT
 		status,

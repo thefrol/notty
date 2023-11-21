@@ -24,8 +24,10 @@ func main() {
 	sr := sqlrepo.NewSubscriptions(db)
 	ss := service.NewSubscriptions(sr)
 
+	stats := sqlrepo.NewStatistics(db) // мы подключаем адаптер как сервис и это хорошо!
+
 	// создаем приложение
-	notty := app.New(db, cs, ss)
+	notty := app.New(cs, ss, stats)
 
 	// создаем сервис апи
 	server := api.New(notty)
