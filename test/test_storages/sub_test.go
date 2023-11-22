@@ -1,7 +1,6 @@
 package storages_test
 
 import (
-	"log"
 	"testing"
 	"time"
 
@@ -40,7 +39,7 @@ func Test_SubscriptionWorkflow(t *testing.T) {
 
 	require.NoError(t, err)
 
-	log.Println("Беда с часовыми поясами в Subscriptions")
+	//log.Println("Беда с часовыми поясами в Subscriptions")
 	g.Start = c.Start // todo какаято беда с часовыми поясами
 	g.End = c.End
 	assert.Equal(t, c, g)

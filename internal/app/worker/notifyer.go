@@ -6,13 +6,12 @@ import (
 	"sync"
 
 	"gitlab.com/thefrol/notty/internal/entity"
-	"gitlab.com/thefrol/notty/internal/postman"
 	"gitlab.com/thefrol/notty/internal/stream"
 )
 
 type Notifyer struct {
 	Messages stream.MessageStream
-	Poster   postman.Poster
+	Poster   Sender
 }
 
 // FindAndSend обнаруживает новые сообщения и отправляет
@@ -36,7 +35,7 @@ func (app Notifyer) FindAndSend(batch int, workers int) {
 	}
 
 	// отправляем в кучу горутин
-	var dones []chan entity.Message
+	var dones []<-chan entity.Message
 	for i := 0; i < workers; i++ {
 		done, err := app.Poster.Work(msgs)
 		if err != nil {
@@ -64,7 +63,7 @@ func (app Notifyer) TryToResend(batch, workers int) {
 	}
 
 	// отправляем в кучу горутин
-	var dones []chan entity.Message
+	var dones []<-chan entity.Message
 	for i := 0; i < workers; i++ {
 		done, err := app.Poster.Work(in)
 		if err != nil {
@@ -87,7 +86,7 @@ func (app Notifyer) TryToResend(batch, workers int) {
 }
 
 // помошники по конкуретной работе
-func FanIn(ins ...chan entity.Message) chan entity.Message {
+func FanIn(ins ...<-chan entity.Message) chan entity.Message {
 	out := make(chan entity.Message)
 
 	wg := sync.WaitGroup{}
@@ -114,7 +113,7 @@ func FanIn(ins ...chan entity.Message) chan entity.Message {
 	return out
 }
 
-func terminate(ins ...chan entity.Message) {
+func terminate(ins ...<-chan entity.Message) {
 	end := FanIn(ins...)
 	for range end {
 	}

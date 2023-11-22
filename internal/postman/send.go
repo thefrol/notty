@@ -84,7 +84,7 @@ func (p Poster) Send(m entity.Message) error {
 	return nil
 }
 
-func (p Poster) Work(in chan entity.Message) (chan entity.Message, error) {
+func (p Poster) Work(in <-chan entity.Message) (<-chan entity.Message, error) {
 	done := make(chan entity.Message)
 	go func() {
 
