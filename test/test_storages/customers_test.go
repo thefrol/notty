@@ -3,6 +3,7 @@ package storages_test
 import (
 	"testing"
 
+	"github.com/pressly/goose/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gitlab.com/thefrol/notty/internal/entity"
@@ -17,8 +18,14 @@ func Test_CustomerWorkflow(t *testing.T) {
 	if !NoSkip && TestDSN == "" {
 		t.Skip("Пропускаю тесты на клиентов")
 	}
+
 	conn := postgres.MustConnect(TestDSN)
 
+	// очистить бд
+	goose.Reset(conn, ".")
+	goose.Up(conn, ".")
+
+	// тестим
 	clients := sqlrepo.NewCustomers(conn)
 
 	c := entity.Customer{

@@ -1,8 +1,11 @@
 package storages_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
+
+	_ "gitlab.com/thefrol/notty/internal/migrations"
 )
 
 const (
@@ -23,6 +26,8 @@ func init() {
 	}
 
 	TestDSN = os.Getenv(EnvTestConnection)
+
+	fmt.Println(NoSkip, TestDSN)
 }
 
 func Test_nothin(t *testing.T) {
