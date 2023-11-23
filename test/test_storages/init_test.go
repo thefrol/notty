@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	_ "gitlab.com/thefrol/notty/internal/migrations"
+	_ "gitlab.com/thefrol/notty/internal/storage/postgres/migrations"
 )
 
 const (

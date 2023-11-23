@@ -1,4 +1,4 @@
-package postman
+package sms
 
 import (
 	"crypto/tls"

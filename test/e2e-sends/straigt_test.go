@@ -45,4 +45,24 @@ func (suite *FromDbToSend) TestSendingByTag() {
 	suite.app.FindAndSend(30, 1)
 
 	suite.Equal(sendWant, sended)
+
+	// а ещё нам нужно проверить, что они записаны в базу нормально
+	// хотя это не по этому тесту конечно вообще
+
+	msgs, err := suite.messages.ByStatus("done", 10)
+	suite.NoError(err)
+
+	suite.True(In(msgs, "anna", "will-send"), "Должен быть в отправленных")
+	suite.True(In(msgs, "ivan-testov", "will-send"), "Должен быть в отправленных")
+}
+
+// In проверяет что сообщение с таким отправителем и
+// рассылкой существует в батче сообщений
+func In(msgs []entity.Message, custId, subId string) bool {
+	for _, v := range msgs {
+		if v.CustomerId == custId && v.SubscriptionId == subId {
+			return true
+		}
+	}
+	return false
 }

@@ -8,8 +8,8 @@ import (
 
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
-	"gitlab.com/thefrol/notty/internal/service"
-	"gitlab.com/thefrol/notty/internal/storage/scan"
+	service "gitlab.com/thefrol/notty/internal/storage"
+	"gitlab.com/thefrol/notty/internal/storage/sqlrepo/scan"
 )
 
 // Customers это репозиторий для сущности Customer то есть для нашего клиента

@@ -1,5 +1,5 @@
 // коллекция разных сырых запросов
-package messages
+package sqlrepo
 
 import (
 	"database/sql"
@@ -8,14 +8,14 @@ import (
 
 	"github.com/google/uuid"
 	"gitlab.com/thefrol/notty/internal/entity"
-	"gitlab.com/thefrol/notty/internal/storage/scan"
+	"gitlab.com/thefrol/notty/internal/storage/sqlrepo/scan"
 )
 
 type Messages struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) Messages {
+func NewMessages(db *sql.DB) Messages {
 	return Messages{
 		db: db,
 	}

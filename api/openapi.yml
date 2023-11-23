@@ -576,7 +576,7 @@ components:
           example: ivan-testov
         name:
           type: string
-          desctiption: имя человека
+          description: имя человека
           example: Иван Тестов
         phone:
           type: string

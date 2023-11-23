@@ -13,14 +13,16 @@ import (
 	"github.com/stretchr/testify/suite"
 	"gitlab.com/thefrol/notty/internal/app/worker"
 	"gitlab.com/thefrol/notty/internal/mock"
+	service "gitlab.com/thefrol/notty/internal/storage"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
-	"gitlab.com/thefrol/notty/internal/stream"
+	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 )
 
 type FromDbToSend struct {
 	suite.Suite
 	app        worker.Notifyer
 	senderMock *mock.SenderMock
+	messages   sqlrepo.Messages
 }
 
 func (suite *FromDbToSend) SetupTest() {
@@ -41,10 +43,14 @@ func (suite *FromDbToSend) SetupTest() {
 	mc := minimock.NewController(suite.T())
 	suite.senderMock = mock.NewSenderMock(mc)
 
+	mr := sqlrepo.NewMessages(db)
+
 	suite.app = worker.Notifyer{
-		Messages: stream.Messages(db),
+		Messages: service.Messages(db, mr),
 		Poster:   suite.senderMock,
 	}
+
+	suite.messages = sqlrepo.NewMessages(db)
 }
 
 func (suite *FromDbToSend) TestNoop() {

@@ -11,22 +11,22 @@ import (
 	"gitlab.com/thefrol/notty/internal/dto"
 )
 
-// Adapter отвечает за сбор статистики
+// Statistics отвечает за сбор статистики
 // по сообщениям. Тут не хочется разделять
 // на несколько слоев эту логи со статистикой, так
 // что по сути у нас сервис-репозиторий
-type Adapter struct {
+type Statistics struct {
 	db *sql.DB
 }
 
-func NewStatistics(db *sql.DB) *Adapter {
-	return &Adapter{
+func NewStatistics(db *sql.DB) *Statistics {
+	return &Statistics{
 		db: db,
 	}
 }
 
 // All возвращает статистику по всем вообщениям,
-func (r Adapter) All() (dto.Statistics, error) {
+func (r Statistics) All() (dto.Statistics, error) {
 	rs, err := r.db.Query(`
 	SELECT
 		status,
@@ -63,7 +63,7 @@ func (r Adapter) All() (dto.Statistics, error) {
 }
 
 // Filters возвращает статистику по рассылкам
-func (r Adapter) Filter(subId string, customerId string, status string) (dto.Statistics, error) {
+func (r Statistics) Filter(subId string, customerId string, status string) (dto.Statistics, error) {
 	rs, err := r.db.Query(`
 	SELECT
 		status,

@@ -1,6 +1,6 @@
 package dto
 
-// тут лежат ДТО
+// тут лежат ДТО, это бы все перенести в entity todo
 
 import (
 	"github.com/google/uuid"

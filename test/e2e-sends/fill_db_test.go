@@ -9,7 +9,7 @@ import (
 
 	"github.com/pressly/goose/v3"
 	"gitlab.com/thefrol/notty/internal/entity"
-	_ "gitlab.com/thefrol/notty/internal/migrations"
+	_ "gitlab.com/thefrol/notty/internal/storage/postgres/migrations"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 )
 

@@ -7,13 +7,22 @@ import (
 	"time"
 )
 
-// Customer Клиент, которому будет приходить рассылка
+// Customer Клиент, которому будет приходить рассылка. Имеет номер телефона, имя оператора и тег, по которому его сможет найти рассылка.
 type Customer struct {
-	Id       string `json:"id"`
-	Name     string `json:"name"`
+	// Id айдишник сообщения, английские буквы и тире. Подойдет UUID
+	Id string `json:"id"`
+
+	// Name имя человека
+	Name string `json:"name"`
+
+	// Operator оператор, строка
 	Operator string `json:"operator"`
-	Phone    string `json:"phone"`
-	Tag      string `json:"tag"`
+
+	// Phone номер телефона в формате +71112223344
+	Phone string `json:"phone"`
+
+	// Tag тег, по которому можно будет таргетировать рассылку
+	Tag string `json:"tag"`
 }
 
 // Error defines model for Error.
@@ -25,7 +34,7 @@ type Error struct {
 // Message defines model for Message.
 type Message struct {
 	CustomerId     string     `json:"customer_id"`
-	Id             string       `json:"id"`
+	Id             string     `json:"id"`
 	Phone          string     `json:"phone"`
 	Sent           *time.Time `json:"sent,omitempty"`
 	Status         string     `json:"status"`
@@ -33,16 +42,31 @@ type Message struct {
 	Text           string     `json:"text"`
 }
 
-// Subscription defines model for Subscription.
+// Stats defines model for Stats.
+type Stats map[string]int
+
+// Subscription Не смотря на название, это сущности рассылки. Имеет время начала, до которого сообщения рассылаться не будут, и время окончания, после которого тоже не будут рассылаться сообщения. Есть фильтр по тегам и оператору, которые работают в формате постревкого ILIKE.
 type Subscription struct {
 	// Desc Описание рассылки, просто для чего она создавалась и тд.
-	Desc           string    `json:"desc"`
-	End            time.Time `json:"end"`
-	Id             string    `json:"id"`
-	OperatorFilter string    `json:"operator_filter"`
-	PhoneFilter    string    `json:"phone_filter"`
-	Start          time.Time `json:"start"`
-	TagFilter      string    `json:"tag_filter"`
+	Desc string `json:"desc"`
+
+	// End время окончания, после этого времени рассылаться не будет
+	End time.Time `json:"end"`
+
+	// Id айдишник, английские буквы и тире. Может быть UUID
+	Id string `json:"id"`
+
+	// OperatorFilter фильтр по оператору, работает как ILIKE в SQL
+	OperatorFilter string `json:"operator_filter"`
+
+	// PhoneFilter фильтр по номеру телефона, сейчас не используется
+	PhoneFilter string `json:"phone_filter"`
+
+	// Start время начала, до этого времени рассылаться не будет
+	Start time.Time `json:"start"`
+
+	// TagFilter фильтр по оператору, работает как ILIKE в SQL
+	TagFilter string `json:"tag_filter"`
 
 	// Text Текст сообщения в рассылке
 	Text string `json:"text"`

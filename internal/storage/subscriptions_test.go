@@ -7,35 +7,35 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
-	"gitlab.com/thefrol/notty/internal/service"
-	"gitlab.com/thefrol/notty/internal/service/mock"
+	service "gitlab.com/thefrol/notty/internal/storage"
+	"gitlab.com/thefrol/notty/internal/storage/mock"
 )
 
 // тут мы проверяем, что нет ошибки, и что вызвано два раза Get и один раз Апдейт
 // Какие данные он там менял, мы не проверяем
-func Test_UpdateCustomer(t *testing.T) {
+func Test_UpdateSubscription(t *testing.T) {
 	c := minimock.NewController(t)
-	mc := mock.NewCustomerRepositoryMock(c)
+	mc := mock.NewSubscriptionRepositoryMock(c)
 
 	id := "test-id"
 
 	mc.GetMock.
 		Expect(id).
 		Return(
-			entity.Customer{Id: id, Name: "Максим Успешнов"},
+			entity.Subscription{Id: id, Desc: "простая рассылка"},
 			nil,
 		)
 
 	//always ok
 	mc.UpdateMock.
-		Expect(entity.Customer{Id: id, Name: "Максимка Успешнов"}).
+		Expect(entity.Subscription{Id: id, Desc: "непростая рассылка"}).
 		Return(nil)
 
 	// actual business
-	svc := service.NewCustomers(mc)
-	_, err := svc.Update(entity.Customer{
+	svc := service.NewSubscriptions(mc)
+	_, err := svc.Update(entity.Subscription{
 		Id:   "test-id",
-		Name: "Максимка Успешнов",
+		Desc: "непростая рассылка",
 	})
 	assert.NoError(t, err)
 
@@ -43,49 +43,45 @@ func Test_UpdateCustomer(t *testing.T) {
 	assert.Equal(t, GetCallsCount, len(mc.GetMock.Calls()))
 }
 
-func Test_UpdateCustomerNotFound(t *testing.T) {
+func Test_UpdateSubscriptionNotFound(t *testing.T) {
 	c := minimock.NewController(t)
-	mc := mock.NewCustomerRepositoryMock(c)
+	mc := mock.NewSubscriptionRepositoryMock(c)
 
 	id := "test-id"
 
 	mc.GetMock.
 		Expect(id).
 		Return(
-			entity.Customer{},
-			app.ErrorCustomerNotFound,
+			entity.Subscription{},
+			app.ErrorSubscriptionNotFound,
 		)
 
 	// actual business
-	svc := service.NewCustomers(mc)
-	_, err := svc.Update(entity.Customer{
+	svc := service.NewSubscriptions(mc)
+	_, err := svc.Update(entity.Subscription{
 		Id:   "test-id",
-		Name: "Максимка Успешнов",
+		Desc: "непростая рассылка",
 	})
-	assert.ErrorIs(t, err, app.ErrorCustomerNotFound)
+	assert.ErrorIs(t, err, app.ErrorSubscriptionNotFound)
 
 	const GetCallsCount = 1
 	assert.Equal(t, GetCallsCount, len(mc.GetMock.Calls()))
 }
 
-func Test_DeleteCustomer(t *testing.T) {
+func Test_DeleteSubscription(t *testing.T) {
 	c := minimock.NewController(t)
-	mc := mock.NewCustomerRepositoryMock(c)
+	mc := mock.NewSubscriptionRepositoryMock(c)
 
 	id := "test-id"
 
-	mc.GetMock.Expect(id).Return(entity.Customer{Id: id}, nil)
+	mc.GetMock.Expect(id).Return(entity.Subscription{Id: id}, nil)
 
 	mc.DeleteMock.Expect(id).Return(nil)
 
 	// actual business
-	svc := service.NewCustomers(mc)
+	svc := service.NewSubscriptions(mc)
 	svc.Delete("test-id")
 
 	assert.Equal(t, calledOnce, len(mc.DeleteMock.Calls()))
 
 }
-
-// todo testCreate
-
-const calledOnce = 1
