@@ -6,11 +6,11 @@ import (
 	"sync"
 
 	"gitlab.com/thefrol/notty/internal/entity"
-	"gitlab.com/thefrol/notty/internal/stream"
+	service "gitlab.com/thefrol/notty/internal/storage"
 )
 
 type Notifyer struct {
-	Messages stream.MessageStream
+	Messages service.MessageStream
 	Poster   Sender
 }
 

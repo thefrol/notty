@@ -1,5 +1,4 @@
-// содержить сервисы для потоколой обработки каналами наших сущностей
-package stream
+package service
 
 import (
 	"database/sql"
@@ -7,18 +6,25 @@ import (
 
 	"gitlab.com/thefrol/notty/internal/dto"
 	"gitlab.com/thefrol/notty/internal/entity"
-	"gitlab.com/thefrol/notty/internal/storage/messages"
 	protootypes "gitlab.com/thefrol/notty/internal/storage/prototypes"
 )
 
 type MessageStream struct {
-	MessageRepository messages.Messages
+	MessageRepository MessageRepo
 	Spawner           protootypes.Prototypes
 }
 
-func Messages(db *sql.DB) MessageStream {
+type MessageRepo interface {
+	ByStatus(string, int) ([]entity.Message, error)
+	Update(entity.Message) (entity.Message, error) // todo это какая-то хорошая сигнатура
+	Create(entity.Message) (entity.Message, error)
+}
+
+// todo это сервис и его надо в сервисы с интерфейсом от адаптеров
+
+func Messages(db *sql.DB, messages MessageRepo) MessageStream {
 	return MessageStream{
-		MessageRepository: messages.New(db),
+		MessageRepository: messages,
 		Spawner:           protootypes.New(db),
 	}
 }

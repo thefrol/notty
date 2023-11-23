@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"gitlab.com/thefrol/notty/internal/dto"
-	"gitlab.com/thefrol/notty/internal/storage/scan"
+	"gitlab.com/thefrol/notty/internal/storage/sqlrepo/scan"
 )
 
 const (

@@ -15,9 +15,10 @@ import (
 	"time"
 
 	"gitlab.com/thefrol/notty/internal/app/worker"
-	"gitlab.com/thefrol/notty/internal/postman"
+	"gitlab.com/thefrol/notty/internal/sms"
+	service "gitlab.com/thefrol/notty/internal/storage"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
-	"gitlab.com/thefrol/notty/internal/stream"
+	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 )
 
 const batchSize = 50
@@ -44,11 +45,12 @@ func main() {
 	db := postgres.MustConnect(dsn)
 
 	//создаем сервисы
-	MessageStreaming := stream.Messages(db)
+	mr := sqlrepo.NewMessages(db)
+	MessageStreaming := service.Messages(db, mr)
 
 	//SubscriptionRepo := sqlrepo.NewSubscriptions(db)
 
-	PostingService := postman.New(endpoint, retryWait, retryCount, token)
+	PostingService := sms.New(endpoint, retryWait, retryCount, token)
 
 	notty := worker.Notifyer{
 		Messages: MessageStreaming,

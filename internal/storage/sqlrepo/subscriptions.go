@@ -7,7 +7,7 @@ import (
 
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
-	"gitlab.com/thefrol/notty/internal/storage/scan"
+	"gitlab.com/thefrol/notty/internal/storage/sqlrepo/scan"
 )
 
 // todo мда, назавание глупое, надо же рассылка а не подписка

@@ -114,7 +114,7 @@ namespace Application {
     class App
     class Worker
 }
-namespace Services {
+namespace Controllers {
     class Api{
         ListenAndServe()
     }
@@ -126,7 +126,7 @@ namespace Services {
     class SmsSender
 
 }
-namespace Repo {
+namespace IO {
     class SubscriptionRepo
     class StatsAdapter
     class CustomerRepo

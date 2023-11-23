@@ -16,8 +16,8 @@ import (
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/app/server"
 	"gitlab.com/thefrol/notty/internal/entity"
-	"gitlab.com/thefrol/notty/internal/service"
-	"gitlab.com/thefrol/notty/internal/service/mock"
+	service "gitlab.com/thefrol/notty/internal/storage"
+	"gitlab.com/thefrol/notty/internal/storage/mock"
 )
 
 // тут больно интегральные тесты, их бы в отдельную папочку

@@ -7,7 +7,7 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
-	_ "gitlab.com/thefrol/notty/internal/migrations"
+	_ "gitlab.com/thefrol/notty/internal/storage/postgres/migrations"
 )
 
 func MustConnect(dsn string) *sql.DB {

@@ -7,3 +7,5 @@ LOCATION=./internal/entity/generated.go
 oapi-codegen -generate types -package $PACKAGE $SPEC_FILE > $LOCATION
 
 go mod tidy
+
+# а можно вот так -generate types,chi-server,spec
