@@ -1,9 +1,9 @@
 package main
 
 import (
+	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/app/config/server"
-	app "gitlab.com/thefrol/notty/internal/app/server"
-	service "gitlab.com/thefrol/notty/internal/storage"
+	"gitlab.com/thefrol/notty/internal/storage"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 
@@ -19,15 +19,16 @@ func main() {
 
 	// создаем сервиси и репозитории
 	cr := sqlrepo.NewCustomers(db)
-	cs := service.NewCustomers(cr)
+	cs := storage.NewCustomers(cr)
 
 	sr := sqlrepo.NewSubscriptions(db)
-	ss := service.NewSubscriptions(sr)
+	ss := storage.NewSubscriptions(sr)
 
+	mr := sqlrepo.NewMessages(db)
 	stats := sqlrepo.NewStatistics(db) // мы подключаем адаптер как сервис и это хорошо!
 
 	// создаем приложение
-	notty := app.New(cs, ss, stats)
+	notty := app.New(cs, ss, stats, mr)
 
 	// создаем сервис апи
 	server := api.New(notty)

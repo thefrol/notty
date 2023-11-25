@@ -1,4 +1,4 @@
-package server
+package app
 
 import (
 	"gitlab.com/thefrol/notty/internal/dto"
@@ -22,4 +22,8 @@ type Subscripter interface {
 type Statister interface {
 	All() (dto.Statistics, error)
 	Filter(subId, customerId, status string) (dto.Statistics, error)
+}
+
+type Messager interface {
+	Spawn(n int, status string) ([]entity.Message, error)
 }

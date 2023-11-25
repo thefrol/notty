@@ -11,18 +11,19 @@ import (
 
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/suite"
-	"gitlab.com/thefrol/notty/internal/app/worker"
 	"gitlab.com/thefrol/notty/internal/mock"
-	service "gitlab.com/thefrol/notty/internal/storage"
+	sms "gitlab.com/thefrol/notty/internal/sms"
+	"gitlab.com/thefrol/notty/internal/storage"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 )
 
 type FromDbToSend struct {
 	suite.Suite
-	app        worker.Notifyer
+	app        sms.Notifyer
 	senderMock *mock.SenderMock
 	messages   sqlrepo.Messages
+	stats      storage.StatisticsService
 }
 
 func (suite *FromDbToSend) SetupTest() {
@@ -45,12 +46,16 @@ func (suite *FromDbToSend) SetupTest() {
 
 	mr := sqlrepo.NewMessages(db)
 
-	suite.app = worker.Notifyer{
-		Messages: service.Messages(db, mr),
+	suite.app = sms.Notifyer{
+		Messages: storage.Messages(db, mr),
 		Poster:   suite.senderMock,
 	}
 
 	suite.messages = sqlrepo.NewMessages(db)
+
+	// создаем сервис статистики
+	sr := sqlrepo.NewStatistics(db)
+	suite.stats = storage.NewStatistics(sr)
 }
 
 func (suite *FromDbToSend) TestNoop() {

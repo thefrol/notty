@@ -1,4 +1,4 @@
-package worker
+package sms
 
 import (
 	"fmt"
@@ -6,12 +6,12 @@ import (
 	"sync"
 
 	"gitlab.com/thefrol/notty/internal/entity"
-	service "gitlab.com/thefrol/notty/internal/storage"
+	"gitlab.com/thefrol/notty/internal/storage"
 )
 
 type Notifyer struct {
-	Messages service.MessageStream
-	Poster   Sender
+	Messages storage.MessageStream
+	Poster   SMSProxy
 }
 
 // FindAndSend обнаруживает новые сообщения и отправляет

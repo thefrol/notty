@@ -14,9 +14,9 @@ import (
 	"sync"
 	"time"
 
-	"gitlab.com/thefrol/notty/internal/app/worker"
 	"gitlab.com/thefrol/notty/internal/sms"
-	service "gitlab.com/thefrol/notty/internal/storage"
+	"gitlab.com/thefrol/notty/internal/sms/proxy"
+	"gitlab.com/thefrol/notty/internal/storage"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 )
@@ -46,13 +46,13 @@ func main() {
 
 	//создаем сервисы
 	mr := sqlrepo.NewMessages(db)
-	MessageStreaming := service.Messages(db, mr)
+	MessageStreaming := storage.Messages(db, mr)
 
 	//SubscriptionRepo := sqlrepo.NewSubscriptions(db)
 
-	PostingService := sms.New(endpoint, retryWait, retryCount, token)
+	PostingService := proxy.NewSMSEndpoint(endpoint, retryWait, retryCount, token)
 
-	notty := worker.Notifyer{
+	notty := sms.Notifyer{
 		Messages: MessageStreaming,
 		Poster:   PostingService,
 	}

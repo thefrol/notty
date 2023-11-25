@@ -1,7 +1,7 @@
-package service
+package storage
 
 import (
-	"gitlab.com/thefrol/notty/internal/app/server"
+	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/dto"
 )
 
@@ -32,4 +32,4 @@ func (s StatisticsService) Filter(subId, customerId, status string) (dto.Statist
 	return s.adapter.Filter(subId, customerId, status)
 }
 
-var _ server.Statister = (*StatisticsService)(nil)
+var _ app.Statister = (*StatisticsService)(nil)
