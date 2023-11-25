@@ -1,10 +1,9 @@
-package service
+package storage
 
 import (
 	"github.com/google/uuid"
 
 	"gitlab.com/thefrol/notty/internal/app"
-	"gitlab.com/thefrol/notty/internal/app/server"
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
@@ -85,4 +84,4 @@ func (c Customers) Update(cs entity.Customer) (entity.Customer, error) {
 
 }
 
-var _ server.Customerere = (*Customers)(nil)
+var _ app.Customerere = (*Customers)(nil)

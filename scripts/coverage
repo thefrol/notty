@@ -5,7 +5,7 @@
 # указать вот тут:
 FILTER="mock|generated|easyjson|migrations|tool"
 
-go test -v -coverpkg=./... -coverprofile=profile.cov.unfiltered ./... -tags=e2e -p=1
+go test -v -coverpkg=./... -coverprofile=profile.cov.unfiltered ./... -tags=e2e,integral -p=1
 cat profile.cov.unfiltered | grep -Ev $FILTER > profile.cov
 go tool cover -func profile.cov
 unlink profile.cov

@@ -5,12 +5,12 @@ import (
 
 	"gitlab.com/thefrol/notty/internal/api/generated"
 	"gitlab.com/thefrol/notty/internal/api/respond"
-	"gitlab.com/thefrol/notty/internal/app/server"
+	"gitlab.com/thefrol/notty/internal/app"
 )
 
 // Server представляет собой набор хендлеров для фасада нашего сервера
 type Server struct {
-	app server.App // арр-аррр-аррррр ! пираты
+	app app.App // арр-аррр-аррррр ! пираты
 }
 
 // GetMessage implements generated.ServerInterface.
@@ -19,7 +19,7 @@ func (a *Server) GetMessage(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 // New создает новый сервис - набор хендлеров
-func New(app server.App) Server {
+func New(app app.App) Server {
 	return Server{app: app}
 }
 

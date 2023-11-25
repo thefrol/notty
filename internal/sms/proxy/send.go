@@ -1,4 +1,6 @@
-package sms
+// Этот пакет предоставляет интерфейс к внешнему сервису
+// отправки смс
+package proxy
 
 import (
 	"crypto/tls"
@@ -13,14 +15,14 @@ import (
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
-type Poster struct {
+type PosterService struct {
 	EndPoint string
 	Token    string
 	client   *resty.Client
 }
 
-func New(endpoint string, retryWaitSeconds int, retryCount int, token string) Poster {
-	return Poster{
+func NewSMSEndpoint(endpoint string, retryWaitSeconds int, retryCount int, token string) PosterService {
+	return PosterService{
 		EndPoint: endpoint,
 		client: resty.New().
 			SetRetryWaitTime(time.Second * time.Duration(retryWaitSeconds)).
@@ -41,7 +43,7 @@ var (
 	ErrorInvalidData = errors.New("bad request")
 )
 
-func (p Poster) Send(m entity.Message) error {
+func (p PosterService) Send(m entity.Message) error {
 
 	ph, err := strconv.Atoi(m.Phone[1:])
 	if err != nil {
@@ -84,7 +86,7 @@ func (p Poster) Send(m entity.Message) error {
 	return nil
 }
 
-func (p Poster) Work(in <-chan entity.Message) (<-chan entity.Message, error) {
+func (p PosterService) Work(in <-chan entity.Message) (<-chan entity.Message, error) {
 	done := make(chan entity.Message)
 	go func() {
 

@@ -1,7 +1,6 @@
-package server
+package app
 
 import (
-	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/dto"
 )
 
@@ -9,13 +8,15 @@ type App struct {
 	Customers     Customerere
 	Subscriptions Subscripter
 	Statistics    Statister
+	Messages      Messager
 }
 
-func New(customers Customerere, subscriptions Subscripter, stats Statister) App {
+func New(customers Customerere, subscriptions Subscripter, stats Statister, messages Messager) App {
 	return App{
 		Customers:     customers,
 		Subscriptions: subscriptions,
 		Statistics:    stats,
+		Messages:      messages,
 	}
 }
 
@@ -32,7 +33,7 @@ func (a App) StatsBySubscription(id string) (dto.Statistics, error) {
 	_, err := a.Subscriptions.Get(id)
 	if err != nil {
 		//if err=subscriptions.ErrorNotFound
-		return dto.Statistics{}, app.ErrorSubscriptionNotFound
+		return dto.Statistics{}, ErrorSubscriptionNotFound
 	}
 
 	s, err := a.Statistics.Filter(id, "%", "%")
@@ -47,7 +48,7 @@ func (a App) StatsBySubscription(id string) (dto.Statistics, error) {
 func (a App) StatsByClient(id string) (dto.Statistics, error) {
 	_, err := a.Customers.Get(id)
 	if err != nil {
-		return dto.Statistics{}, app.ErrorCustomerNotFound
+		return dto.Statistics{}, ErrorCustomerNotFound
 	}
 
 	s, err := a.Statistics.Filter("%", id, "%")

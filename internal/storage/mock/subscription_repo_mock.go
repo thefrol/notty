@@ -13,7 +13,7 @@ import (
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
-// SubscriptionRepositoryMock implements service.SubscriptionRepository
+// SubscriptionRepositoryMock implements storage.SubscriptionRepository
 type SubscriptionRepositoryMock struct {
 	t minimock.Tester
 
@@ -42,7 +42,7 @@ type SubscriptionRepositoryMock struct {
 	UpdateMock          mSubscriptionRepositoryMockUpdate
 }
 
-// NewSubscriptionRepositoryMock returns a mock for service.SubscriptionRepository
+// NewSubscriptionRepositoryMock returns a mock for storage.SubscriptionRepository
 func NewSubscriptionRepositoryMock(t minimock.Tester) *SubscriptionRepositoryMock {
 	m := &SubscriptionRepositoryMock{t: t}
 	if controller, ok := t.(minimock.MockController); ok {
@@ -170,7 +170,7 @@ func (e *SubscriptionRepositoryMockCreateExpectation) Then(err error) *Subscript
 	return e.mock
 }
 
-// Create implements service.SubscriptionRepository
+// Create implements storage.SubscriptionRepository
 func (mmCreate *SubscriptionRepositoryMock) Create(s1 entity.Subscription) (err error) {
 	mm_atomic.AddUint64(&mmCreate.beforeCreateCounter, 1)
 	defer mm_atomic.AddUint64(&mmCreate.afterCreateCounter, 1)
@@ -385,7 +385,7 @@ func (e *SubscriptionRepositoryMockDeleteExpectation) Then(err error) *Subscript
 	return e.mock
 }
 
-// Delete implements service.SubscriptionRepository
+// Delete implements storage.SubscriptionRepository
 func (mmDelete *SubscriptionRepositoryMock) Delete(s1 string) (err error) {
 	mm_atomic.AddUint64(&mmDelete.beforeDeleteCounter, 1)
 	defer mm_atomic.AddUint64(&mmDelete.afterDeleteCounter, 1)
@@ -601,7 +601,7 @@ func (e *SubscriptionRepositoryMockGetExpectation) Then(s2 entity.Subscription, 
 	return e.mock
 }
 
-// Get implements service.SubscriptionRepository
+// Get implements storage.SubscriptionRepository
 func (mmGet *SubscriptionRepositoryMock) Get(s1 string) (s2 entity.Subscription, err error) {
 	mm_atomic.AddUint64(&mmGet.beforeGetCounter, 1)
 	defer mm_atomic.AddUint64(&mmGet.afterGetCounter, 1)
@@ -816,7 +816,7 @@ func (e *SubscriptionRepositoryMockUpdateExpectation) Then(err error) *Subscript
 	return e.mock
 }
 
-// Update implements service.SubscriptionRepository
+// Update implements storage.SubscriptionRepository
 func (mmUpdate *SubscriptionRepositoryMock) Update(s1 entity.Subscription) (err error) {
 	mm_atomic.AddUint64(&mmUpdate.beforeUpdateCounter, 1)
 	defer mm_atomic.AddUint64(&mmUpdate.afterUpdateCounter, 1)

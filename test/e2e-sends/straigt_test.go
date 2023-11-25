@@ -3,7 +3,10 @@
 
 package e2esends
 
-import "gitlab.com/thefrol/notty/internal/entity"
+import (
+	"gitlab.com/thefrol/notty/internal/dto"
+	"gitlab.com/thefrol/notty/internal/entity"
+)
 
 // TestSendingByTag проверяет что отправляются два сообщения, которые
 // подходят по фильтру тегов moscow.%, при этом отправляются только сообщения
@@ -54,6 +57,44 @@ func (suite *FromDbToSend) TestSendingByTag() {
 
 	suite.True(In(msgs, "anna", "will-send"), "Должен быть в отправленных")
 	suite.True(In(msgs, "ivan-testov", "will-send"), "Должен быть в отправленных")
+
+	// и заодно тогда статистику проверим
+	anySub := "%"
+	anyClient := "%"
+	anyStatus := "%"
+
+	// по всем
+	s, err := suite.stats.All()
+	suite.NoError(err)
+	suite.Equal(dto.Statistics{"done": 2}, s)
+
+	// по рассылкам
+	s, err = suite.stats.Filter("will-send", anyClient, anyStatus)
+	suite.NoError(err)
+	suite.Equal(dto.Statistics{"done": 2}, s)
+
+	s, err = suite.stats.Filter("no-send", anyClient, anyStatus)
+	suite.NoError(err)
+	suite.Equal(dto.Statistics{}, s)
+
+	// по клиентам
+
+	client := "anna"
+	sub := anySub
+	status := anyStatus
+
+	s, err = suite.stats.Filter(sub, client, status)
+	suite.NoError(err)
+	suite.Equal(dto.Statistics{"done": 1}, s)
+
+	client = "ivan-testov"
+	sub = anySub
+	status = anyStatus
+
+	s, err = suite.stats.Filter(anySub, client, anyStatus)
+	suite.NoError(err)
+	suite.Equal(dto.Statistics{"done": 1}, s)
+
 }
 
 // In проверяет что сообщение с таким отправителем и

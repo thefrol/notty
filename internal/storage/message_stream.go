@@ -1,4 +1,4 @@
-package service
+package storage
 
 import (
 	"database/sql"
@@ -18,6 +18,7 @@ type MessageRepo interface {
 	ByStatus(string, int) ([]entity.Message, error)
 	Update(entity.Message) (entity.Message, error) // todo это какая-то хорошая сигнатура
 	Create(entity.Message) (entity.Message, error)
+	Spawn(int, string) ([]entity.Message, error)
 }
 
 // todo это сервис и его надо в сервисы с интерфейсом от адаптеров

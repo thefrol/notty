@@ -13,7 +13,7 @@ import (
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
-// CustomerRepositoryMock implements service.CustomerRepository
+// CustomerRepositoryMock implements storage.CustomerRepository
 type CustomerRepositoryMock struct {
 	t minimock.Tester
 
@@ -42,7 +42,7 @@ type CustomerRepositoryMock struct {
 	UpdateMock          mCustomerRepositoryMockUpdate
 }
 
-// NewCustomerRepositoryMock returns a mock for service.CustomerRepository
+// NewCustomerRepositoryMock returns a mock for storage.CustomerRepository
 func NewCustomerRepositoryMock(t minimock.Tester) *CustomerRepositoryMock {
 	m := &CustomerRepositoryMock{t: t}
 	if controller, ok := t.(minimock.MockController); ok {
@@ -170,7 +170,7 @@ func (e *CustomerRepositoryMockCreateExpectation) Then(err error) *CustomerRepos
 	return e.mock
 }
 
-// Create implements service.CustomerRepository
+// Create implements storage.CustomerRepository
 func (mmCreate *CustomerRepositoryMock) Create(c1 entity.Customer) (err error) {
 	mm_atomic.AddUint64(&mmCreate.beforeCreateCounter, 1)
 	defer mm_atomic.AddUint64(&mmCreate.afterCreateCounter, 1)
@@ -385,7 +385,7 @@ func (e *CustomerRepositoryMockDeleteExpectation) Then(err error) *CustomerRepos
 	return e.mock
 }
 
-// Delete implements service.CustomerRepository
+// Delete implements storage.CustomerRepository
 func (mmDelete *CustomerRepositoryMock) Delete(s1 string) (err error) {
 	mm_atomic.AddUint64(&mmDelete.beforeDeleteCounter, 1)
 	defer mm_atomic.AddUint64(&mmDelete.afterDeleteCounter, 1)
@@ -601,7 +601,7 @@ func (e *CustomerRepositoryMockGetExpectation) Then(c1 entity.Customer, err erro
 	return e.mock
 }
 
-// Get implements service.CustomerRepository
+// Get implements storage.CustomerRepository
 func (mmGet *CustomerRepositoryMock) Get(s1 string) (c1 entity.Customer, err error) {
 	mm_atomic.AddUint64(&mmGet.beforeGetCounter, 1)
 	defer mm_atomic.AddUint64(&mmGet.afterGetCounter, 1)
@@ -816,7 +816,7 @@ func (e *CustomerRepositoryMockUpdateExpectation) Then(err error) *CustomerRepos
 	return e.mock
 }
 
-// Update implements service.CustomerRepository
+// Update implements storage.CustomerRepository
 func (mmUpdate *CustomerRepositoryMock) Update(c1 entity.Customer) (err error) {
 	mm_atomic.AddUint64(&mmUpdate.beforeUpdateCounter, 1)
 	defer mm_atomic.AddUint64(&mmUpdate.afterUpdateCounter, 1)

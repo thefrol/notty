@@ -5,6 +5,7 @@ import "time"
 // небольшая бизнес-логика сообщений
 const (
 	StatusSent    = "done"
+	StatusInitial = "created"
 	StatusFailed  = "fail"
 	StatusInvalid = "invalid"
 )

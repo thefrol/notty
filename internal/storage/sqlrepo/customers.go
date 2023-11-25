@@ -8,7 +8,7 @@ import (
 
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
-	service "gitlab.com/thefrol/notty/internal/storage"
+	"gitlab.com/thefrol/notty/internal/storage"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo/scan"
 )
 
@@ -155,4 +155,4 @@ func (c Customers) Filter(tag string, operator string, size int) (chan entity.Cu
 	return in, nil
 }
 
-var _ service.CustomerRepository = (*Customers)(nil)
+var _ storage.CustomerRepository = (*Customers)(nil)

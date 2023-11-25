@@ -14,9 +14,8 @@ import (
 	"github.com/stretchr/testify/suite"
 	"gitlab.com/thefrol/notty/internal/api"
 	"gitlab.com/thefrol/notty/internal/app"
-	"gitlab.com/thefrol/notty/internal/app/server"
 	"gitlab.com/thefrol/notty/internal/entity"
-	service "gitlab.com/thefrol/notty/internal/storage"
+	"gitlab.com/thefrol/notty/internal/storage"
 	"gitlab.com/thefrol/notty/internal/storage/mock"
 )
 
@@ -78,10 +77,10 @@ func (suite *SubscriptionTestSuite) SetupTest() {
 	})
 
 	// services
-	subscriptionService := service.NewSubscriptions(subscriptionsRepo)
+	subscriptionService := storage.NewSubscriptions(subscriptionsRepo)
 
 	// app
-	app := server.New(nil, subscriptionService, nil)
+	app := app.New(nil, subscriptionService, nil, nil)
 	//api
 	suite.api = api.New(app)
 	suite.handlers = suite.api.OpenAPI()

@@ -1,4 +1,4 @@
-package service_test
+package storage_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
-	service "gitlab.com/thefrol/notty/internal/storage"
+	"gitlab.com/thefrol/notty/internal/storage"
 	"gitlab.com/thefrol/notty/internal/storage/mock"
 )
 
@@ -32,7 +32,7 @@ func Test_UpdateSubscription(t *testing.T) {
 		Return(nil)
 
 	// actual business
-	svc := service.NewSubscriptions(mc)
+	svc := storage.NewSubscriptions(mc)
 	_, err := svc.Update(entity.Subscription{
 		Id:   "test-id",
 		Desc: "непростая рассылка",
@@ -57,7 +57,7 @@ func Test_UpdateSubscriptionNotFound(t *testing.T) {
 		)
 
 	// actual business
-	svc := service.NewSubscriptions(mc)
+	svc := storage.NewSubscriptions(mc)
 	_, err := svc.Update(entity.Subscription{
 		Id:   "test-id",
 		Desc: "непростая рассылка",
@@ -79,7 +79,7 @@ func Test_DeleteSubscription(t *testing.T) {
 	mc.DeleteMock.Expect(id).Return(nil)
 
 	// actual business
-	svc := service.NewSubscriptions(mc)
+	svc := storage.NewSubscriptions(mc)
 	svc.Delete("test-id")
 
 	assert.Equal(t, calledOnce, len(mc.DeleteMock.Calls()))

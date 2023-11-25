@@ -1,4 +1,4 @@
-package server_test
+package app_test
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/gojuno/minimock/v3"
 	"github.com/stretchr/testify/suite"
 	"gitlab.com/thefrol/notty/internal/app"
-	"gitlab.com/thefrol/notty/internal/app/server"
+
 	"gitlab.com/thefrol/notty/internal/dto"
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/internal/mock"
@@ -14,7 +14,7 @@ import (
 
 type AppTestSuite struct {
 	suite.Suite
-	app server.App
+	app app.App
 }
 
 func (suite *AppTestSuite) SetupTest() {
@@ -29,7 +29,7 @@ func (suite *AppTestSuite) SetupTest() {
 		"done": 4,
 	}, nil)
 
-	suite.app = server.New(customers, subs, stats)
+	suite.app = app.New(customers, subs, stats, nil)
 
 	// наполняем моки
 
