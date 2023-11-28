@@ -6,8 +6,8 @@ import (
 
 	"gitlab.com/thefrol/notty/internal/api/decode"
 	"gitlab.com/thefrol/notty/internal/api/respond"
-	"gitlab.com/thefrol/notty/internal/api/validate"
 	"gitlab.com/thefrol/notty/internal/app"
+	"gitlab.com/thefrol/notty/internal/entity/valid"
 )
 
 // CreateSubscription implements generated.ServerInterface.
@@ -18,7 +18,7 @@ func (a *Server) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := a.app.Subscriptions.Create(c) // todo а что если такой клиент существует??
+	res, err := a.app.NewSubscription(c) // todo а что если такой клиент существует??
 	if err != nil {
 		if errors.Is(err, app.ErrorSubscriptionExists) {
 			respond.Errorf(w, http.StatusConflict, "Рассылка с id %s существует ", c.Id)
@@ -33,12 +33,12 @@ func (a *Server) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 
 // DeleteSubscription implements generated.ServerInterface.
 func (a *Server) DeleteSubscription(w http.ResponseWriter, r *http.Request, id string) {
-	if err := validate.Id(id); err != nil {
+	if err := valid.Id(id); err != nil {
 		respond.BadRequest(w, "%v", err)
 		return
 	}
 
-	err := a.app.Subscriptions.Delete(id)
+	err := a.app.RemoveSubscription(id)
 	if err != nil {
 		if errors.Is(err, app.ErrorSubscriptionNotFound) {
 			respond.NotFound(w, "Рассылка с id %s не обнаружена", id)
@@ -50,12 +50,12 @@ func (a *Server) DeleteSubscription(w http.ResponseWriter, r *http.Request, id s
 
 // GetSubscription implements generated.ServerInterface.
 func (a *Server) GetSubscription(w http.ResponseWriter, r *http.Request, id string) {
-	if err := validate.Id(id); err != nil {
+	if err := valid.Id(id); err != nil {
 		respond.BadRequest(w, "%v", err)
 		return
 	}
 
-	sub, err := a.app.Subscriptions.Get(id)
+	sub, err := a.app.GetSubscription(id)
 	if err != nil {
 		if errors.Is(err, app.ErrorSubscriptionNotFound) {
 			respond.NotFound(w, "Рассылка с id %s не обнаружена", id)
@@ -78,7 +78,7 @@ func (a *Server) UpdateSubscription(w http.ResponseWriter, r *http.Request, id s
 	c.Id = id // заменяем айдишник на тот, что стоит в запросе
 	// bug это что такое вообще!!!
 
-	res, err := a.app.Subscriptions.Update(c) // todo а что если такой клиент существует??
+	res, err := a.app.UpdateSubscription(c) // todo а что если такой клиент существует??
 	if err != nil {
 		if errors.Is(err, app.ErrorSubscriptionNotFound) {
 			respond.NotFound(w, "Рассылка с id %s не обнаружена", id)

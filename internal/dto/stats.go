@@ -9,7 +9,7 @@ import (
 
 type Statistics map[string]int
 
-func (s Statistics) ToResponseWriter(w http.ResponseWriter) {
+func (s Statistics) ToResponseWriter(w http.ResponseWriter) { // todo не нравится!
 	// не используем easyjson, потому что он не умеет в мапы
 
 	// todo а что если статистику кешировать в редис?

@@ -6,8 +6,8 @@ import (
 
 	"gitlab.com/thefrol/notty/internal/api/decode"
 	"gitlab.com/thefrol/notty/internal/api/respond"
-	"gitlab.com/thefrol/notty/internal/api/validate"
 	"gitlab.com/thefrol/notty/internal/app"
+	"gitlab.com/thefrol/notty/internal/entity/valid"
 )
 
 // CreateClient implements generated.ServerInterface.
@@ -18,12 +18,12 @@ func (a *Server) CreateClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := a.app.Customers.Create(c) // todo а что если такой клиент существует??
+	res, err := a.app.NewCustomer(c) // todo а что если такой клиент существует??
 	if err != nil {
 		if errors.Is(err, app.ErrorCustomerExists) {
 			respond.Errorf(w, http.StatusConflict, "Клиент уже с id %s существует ", c.Id)
 		}
-		respond.InternalServerError(w, "Неизвестная ошибка %s", err)
+		respond.InternalServerError(w, "Ошибка при создании: %s", err)
 		return
 	}
 
@@ -33,12 +33,12 @@ func (a *Server) CreateClient(w http.ResponseWriter, r *http.Request) {
 
 // GetClient implements generated.ServerInterface.
 func (a *Server) GetClient(w http.ResponseWriter, r *http.Request, id string) {
-	if err := validate.Id(id); err != nil {
+	if err := valid.Id(id); err != nil {
 		respond.BadRequest(w, "%v", err)
 		return
 	}
 
-	c, err := a.app.Customers.Get(id)
+	c, err := a.app.GetCustomer(id)
 	if err != nil {
 		if errors.Is(err, app.ErrorCustomerNotFound) {
 			respond.NotFound(w, "Клиент с id %s не обнаружен", id)
@@ -52,12 +52,12 @@ func (a *Server) GetClient(w http.ResponseWriter, r *http.Request, id string) {
 
 // DeleteClient implements generated.ServerInterface.
 func (a *Server) DeleteClient(w http.ResponseWriter, r *http.Request, id string) {
-	if err := validate.Id(id); err != nil {
+	if err := valid.Id(id); err != nil {
 		respond.BadRequest(w, "%v", err)
 		return
 	}
 
-	err := a.app.Customers.Delete(id)
+	err := a.app.RemoveCustomer(id)
 	if err != nil {
 		if errors.Is(err, app.ErrorCustomerNotFound) {
 			respond.NotFound(w, "Клиент с id %s не обнаружен", id)
@@ -79,7 +79,7 @@ func (a *Server) UpdateClient(w http.ResponseWriter, r *http.Request, id string)
 	c.Id = id // заменяем айдишник на тот, что стоит в запросе
 	// bug это что такое вообще!!!
 
-	res, err := a.app.Customers.Update(c) // todo а что если такой клиент существует??
+	res, err := a.app.UpdateCustomer(c) // todo а что если такой клиент существует??
 	if err != nil {
 		if errors.Is(err, app.ErrorCustomerNotFound) {
 			respond.NotFound(w, "Клиент с id %s не обнаружен", id)

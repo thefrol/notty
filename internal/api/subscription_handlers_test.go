@@ -15,8 +15,7 @@ import (
 	"gitlab.com/thefrol/notty/internal/api"
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
-	"gitlab.com/thefrol/notty/internal/storage"
-	"gitlab.com/thefrol/notty/internal/storage/mock"
+	"gitlab.com/thefrol/notty/internal/mock"
 )
 
 // тут больно интегральные тесты, их бы в отдельную папочку
@@ -29,7 +28,7 @@ const (
 type SubscriptionTestSuite struct {
 	suite.Suite
 	api                   api.Server
-	subscriptionsRepoMock *mock.SubscriptionRepositoryMock
+	subscriptionsRepoMock *mock.SubscripterMock
 	handlers              http.Handler
 }
 
@@ -37,7 +36,7 @@ func (suite *SubscriptionTestSuite) SetupTest() {
 	//make mock cutomers service
 
 	mc := minimock.NewController(suite.T())
-	subscriptionsRepo := mock.NewSubscriptionRepositoryMock(mc)
+	subscriptionsRepo := mock.NewSubscripterMock(mc)
 	suite.subscriptionsRepoMock = subscriptionsRepo
 	//preparing subscription repo
 	subscriptionsRepo.GetMock.Set(func(s1 string) (c1 entity.Subscription, err error) {
@@ -51,12 +50,12 @@ func (suite *SubscriptionTestSuite) SetupTest() {
 		}
 	})
 
-	subscriptionsRepo.UpdateMock.Set(func(c1 entity.Subscription) (err error) {
-		if c1.Id == existingSubscriptionId {
-			return nil
+	subscriptionsRepo.UpdateMock.Set(func(s1 entity.Subscription) (entity.Subscription, error) {
+		if s1.Id == existingSubscriptionId {
+			return s1, nil
 		} else {
-			suite.Fail("Запрошен неизвестный айди %s для обновления", c1.Id)
-			return fmt.Errorf("не удалось обновить")
+			suite.Fail("Запрошен неизвестный айди %s для обновления", s1.Id)
+			return entity.Subscription{}, fmt.Errorf("не удалось обновить")
 		}
 	})
 
@@ -69,18 +68,15 @@ func (suite *SubscriptionTestSuite) SetupTest() {
 		}
 	})
 
-	subscriptionsRepo.CreateMock.Set(func(c entity.Subscription) (err error) {
-		if c.Id == existingSubscriptionId {
-			return fmt.Errorf("такой пользователь существует")
+	subscriptionsRepo.CreateMock.Set(func(s entity.Subscription) (entity.Subscription, error) {
+		if s.Id == existingSubscriptionId {
+			return entity.Subscription{}, app.ErrorSubscriptionExists
 		}
-		return nil
+		return s, nil
 	})
 
-	// services
-	subscriptionService := storage.NewSubscriptions(subscriptionsRepo)
-
 	// app
-	app := app.New(nil, subscriptionService, nil, nil)
+	app := app.New(nil, subscriptionsRepo, nil, nil)
 	//api
 	suite.api = api.New(app)
 	suite.handlers = suite.api.OpenAPI()
@@ -205,7 +201,7 @@ func (suite *SubscriptionTestSuite) TestUpdateExistingSubscription() {
 
 	getCallsCount := len(suite.subscriptionsRepoMock.GetMock.Calls())
 	updateCallsCount := len(suite.subscriptionsRepoMock.UpdateMock.Calls())
-	suite.Equal(2, getCallsCount)
+	suite.Equal(1, getCallsCount)
 	suite.Equal(1, updateCallsCount)
 }
 

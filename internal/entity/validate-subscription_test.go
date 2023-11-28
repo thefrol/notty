@@ -1,5 +1,5 @@
 // Используется для валидации данных. Запросы и ответы разделены специально
-package validate
+package entity_test
 
 import (
 	"testing"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/thefrol/notty/internal/entity"
+	"gitlab.com/thefrol/notty/internal/entity/valid"
 )
 
 func TestSubscriptionRequest(t *testing.T) {
@@ -22,14 +23,24 @@ func TestSubscriptionRequest(t *testing.T) {
 			has:  nil,
 		},
 		{
+			name: "интервал наоборот",
+			sub:  ReversedInterval(ValidSub()),
+			has:  valid.ErrorInvalidPeriod,
+		},
+		{
+			name: "корявый айдишник",
+			sub:  FancyId(ValidSub()),
+			has:  valid.ErrorIdValidation,
+		},
+		{
 			name: "С матом",
 			sub:  ExplicitText(),
-			has:  ErrorExplicitLanguage,
+			has:  valid.ErrorExplicitLanguage,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := SubscriptionRequest(tt.sub)
+			err := tt.sub.Validate()
 			if tt.has == nil {
 				assert.NoError(t, err, "не должно быть ошибки")
 				return
@@ -55,5 +66,17 @@ func ValidSub() entity.Subscription {
 func ExplicitText() entity.Subscription {
 	s := ValidSub()
 	s.Text = "Господи ну и пиздец"
+	return s
+}
+
+// ReversedInterval разворачивает интервал в подписке, конец становится началм
+// а начало концом, аминь
+func ReversedInterval(s entity.Subscription) entity.Subscription {
+	s.End, s.Start = s.Start, s.End
+	return s
+}
+
+func FancyId(s entity.Subscription) entity.Subscription {
+	s.Id = "my_LOVELY_id"
 	return s
 }

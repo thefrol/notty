@@ -6,5 +6,5 @@ import (
 
 // CreateMessages создает n сообщений, или меньше.
 func (a App) CreateMessages(n int) ([]entity.Message, error) {
-	return a.Messages.Spawn(n, entity.StatusInitial)
+	return a.messages.Spawn(n, entity.StatusInitial)
 }

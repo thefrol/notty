@@ -3,7 +3,15 @@
 # показывает процент покрытия тестами
 # игнорирует файлы и папки с именем mock и generated и ...
 # указать вот тут:
-FILTER="mock|generated|easyjson|migrations|tool"
+FILTER="mock|generated|easyjson|migrations|tool|cmd"
+
+# Вообще этот скрипт работает чуть неправильно. Есть ощущение, что
+# он учитывает только те пакеты в которых лежат тесты или как-то так
+# то есть это процент оттестированного среди тестируемого или как-то так.
+#
+# Например, если мы добавить пустой main_test.go в cmd/server, то 
+# процент покрытия тестами упадет. Видимо надо искать какой-то 
+# другой скрипт
 
 go test -v -coverpkg=./... -coverprofile=profile.cov.unfiltered ./... -tags=e2e,integral -p=1
 cat profile.cov.unfiltered | grep -Ev $FILTER > profile.cov

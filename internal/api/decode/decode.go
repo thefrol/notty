@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/mailru/easyjson"
-	"gitlab.com/thefrol/notty/internal/api/validate"
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
@@ -20,9 +19,6 @@ func Customer(r *http.Request) (entity.Customer, error) {
 	}
 	defer r.Body.Close()
 
-	if err := validate.CustomerRequest(c); err != nil {
-		return entity.Customer{}, err
-	}
 	return c, nil
 }
 
@@ -34,10 +30,6 @@ func Subscription(r *http.Request) (entity.Subscription, error) {
 		return entity.Subscription{}, fmt.Errorf("не удалось размаршалить рассылку из запроса %w", err)
 	}
 	defer r.Body.Close()
-
-	if err := validate.SubscriptionRequest(c); err != nil {
-		return entity.Subscription{}, err
-	}
 
 	return c, nil
 }

@@ -5,18 +5,18 @@ import (
 )
 
 type App struct {
-	Customers     Customerere
-	Subscriptions Subscripter
-	Statistics    Statister
-	Messages      Messager
+	customers     Customerere
+	subscriptions Subscripter
+	statistics    Statister
+	messages      Messager
 }
 
 func New(customers Customerere, subscriptions Subscripter, stats Statister, messages Messager) App {
 	return App{
-		Customers:     customers,
-		Subscriptions: subscriptions,
-		Statistics:    stats,
-		Messages:      messages,
+		customers:     customers,
+		subscriptions: subscriptions,
+		statistics:    stats,
+		messages:      messages,
 	}
 }
 
@@ -25,18 +25,18 @@ func New(customers Customerere, subscriptions Subscripter, stats Statister, mess
 
 // FullStats возвращает статистику по всем сообщениям
 func (a App) FullStats() (dto.Statistics, error) {
-	return a.Statistics.Filter("%", "%", "%")
+	return a.statistics.Filter("%", "%", "%")
 }
 
 // StatsBySubscription возвращает статистику сообщений по конкретной подписке
 func (a App) StatsBySubscription(id string) (dto.Statistics, error) {
-	_, err := a.Subscriptions.Get(id)
+	_, err := a.subscriptions.Get(id)
 	if err != nil {
 		//if err=subscriptions.ErrorNotFound
 		return dto.Statistics{}, ErrorSubscriptionNotFound
 	}
 
-	s, err := a.Statistics.Filter(id, "%", "%")
+	s, err := a.statistics.Filter(id, "%", "%")
 	if err != nil {
 		return dto.Statistics{}, nil
 	}
@@ -46,12 +46,12 @@ func (a App) StatsBySubscription(id string) (dto.Statistics, error) {
 
 // StatsByClient возвращает статистику сообщений по клиенту
 func (a App) StatsByClient(id string) (dto.Statistics, error) {
-	_, err := a.Customers.Get(id)
+	_, err := a.customers.Get(id)
 	if err != nil {
 		return dto.Statistics{}, ErrorCustomerNotFound
 	}
 
-	s, err := a.Statistics.Filter("%", id, "%")
+	s, err := a.statistics.Filter("%", id, "%")
 	if err != nil {
 		return dto.Statistics{}, nil
 	}

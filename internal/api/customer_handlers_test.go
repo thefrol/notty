@@ -15,8 +15,7 @@ import (
 	"gitlab.com/thefrol/notty/internal/api"
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
-	"gitlab.com/thefrol/notty/internal/storage"
-	"gitlab.com/thefrol/notty/internal/storage/mock"
+	"gitlab.com/thefrol/notty/internal/mock"
 )
 
 // тут больно интегральные тесты, их бы в отдельную папочку
@@ -29,7 +28,7 @@ const (
 type ApiTestSuite struct {
 	suite.Suite
 	api               api.Server
-	customersRepoMock *mock.CustomerRepositoryMock
+	customersRepoMock *mock.CustomerereMock
 	handlers          http.Handler
 }
 
@@ -37,11 +36,18 @@ func (suite *ApiTestSuite) SetupTest() {
 	//make mock cutomers service
 
 	mc := minimock.NewController(suite.T())
-	customersRepo := mock.NewCustomerRepositoryMock(mc)
+	customersRepo := mock.NewCustomerereMock(mc)
 	suite.customersRepoMock = customersRepo
+
+	//existing user
+
+	existingUser := entity.Customer{
+		Id:   existingUserId,
+		Name: "Апий Тестировальный",
+	}
 	//preparing customer repo
 	customersRepo.GetMock.Set(func(s1 string) (c1 entity.Customer, err error) {
-		if s1 == existingUserId {
+		if s1 == existingUser.Id {
 			return entity.Customer{
 				Id:   existingUserId,
 				Name: "Апий Тестировальный",
@@ -51,12 +57,12 @@ func (suite *ApiTestSuite) SetupTest() {
 		}
 	})
 
-	customersRepo.UpdateMock.Set(func(c1 entity.Customer) (err error) {
+	customersRepo.UpdateMock.Set(func(c1 entity.Customer) (entity.Customer, error) {
 		if c1.Id == existingUserId {
-			return nil
+			return existingUser, nil
 		} else {
 			suite.Fail("Запрошен неизвестный айди %s для обновления", c1.Id)
-			return fmt.Errorf("не удалось обновить")
+			return entity.Customer{}, fmt.Errorf("не удалось обновить")
 		}
 	})
 
@@ -69,18 +75,15 @@ func (suite *ApiTestSuite) SetupTest() {
 		}
 	})
 
-	customersRepo.CreateMock.Set(func(c entity.Customer) (err error) {
-		if c.Id == existingUserId {
-			return fmt.Errorf("такой пользователь существует")
+	customersRepo.CreateMock.Set(func(c entity.Customer) (entity.Customer, error) {
+		if c.Id == existingUser.Id {
+			return entity.Customer{}, app.ErrorCustomerExists
 		}
-		return nil
+		return c, nil
 	})
 
-	// services
-	customerService := storage.NewCustomers(customersRepo)
-
 	// app
-	app := app.New(customerService, nil, nil, nil)
+	app := app.New(suite.customersRepoMock, nil, nil, nil)
 	//api
 	suite.api = api.New(app)
 	suite.handlers = suite.api.OpenAPI()
@@ -206,7 +209,7 @@ func (suite *ApiTestSuite) TestUpdateExistingCustomer() {
 
 	getCallsCount := len(suite.customersRepoMock.GetMock.Calls())
 	updateCallsCount := len(suite.customersRepoMock.UpdateMock.Calls())
-	suite.Equal(2, getCallsCount)
+	suite.Equal(1, getCallsCount)
 	suite.Equal(1, updateCallsCount)
 }
 
@@ -296,7 +299,7 @@ func (suite *ApiTestSuite) TestCreateNoId() {
 	suite.Equalf(http.StatusCreated, rec.Code, "неправильный код, тело сообщения: %s", bodyString)
 
 	getCallsCount := len(suite.customersRepoMock.GetMock.Calls())
-	suite.Equal(0, getCallsCount)
+	suite.Equal(0, getCallsCount, "количество запросов гет в репозиторий должно быть 0")
 }
 
 func (suite *ApiTestSuite) TestCreateCustomerExists() {
