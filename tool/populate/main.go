@@ -35,7 +35,7 @@ func main() {
 	customerRepo := sqlrepo.NewCustomers(conn)
 
 	for _, c := range custs {
-		err := customerRepo.Create(c)
+		_, err := customerRepo.Create(c)
 		if err != nil {
 			log.Println(err)
 		}
@@ -47,7 +47,7 @@ func main() {
 	SubsRepo := sqlrepo.NewSubscriptions(conn)
 
 	for _, s := range subs {
-		err := SubsRepo.Create(s)
+		_, err := SubsRepo.Create(s)
 		if err != nil {
 			log.Println(err)
 		}

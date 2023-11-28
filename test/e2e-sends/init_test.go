@@ -23,7 +23,7 @@ type FromDbToSend struct {
 	app        sms.Notifyer
 	senderMock *mock.SenderMock
 	messages   sqlrepo.Messages
-	stats      storage.StatisticsService
+	stats      sqlrepo.Statistics
 }
 
 func (suite *FromDbToSend) SetupTest() {
@@ -54,8 +54,7 @@ func (suite *FromDbToSend) SetupTest() {
 	suite.messages = sqlrepo.NewMessages(db)
 
 	// создаем сервис статистики
-	sr := sqlrepo.NewStatistics(db)
-	suite.stats = storage.NewStatistics(sr)
+	suite.stats = *sqlrepo.NewStatistics(db)
 }
 
 func (suite *FromDbToSend) TestNoop() {

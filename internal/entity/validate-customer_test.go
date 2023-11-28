@@ -1,10 +1,11 @@
-package validate
+package entity_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/thefrol/notty/internal/entity"
+	"gitlab.com/thefrol/notty/internal/entity/valid"
 )
 
 // TestCustomerRequest проверяет, что у такого человека
@@ -27,36 +28,37 @@ func TestCustomerRequest(t *testing.T) {
 		{
 			name: "короткий номер",
 			c:    VasyaShortNumber(),
-			has:  ErrorPhoneValidation,
+			has:  valid.ErrorPhoneValidation,
 		},
 		{
 			name: "номер без + в начале",
 			c:    NotPlusNumber(),
-			has:  ErrorPhoneValidation,
+			has:  valid.ErrorPhoneValidation,
 		},
 
 		// //
 		// // проверки Id
 		// //
-		// {
-		// 	name: "UUID подходит",
-		// 	c:    VasyaUUID(),
-		// 	has:  nil,
-		// },
-		// {
-		// 	name: "кириллица не подходит",
-		// 	c:    VasyaCyrillic(),
-		// 	has:  ErrorIdValidation,
-		// },
-		// {
-		// 	name: "нижнее подчеркивание не подходит",
-		// 	c:    VasyaUnderscore(),
-		// 	has:  ErrorIdValidation,
-		// },
+
+		{
+			name: "UUID подходит",
+			c:    VasyaUUID(),
+			has:  nil,
+		},
+		{
+			name: "кириллица не подходит",
+			c:    VasyaCyrillic(),
+			has:  valid.ErrorIdValidation,
+		},
+		{
+			name: "нижнее подчеркивание не подходит",
+			c:    VasyaUnderscore(),
+			has:  valid.ErrorIdValidation,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := CustomerRequest(tt.c)
+			err := tt.c.Validate()
 			if tt.has == nil {
 				assert.NoError(t, err, "не должно быть ошибки")
 				return

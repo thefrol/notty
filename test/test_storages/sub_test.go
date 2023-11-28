@@ -32,7 +32,7 @@ func Test_SubscriptionWorkflow(t *testing.T) {
 		PhoneFilter:    "123",
 		TagFilter:      "1252",
 	}
-	err := subscriptions.Create(c)
+	_, err := subscriptions.Create(c)
 	require.NoError(t, err)
 
 	g, err := subscriptions.Get(c.Id)

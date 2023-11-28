@@ -35,7 +35,7 @@ func Test_CustomerWorkflow(t *testing.T) {
 		Phone:    "+79161234533",
 		Tag:      "test_user",
 	}
-	err := clients.Create(c)
+	_, err := clients.Create(c)
 	require.NoError(t, err)
 
 	g, err := clients.Get(c.Id)

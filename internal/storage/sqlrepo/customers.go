@@ -1,3 +1,5 @@
+// Тут содержится репозиторий клиентов.
+
 package sqlrepo
 
 import (
@@ -8,9 +10,10 @@ import (
 
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
-	"gitlab.com/thefrol/notty/internal/storage"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo/scan"
 )
+
+var _ app.Customerere = (*Customers)(nil)
 
 // Customers это репозиторий для сущности Customer то есть для нашего клиента
 type Customers struct {
@@ -23,18 +26,28 @@ func NewCustomers(db *sql.DB) Customers {
 	}
 }
 
+// presentation вот этот формат довольно красивый можно об этом рассказать
+// отдельно запросы, отдельно функции
+
+const getCustomer = `
+SELECT
+	id,
+	name,
+	phone,
+	operator,
+	tag
+FROM
+	Customer
+WHERE
+	id=$1`
+
+// Get возвращает клиента с указанным id, или вощвращаем
+// app.ErrorCustomerNotFound - ошибку
 func (c Customers) Get(id string) (res entity.Customer, err error) {
-	r := c.db.QueryRow(`
-		SELECT
-			id,
-			name,
-			phone,
-			operator,
-			tag
-		FROM
-			Customer
-		WHERE
-			id=$1`, id)
+	r := c.db.QueryRow(getCustomer, id)
+	if err := r.Err(); err != nil {
+		return entity.Customer{}, err
+	}
 
 	s, err := scan.Client(r)
 	if err != nil {
@@ -46,14 +59,15 @@ func (c Customers) Get(id string) (res entity.Customer, err error) {
 	return s, nil
 }
 
-func (c Customers) Delete(id string) error {
-	rs, err := c.db.Exec(`
-		DELETE
-		FROM
-			Customer
-		WHERE
-			id=$1`, id)
+const deleteCustomer = `
+DELETE
+FROM
+	Customer
+WHERE
+	id=$1`
 
+func (c Customers) Delete(id string) error {
+	rs, err := c.db.Exec(deleteCustomer, id)
 	if err != nil {
 		return err
 	}
@@ -65,47 +79,53 @@ func (c Customers) Delete(id string) error {
 	return nil
 }
 
-func (c Customers) Update(cl entity.Customer) (err error) {
-	r, err := c.db.Exec(`
-		UPDATE
-			Customer
-		SET
-			name=$2,
-			phone=$3,
-			operator=$4,
-			tag=$5
-		WHERE
-			id=$1`, cl.Id, cl.Name, cl.Phone, cl.Operator, cl.Tag)
-	if err != nil {
-		return err
+const updateCustomer = `
+UPDATE
+	Customer
+SET
+	name=$2,
+	phone=$3,
+	operator=$4,
+	tag=$5
+WHERE
+	id=$1
+RETURNING *`
+
+func (c Customers) Update(cl entity.Customer) (entity.Customer, error) {
+	r := c.db.QueryRow(updateCustomer, cl.Id, cl.Name, cl.Phone, cl.Operator, cl.Tag)
+	if err := r.Err(); err != nil {
+		return entity.Customer{}, err
 	}
 
-	if rs, err := r.RowsAffected(); err != nil && rs != int64(1) {
-		return fmt.Errorf("ошибка апдейта клиента %w", err)
+	s, err := scan.Client(r)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) { // todo правда это или нет хз
+			return entity.Customer{}, app.ErrorCustomerNotFound
+		}
+		return entity.Customer{}, err
 	}
-	return nil
+	return s, nil
 }
 
-func (c Customers) Create(cl entity.Customer) error {
-	r, err := c.db.Exec(`
-		INSERT INTO
-			Customer(
-				id,
-				name,
-				phone,
-				operator,
-				tag
-			)
-		VALUES($1,$2,$3,$4,$5)`, cl.Id, cl.Name, cl.Phone, cl.Operator, cl.Tag)
-	if err != nil {
-		return err
+const createCustomer = `
+INSERT INTO
+	Customer(
+		id,
+		name,
+		phone,
+		operator,
+		tag
+	)
+VALUES($1,$2,$3,$4,$5)
+RETURNING *`
+
+func (c Customers) Create(cl entity.Customer) (entity.Customer, error) {
+	r := c.db.QueryRow(createCustomer, cl.Id, cl.Name, cl.Phone, cl.Operator, cl.Tag)
+	if err := r.Err(); err != nil {
+		return entity.Customer{}, nil //todo ??? ошибка же
 	}
 
-	if rs, err := r.RowsAffected(); err != nil && rs != int64(1) {
-		return fmt.Errorf("ошибка создания клиента %w", err)
-	}
-
-	return nil
+	return scan.Client(r)
 }
 
 // Filter возвращает всех клиентов для определенной рассылки
@@ -154,5 +174,3 @@ func (c Customers) Filter(tag string, operator string, size int) (chan entity.Cu
 
 	return in, nil
 }
-
-var _ storage.CustomerRepository = (*Customers)(nil)

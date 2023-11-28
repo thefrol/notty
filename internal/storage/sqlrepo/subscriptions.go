@@ -10,11 +10,7 @@ import (
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo/scan"
 )
 
-// todo мда, назавание глупое, надо же рассылка а не подписка
-
-var (
-	ErrorNotFound = errors.New("subscription not found")
-)
+var _ app.Subscripter = (*Subscriptions)(nil)
 
 // Subscriptions это репозиторий для сущности Subscription то есть для наших рассылок
 type Subscriptions struct {
@@ -42,6 +38,9 @@ func (c Subscriptions) Get(id string) (res entity.Subscription, err error) {
 			Subscription
 		WHERE
 			id=$1`, id)
+	if err := r.Err(); err != nil {
+		return entity.Subscription{}, err
+	}
 
 	s, err := scan.Subscription(r)
 	if err != nil {
@@ -72,8 +71,8 @@ func (c Subscriptions) Delete(id string) error {
 	return nil
 }
 
-func (c Subscriptions) Update(cl entity.Subscription) error {
-	r, err := c.db.Exec(`
+func (c Subscriptions) Update(cl entity.Subscription) (entity.Subscription, error) {
+	r := c.db.QueryRow(`
 		UPDATE
 			Subscription
 		SET	
@@ -85,24 +84,31 @@ func (c Subscriptions) Update(cl entity.Subscription) error {
 			tag_filter=$7,
 			description=$8
 		WHERE
-			id=$1`, cl.Id, cl.Text, cl.Start,
+			id=$1
+		RETURNING
+			*`, cl.Id, cl.Text, cl.Start,
 		cl.End, cl.OperatorFilter, cl.PhoneFilter,
 		cl.TagFilter, cl.Desc)
+
+	if err := r.Err(); err != nil {
+		return entity.Subscription{}, err
+	}
+
+	s, err := scan.Subscription(r)
 	if err != nil {
-		return err
+		if errors.Is(err, sql.ErrNoRows) { // todo правда это или нет хз
+			return entity.Subscription{}, app.ErrorSubscriptionNotFound
+		}
+		return entity.Subscription{}, err
 	}
+	return s, nil
 
-	if rs, err := r.RowsAffected(); err != nil && rs != int64(1) {
-		return fmt.Errorf("ошибка апдейта клиента %w", err)
-	}
-
-	return nil
 }
 
 //todo запросы надо скомпилировать
 
-func (c Subscriptions) Create(cl entity.Subscription) error {
-	r, err := c.db.Exec(`
+func (c Subscriptions) Create(cl entity.Subscription) (entity.Subscription, error) {
+	r := c.db.QueryRow(`
 		INSERT INTO
 			Subscription(
 				id,
@@ -114,22 +120,21 @@ func (c Subscriptions) Create(cl entity.Subscription) error {
 				tag_filter,
 				description
 			)
-		VALUES($1,$2,$3,$4,$5,$6,$7,$8)`,
+		VALUES
+			($1,$2,$3,$4,$5,$6,$7,$8)
+		RETURNING
+			*`,
 		cl.Id, cl.Text, cl.Start,
 		cl.End, cl.OperatorFilter, cl.PhoneFilter,
 		cl.TagFilter, cl.Desc)
-	if err != nil {
-		return err
+
+	if err := r.Err(); err != nil {
+		return entity.Subscription{}, err
 	}
 
-	if rs, err := r.RowsAffected(); err != nil && rs != int64(1) {
-		return fmt.Errorf("ошибка создания клиента %w", err)
-	}
+	return scan.Subscription(r)
 
-	return nil
 }
-
-// Это уже блок скорее сервиса, чем репозитория
 
 // Active возвращает список активных рассылок
 func (s Subscriptions) Active() ([]entity.Subscription, error) {
