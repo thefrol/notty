@@ -9,14 +9,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
-	"sync"
 	"time"
 
+	"gitlab.com/thefrol/notty/internal/app"
+	"gitlab.com/thefrol/notty/internal/service"
 	"gitlab.com/thefrol/notty/internal/sms"
-	"gitlab.com/thefrol/notty/internal/sms/proxy"
-	"gitlab.com/thefrol/notty/internal/storage"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 )
@@ -46,42 +46,17 @@ func main() {
 
 	//создаем сервисы
 	mr := sqlrepo.NewMessages(db)
-	MessageStreaming := storage.Messages(db, mr)
+	sms := sms.NewEndpoint(endpoint, retryWait, retryCount, token)
 
-	//SubscriptionRepo := sqlrepo.NewSubscriptions(db)
-
-	PostingService := proxy.NewSMSEndpoint(endpoint, retryWait, retryCount, token)
-
-	notty := sms.Notifyer{
-		Messages: MessageStreaming,
-		Poster:   PostingService,
-	}
+	notty := app.NewNotifyerrrr(mr, sms) // todo стремно, канеш, что сколько лишних полей
 	//и за дело
-
-	for {
-		// спим какое-то время. Тут бы заменить по сути на тикер
-		time.Sleep(timeout)
-		wg := sync.WaitGroup{}
-
-		// ищем новые сообщения
-		wg.Add(1)
-		go func() {
-			notty.FindAndSend(batchSize, WorkerCount)
-			wg.Done()
-		}()
-
-		// и одновременно пытаемся отправить неотправленные, но
-		// могущие быть отправленными
-
-		wg.Add(1)
-		go func() {
-			notty.TryToResend(batchSize, WorkerCount)
-			wg.Done()
-		}()
-
-		// ждем когда оба процесса закончатся
-		// todo а вообще надо их в отдельных приложениях например
-		// или в разных горутинах
-		wg.Wait()
+	worker := service.Worker{
+		Notifyer:  notty,
+		Timeout:   timeout,
+		BatchSize: batchSize,
 	}
+
+	// Запускаем воркера на постоянку)
+	worker.FetchAndSend(context.TODO())
+
 }

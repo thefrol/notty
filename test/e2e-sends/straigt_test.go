@@ -4,8 +4,12 @@
 package e2esends
 
 import (
+	"context"
+	"time"
+
 	"gitlab.com/thefrol/notty/internal/dto"
 	"gitlab.com/thefrol/notty/internal/entity"
+	"gitlab.com/thefrol/notty/internal/service"
 )
 
 // TestSendingByTag проверяет что отправляются два сообщения, которые
@@ -15,37 +19,37 @@ import (
 // Так же не отправляется сообщение человеку из другого города с тегом
 // rostov.best
 func (suite *FromDbToSend) TestSendingByTag() {
-	// results I want
+	// вот сколько сообщений я хочу отправить
 	sendWant := 2
 
-	// marking all as done
+	// тут мок будет просто считать количество запросов на отправку
 	sended := 0
-	suite.senderMock.WorkMock.Set(func(ch1 <-chan entity.Message) (ch2 <-chan entity.Message, err error) {
-		ch := make(chan entity.Message)
-
-		go func() {
-			for m := range ch1 {
-				//тут какой-то дедлок происходит если сендер мок вот так использовать
-				// видимо у них там общий лок на мок,
-				// поэтому считаем количество отправленных тут!
-				// а не где-то там
-				// конечно логику надо как-то менять
-				// и этот воркер - нетестируемая штука
-
-				//err := suite.senderMock.Send(m)
-				//suite.NoError(err)
-
-				sended++ // типа отправлено )))
-				m.SentNow()
-				ch <- m
-			}
-			close(ch)
-		}()
-
-		return ch, nil
+	suite.senderMock.SendMock.Set(func(m1 entity.Message) (err error) {
+		// просто считаем количество
+		sended++
+		return nil
 	})
 
-	suite.app.FindAndSend(30, 1)
+	// сконфигурируем сервис отправки
+	worker := service.Worker{
+		Notifyer:  suite.app,
+		Timeout:   0,
+		BatchSize: 50,
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel() // сервер остановится при выходе из теста
+
+	// запустим его в горуине
+	go func() {
+		worker.FetchAndSend(ctx) // todo надо как-то этого парня вырубать)
+	}()
+
+	// дадим ему время
+	time.Sleep(100 * time.Millisecond)
+	cancel() // можно сервис уже тут останавливать
+
+	// проверим
 
 	suite.Equal(sendWant, sended)
 

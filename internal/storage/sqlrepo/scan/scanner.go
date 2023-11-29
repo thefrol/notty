@@ -11,7 +11,6 @@ import (
 	"database/sql"
 	"log"
 
-	"gitlab.com/thefrol/notty/internal/dto"
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
@@ -71,21 +70,4 @@ func Message(r Scanner) (entity.Message, error) {
 		return entity.Message{}, err
 	}
 	return m, nil
-}
-
-func Prototype(r Scanner) (dto.Prototype, error) {
-	p := dto.Prototype{}
-
-	err := r.Scan(
-		&p.CustomerId,
-		&p.SubscriptionId,
-		&p.Text,
-		&p.Phone,
-	)
-
-	if err != nil {
-		log.Printf("Ошибка при чтении строки запроса %v\n", err)
-		return dto.Prototype{}, err
-	}
-	return p, nil
 }

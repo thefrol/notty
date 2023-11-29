@@ -53,14 +53,71 @@ func (m Messages) Create(ms entity.Message) (entity.Message, error) {
 	return m.Get(id)
 }
 
-// Spawn создает сообщения, блокируя таблицу в базе. Таким образом
+// ReserverFromStatus резервирует n сообщений со статусом status, и устанавливает им
+// статус entity.StatusReserved
+//
+// todo главная проблема этого запроса, что мы хотим выполять его параллельно с
+// LockedSpawn, но тот уже заблокировал таблицу
+func (m Messages) ReserveFromStatus(n int, status string) ([]entity.Message, error) {
+	// тут используется подзапрос, чтобы мы могли получить
+	// строго определенное количество сообщений
+	// LIMIT с update не работает
+	rs, err := m.db.Query(`
+		UPDATE
+			Messages
+		SET
+			status=$1
+		WHERE
+			id IN(
+				SELECT
+					id
+				FROM
+					Messages
+				WHERE
+					status=$2
+				LIMIT
+					$3
+			)
+		RETURNING
+			id,
+			customer_id,
+			sub_id,
+			message_text,
+			phone,
+			status,
+			sent timestamptz`,
+		entity.StatusReserved, status, n)
+	if err != nil {
+		return nil, err
+	}
+	defer rs.Close() // todo много такого забыто
+
+	if err := rs.Err(); err != nil {
+		return nil, err
+	}
+
+	//обрабатываем запрос
+	batch := make([]entity.Message, 0, n)
+	for rs.Next() {
+		msg, err := scan.Message(rs)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
+		batch = append(batch, msg)
+	}
+
+	if err := rs.Err(); err != nil {
+		return nil, err
+	}
+
+	return batch, nil
+}
+
+// LockedSpawn создает сообщения, блокируя таблицу в базе. Таким образом
 // при двух параллельных вызовах этого метода, два разных процесса получат
 // разные сообщения гарантированно
-//
-// Классная функция, конечно, дофига работы выполняет. Но насколько она гибкая?
-// средне. И тестировать её просто офигеешь. То есть это прям надо несколько раз
-// забивать базу, и проверять, чтобы все работало
-func (m Messages) Spawn(n int, status string) ([]entity.Message, error) {
+func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 	// Я реально думаю, что транзакция должа быть тут, потому что реализация
 	// хранилища не должна вылезать за этот слой. Что если у нас будет
 	// не транзакционная БД? Что если у нас вообще будет не БД

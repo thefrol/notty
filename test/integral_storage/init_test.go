@@ -3,6 +3,7 @@
 package integralstorage
 
 import (
+	"database/sql"
 	"os"
 	"testing"
 
@@ -14,11 +15,13 @@ import (
 type Storage struct {
 	suite.Suite
 	messages sqlrepo.Messages
+	db       *sql.DB
 }
 
 func (suite *Storage) SetupTest() {
 	str := os.Getenv("NOTTY_TEST_DB")
 	db := postgres.MustConnect(str)
+	suite.db = db
 
 	err := Purge(db)
 	if err != nil {

@@ -4,10 +4,11 @@ import "time"
 
 // небольшая бизнес-логика сообщений
 const (
-	StatusSent    = "done"
-	StatusInitial = "created"
-	StatusFailed  = "fail"
-	StatusInvalid = "invalid"
+	StatusSent     = "done"
+	StatusInitial  = "created"
+	StatusFailed   = "fail"
+	StatusInvalid  = "invalid"
+	StatusReserved = "reserved"
 )
 
 // SentNow помечает, что сообщение было отправлено вот только что
