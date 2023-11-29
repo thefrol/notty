@@ -25,5 +25,16 @@ type Statister interface {
 }
 
 type Messager interface {
-	Spawn(n int, status string) ([]entity.Message, error)
+	LockedSpawn(n int, status string) ([]entity.Message, error)
+	ReserveFromStatus(n int, status string) ([]entity.Message, error)
+	Update(entity.Message) (entity.Message, error)
+	// todo
+	//
+	// мне очень не нравится, что тут сигнатуры у функций похожи,
+	// но параметры имеют разную логику. В локедСпавн - он устанавливает значние
+	// а в Reserve ищет значение
+}
+
+type Sender interface {
+	Send(entity.Message) error
 }

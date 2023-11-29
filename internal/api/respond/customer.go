@@ -1,4 +1,3 @@
-// Упрощенные ответы для хендлеров
 package respond
 
 import (

@@ -1,6 +1,6 @@
 // Этот пакет предоставляет интерфейс к внешнему сервису
 // отправки смс
-package proxy
+package sms
 
 import (
 	"crypto/tls"
@@ -15,13 +15,21 @@ import (
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
+// PosterService это надстройка над HTTP клиентом для сервиса
+// отправки смсок
 type PosterService struct {
 	EndPoint string
 	Token    string
 	client   *resty.Client
 }
 
-func NewSMSEndpoint(endpoint string, retryWaitSeconds int, retryCount int, token string) PosterService {
+// NewEndpoint позволяет отправлять смски, путем HTTP запросов
+// на endpoint. Сервис требует авторизации через jwt, поэтому
+// нужно указать Bearer, который передастся в заголовке Authorization
+//
+// При этом можно указать количество повторных попыток при запросе
+// и вреся между ними
+func NewEndpoint(endpoint string, retryWaitSeconds int, retryCount int, token string) PosterService {
 	return PosterService{
 		EndPoint: endpoint,
 		client: resty.New().
@@ -50,6 +58,16 @@ func (p PosterService) Send(m entity.Message) error {
 		return ErrorInvalidData
 	}
 
+	// тут конечно вооще не понятно, что происходит.
+	// так уж получилось, что спроектировав сервис,
+	// я обнаружил что тут айдишник это int64
+	//
+	// что он означает я вообще не знаю,
+	// поэтому чтобы сообщения нормально отправлялись
+	// я просто генерирую случайный айдишник при отправке)
+	//
+	// наверное, его по-хорошему логгировать надо, чтобы была какая-то
+	// хоть всязь при необходимости
 	id := rand.Int63()
 
 	r := NotifyRequest{
@@ -80,35 +98,8 @@ func (p PosterService) Send(m entity.Message) error {
 	}
 
 	if resp.StatusCode() != 200 {
-		return fmt.Errorf("Неизвестная ошибка %v", err)
+		return fmt.Errorf("неизвестная ошибка %v", err)
 	}
 
 	return nil
-}
-
-func (p PosterService) Work(in <-chan entity.Message) (<-chan entity.Message, error) {
-	done := make(chan entity.Message)
-	go func() {
-
-		for m := range in {
-
-			err := p.Send(m)
-
-			// обрабатываем ошибки
-			// и помечаем сообщение
-			if err != nil {
-				if errors.Is(err, ErrorInvalidData) {
-					m.Invalid()
-				} else {
-					m.Failed()
-				}
-			} else {
-				m.SentNow()
-			}
-			done <- m
-		}
-		close(done)
-	}()
-
-	return done, nil
 }
