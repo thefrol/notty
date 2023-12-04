@@ -6,8 +6,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 
+	"github.com/rs/zerolog/log"
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo/scan"
@@ -128,6 +128,7 @@ func (c Customers) Create(cl entity.Customer) (entity.Customer, error) {
 	return scan.Client(r)
 }
 
+// todo удалить
 // Filter возвращает всех клиентов для определенной рассылки
 // поскольку таких сообщений может быть ну очень много, то
 // то возвращает канал
@@ -152,6 +153,7 @@ func (c Customers) Filter(tag string, operator string, size int) (chan entity.Cu
 		return nil, err
 	}
 	in := make(chan entity.Customer, size)
+	defer close(in)
 
 	go func() {
 		defer rs.Close()
@@ -159,7 +161,9 @@ func (c Customers) Filter(tag string, operator string, size int) (chan entity.Cu
 		for rs.Next() {
 			c, err := scan.Client(rs)
 			if err != nil {
-				log.Printf("Ошибка при чтении строки запроса %v\n", err)
+				logger.Error().
+					Str("Message", "Ошибка при чтении результата SQL запроса").
+					Err(err)
 				return
 			}
 			in <- c
@@ -167,9 +171,12 @@ func (c Customers) Filter(tag string, operator string, size int) (chan entity.Cu
 		}
 
 		if err := rs.Err(); err != nil {
-			log.Printf("Ошибка при чтении запроса %v\n", err)
+			log.Error().
+				Str("Message", "Ошибка при чтении результата SQL запроса").
+				Err(err)
+			return
 		}
-		close(in)
+
 	}()
 
 	return in, nil

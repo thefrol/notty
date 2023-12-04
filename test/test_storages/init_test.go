@@ -1,7 +1,6 @@
 package storages_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -26,8 +25,6 @@ func init() {
 	}
 
 	TestDSN = os.Getenv(EnvTestConnection)
-
-	fmt.Println(NoSkip, TestDSN)
 }
 
 func Test_nothin(t *testing.T) {

@@ -4,7 +4,6 @@ package sqlrepo
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/google/uuid"
 	"gitlab.com/thefrol/notty/internal/entity"
@@ -25,7 +24,8 @@ func NewMessages(db *sql.DB) Messages {
 // todo delete
 func (m Messages) Create(ms entity.Message) (entity.Message, error) {
 	if ms.Id != "" {
-		log.Println("Создается сообщение с ненулевым айдишником")
+		logger.Info().
+			Str("Message", "Создается сообщение с ненулевым айдишником")
 	}
 	id := uuid.New().String()
 	r, err := m.db.Exec(`
@@ -101,7 +101,7 @@ func (m Messages) ReserveFromStatus(n int, status string) ([]entity.Message, err
 	for rs.Next() {
 		msg, err := scan.Message(rs)
 		if err != nil {
-			log.Println(err)
+			logger.Error().AnErr("Ошибка обработки результата SQL запроса", err)
 			return nil, err
 		}
 		batch = append(batch, msg)
@@ -200,7 +200,7 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 	for rs.Next() {
 		msg, err := scan.Message(rs)
 		if err != nil {
-			log.Println(err)
+			logger.Error().AnErr("Ошибка обработки результата SQL запроса", err)
 			return nil, err
 		}
 		batch = append(batch, msg)
@@ -263,7 +263,7 @@ func (c Messages) ByStatus(status string, n int) ([]entity.Message, error) {
 	for rs.Next() {
 		msg, err := scan.Message(rs)
 		if err != nil {
-			log.Println(err)
+			logger.Error().AnErr("Ошибка обработки результата SQL запроса", err)
 			return nil, err
 		}
 		batch = append(batch, msg)

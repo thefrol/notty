@@ -14,5 +14,5 @@ func (a *Server) ListenAndServe(addr string) {
 	r.Mount("/", a.OpenAPI())
 	r.Get("/docs", a.Swagger())
 
-	http.ListenAndServe(":8080", r)
+	http.ListenAndServe(":8080", r) // todo return error
 }

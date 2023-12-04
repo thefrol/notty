@@ -1,9 +1,8 @@
 package server
 
 import (
-	"log"
-
 	"github.com/caarlos0/env/v10"
+	"github.com/rs/zerolog/log"
 )
 
 type Config struct {
@@ -22,11 +21,14 @@ func MustConfig() Config {
 	cfg := Config{}
 	err := env.Parse(&cfg)
 	if err != nil {
-		log.Fatalf("Не удалось пропарсить переменные окружения: %v", err)
+		log.Fatal().
+			Str("Message", "Не удалось пропарсить переменные окружения").
+			Err(err)
 	}
 
 	if cfg.DSN == "" {
-		log.Println("Строка подключения к БД - пустая. Возможно надо назначить переменную окужения NOTTY_DSN")
+		log.Info().
+			Str("Message", "Строка подключения к БД - пустая. Возможно надо назначить переменную окужения NOTTY_DSN")
 	}
 
 	return cfg

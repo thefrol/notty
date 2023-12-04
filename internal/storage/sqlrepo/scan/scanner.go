@@ -9,7 +9,6 @@ package scan
 
 import (
 	"database/sql"
-	"log"
 
 	"gitlab.com/thefrol/notty/internal/entity"
 )
@@ -66,7 +65,6 @@ func Message(r Scanner) (entity.Message, error) {
 		m.Sent = &t.Time
 	}
 	if err != nil {
-		log.Printf("Ошибка при чтении строки запроса %v\n", err)
 		return entity.Message{}, err
 	}
 	return m, nil

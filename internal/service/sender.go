@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/pkg/chans"
@@ -43,8 +43,10 @@ loop:
 		newMessages := chans.GeneratorFunc(func() []entity.Message {
 			ms, err := w.Notifyer.CreateMessages(w.BatchSize)
 			if err != nil {
-				// продолждаем работу если ошибка, просто опять уходим в таймаут
-				fmt.Println(err)
+				// продолждаем работу. Если ошибка, просто опять уходим в таймаут
+				log.Error().
+					Str("Message", "Ошибка при генерации сообщений из базы").
+					Err(err)
 			}
 			return ms
 		})
@@ -55,7 +57,10 @@ loop:
 			ts, err := w.Notifyer.ReserveMessages(w.BatchSize, entity.StatusFailed)
 			if err != nil {
 				// продолждаем работу если ошибка, просто опять уходим в таймаут
-				fmt.Println(err)
+				log.Error().
+					Str("Message", "Ошибка при получении сообщений из базы").
+					Err(err)
+
 			}
 			return ts
 		})
@@ -74,7 +79,10 @@ loop:
 				defer wg.Done()
 				err := w.Notifyer.SendSMS(m)
 				if err != nil {
-					fmt.Println(err)
+					log.Error().
+						Str("Message", "Ошибка при отправке смс").
+						Err(err)
+
 					// если ошибка отправки, то ставим статус -ошибка
 					m.Failed()
 				}
@@ -85,8 +93,9 @@ loop:
 				// мы просто его обновляем в базе
 				err = w.Notifyer.UpdateMessage(m) // todo можно сделать updatefast без возвращения значения)
 				if err != nil {
-					fmt.Println(err)
-					// это прям жесткая ошибка, если мы обновить не можем
+					log.Error().
+						Str("Message", "Сообщение было отправлено, но не удалось обновить статус в хранилище").
+						Err(err)
 				}
 			}()
 		}
@@ -108,9 +117,10 @@ loop:
 		}
 
 	}
-	fmt.Println("worker waiting for jobs to stop")
-
+	log.Info().
+		Str("Message", "Воркер ожидает остановку горутин")
 	wg.Wait()
-	fmt.Println("worker stopped")
 
+	log.Info().
+		Str("Message", "Воркер завершает работу")
 }

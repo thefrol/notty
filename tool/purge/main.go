@@ -3,10 +3,9 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"os"
 
+	"github.com/rs/zerolog/log"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 )
 
@@ -23,7 +22,9 @@ func main() {
 	}
 
 	if dsn == "" {
-		fmt.Println("Нужно передать строку подключения в переменной NOTTY_DSN или первым параметром командной строки")
+		log.Fatal().
+			Str("Message", "Ошибка конфигурации").
+			Str("Description", "Нужно передать строку подключения в переменной NOTTY_DSN или первым параметром командной строки")
 		os.Exit(3)
 	}
 
@@ -31,13 +32,13 @@ func main() {
 
 	_, err := conn.Exec("DELETE FROM customer")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
 	_, err = conn.Exec("DELETE FROM subscription")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal().Err(err)
 	}
 
-	fmt.Println("SUCCESS")
+	log.Info().Str("Message", "База очищена")
 }
