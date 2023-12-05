@@ -20,8 +20,10 @@ func main() {
 	// создаем репозитории
 	cr := sqlrepo.NewCustomers(db)
 	sr := sqlrepo.NewSubscriptions(db)
-	mr := sqlrepo.NewMessages(db)
 	stats := sqlrepo.NewStatistics(db)
+
+	ml := log.With().Str("resository", "messages").Logger()
+	mr := sqlrepo.NewMessages(db, ml)
 
 	// создаем приложение
 	notty := app.New(cr, sr, stats, mr)

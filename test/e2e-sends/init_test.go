@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/gojuno/minimock/v3"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/mock"
@@ -43,11 +44,11 @@ func (suite *FromDbToSend) SetupTest() {
 	mc := minimock.NewController(suite.T())
 	suite.senderMock = mock.NewSenderMock(mc)
 
-	mr := sqlrepo.NewMessages(db)
+	mr := sqlrepo.NewMessages(db, log.Logger)
 
 	suite.app = app.NewNotifyerrrr(mr, suite.senderMock)
 
-	suite.messages = sqlrepo.NewMessages(db)
+	suite.messages = mr
 
 	// создаем сервис статистики
 	suite.stats = *sqlrepo.NewStatistics(db)

@@ -5,52 +5,21 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo/scan"
 )
 
 type Messages struct {
-	db *sql.DB
+	db     *sql.DB
+	logger zerolog.Logger
 }
 
-func NewMessages(db *sql.DB) Messages {
+func NewMessages(db *sql.DB, logger zerolog.Logger) Messages {
 	return Messages{
-		db: db,
+		db:     db,
+		logger: logger,
 	}
-}
-
-// deprecated
-// todo delete
-func (m Messages) Create(ms entity.Message) (entity.Message, error) {
-	if ms.Id != "" {
-		logger.Info().
-			Str("Message", "Создается сообщение с ненулевым айдишником")
-	}
-	id := uuid.New().String()
-	r, err := m.db.Exec(`
-		INSERT INTO
-			Messages(
-				id,
-				sub_id,
-				customer_id,
-				message_text,
-				phone,
-				status,
-				sent
-			)
-		VALUES($1,$2,$3,$4,$5,$6,$7)`, id,
-		ms.SubscriptionId, ms.CustomerId, ms.Text, ms.Phone,
-		ms.Status, ms.Sent)
-	if err != nil {
-		return entity.Message{}, err
-	}
-
-	if rs, err := r.RowsAffected(); err != nil && rs != int64(1) {
-		return entity.Message{}, fmt.Errorf("ошибка создания сообщения %w", err)
-	}
-
-	return m.Get(id)
 }
 
 // ReserverFromStatus резервирует n сообщений со статусом status, и устанавливает им
@@ -101,7 +70,7 @@ func (m Messages) ReserveFromStatus(n int, status string) ([]entity.Message, err
 	for rs.Next() {
 		msg, err := scan.Message(rs)
 		if err != nil {
-			logger.Error().AnErr("Ошибка обработки результата SQL запроса", err)
+			m.logger.Error().AnErr("Ошибка обработки результата SQL запроса", err)
 			return nil, err
 		}
 		batch = append(batch, msg)
@@ -200,7 +169,7 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 	for rs.Next() {
 		msg, err := scan.Message(rs)
 		if err != nil {
-			logger.Error().AnErr("Ошибка обработки результата SQL запроса", err)
+			m.logger.Error().AnErr("Ошибка обработки результата SQL запроса", err)
 			return nil, err
 		}
 		batch = append(batch, msg)
@@ -240,8 +209,8 @@ func (m Messages) Get(id string) (res entity.Message, err error) {
 	return scan.Message(r)
 }
 
-func (c Messages) ByStatus(status string, n int) ([]entity.Message, error) {
-	rs, err := c.db.Query(`
+func (m Messages) ByStatus(status string, n int) ([]entity.Message, error) {
+	rs, err := m.db.Query(`
 	SELECT
 		id,
 		customer_id,
@@ -263,7 +232,7 @@ func (c Messages) ByStatus(status string, n int) ([]entity.Message, error) {
 	for rs.Next() {
 		msg, err := scan.Message(rs)
 		if err != nil {
-			logger.Error().AnErr("Ошибка обработки результата SQL запроса", err)
+			m.logger.Error().AnErr("Ошибка обработки результата SQL запроса", err)
 			return nil, err
 		}
 		batch = append(batch, msg)
@@ -275,8 +244,8 @@ func (c Messages) ByStatus(status string, n int) ([]entity.Message, error) {
 	return batch, nil
 }
 
-func (c Messages) Delete(id string) error {
-	rs, err := c.db.Exec(`
+func (m Messages) Delete(id string) error {
+	rs, err := m.db.Exec(`
 		DELETE
 		FROM
 			Messages
@@ -294,8 +263,8 @@ func (c Messages) Delete(id string) error {
 	return nil
 }
 
-func (c Messages) Update(msg entity.Message) (res entity.Message, err error) {
-	r, err := c.db.Exec(`
+func (m Messages) Update(msg entity.Message) (res entity.Message, err error) {
+	r, err := m.db.Exec(`
 		UPDATE
 			Messages
 		SET
@@ -316,5 +285,5 @@ func (c Messages) Update(msg entity.Message) (res entity.Message, err error) {
 		return entity.Message{}, fmt.Errorf("ошибка апдейта сообщения %w", err)
 	}
 
-	return c.Get(msg.Id)
+	return m.Get(msg.Id)
 }

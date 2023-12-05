@@ -46,7 +46,7 @@ func main() {
 	db := postgres.MustConnect(dsn)
 
 	//создаем сервисы
-	mr := sqlrepo.NewMessages(db)
+	mr := sqlrepo.NewMessages(db, log.Logger)
 	sms := sms.NewEndpoint(endpoint, retryWait, retryCount, token)
 
 	notty := app.NewNotifyerrrr(mr, sms) // todo стремно, канеш, что сколько лишних полей
