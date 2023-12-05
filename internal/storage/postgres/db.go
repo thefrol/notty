@@ -9,6 +9,7 @@ import (
 	"github.com/pressly/goose/v3"
 	"github.com/rs/zerolog/log"
 	_ "gitlab.com/thefrol/notty/internal/storage/postgres/migrations"
+	glog "go.finelli.dev/gooseloggers/zerolog" // a zerolog wrapper for goose
 )
 
 func Connect(dsn string) (*sql.DB, error) {
@@ -19,10 +20,13 @@ func Connect(dsn string) (*sql.DB, error) {
 		return nil, fmt.Errorf("невозможно создать содениение с базой: %w", err)
 	}
 
+	// проверяем, что у нас есть связь с БД
 	if err := conn.PingContext(context.Background()); err != nil {
 		return nil, fmt.Errorf("не могу соединиться с базой: %w", err)
 	}
 
+	// мигрируем
+	goose.SetLogger(glog.GooseZerologLogger(&log.Logger))
 	if err := goose.Up(conn, "."); err != nil {
 		return nil, fmt.Errorf("не удалось мигрировать БД: %w", err)
 	}
