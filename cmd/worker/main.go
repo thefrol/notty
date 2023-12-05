@@ -34,6 +34,9 @@ const (
 var token = os.Getenv("ENDPOINT_TOKEN")
 
 func main() {
+	// создадим корневой логгер
+	rootLogger := log.With().Str("service", "worker").Logger()
+
 	// конфигурируем
 	dsn, ok := os.LookupEnv("NOTTY_DSN")
 	if !ok {
@@ -46,15 +49,17 @@ func main() {
 	db := postgres.MustConnect(dsn)
 
 	//создаем сервисы
-	mr := sqlrepo.NewMessages(db, log.Logger)
+	mr := sqlrepo.NewMessages(db, rootLogger)
 	sms := sms.NewEndpoint(endpoint, retryWait, retryCount, token)
 
-	notty := app.NewNotifyerrrr(mr, sms) // todo стремно, канеш, что сколько лишних полей
-	//и за дело
+	notty := app.NewNotifyerrrr(mr, sms)
+
+	// создаем приложение
 	worker := service.Worker{
 		Notifyer:  notty,
 		Timeout:   timeout,
 		BatchSize: batchSize,
+		Logger:    rootLogger,
 	}
 
 	// Запускаем воркера на постоянку)

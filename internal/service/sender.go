@@ -5,7 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/rs/zerolog/log"
+	"github.com/rs/zerolog"
+
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/pkg/chans"
@@ -17,6 +18,7 @@ type Worker struct {
 	Notifyer  *app.Notifyerrrr
 	Timeout   time.Duration
 	BatchSize int
+	Logger    zerolog.Logger
 }
 
 // FetchAndSend основная функция для воркера, тут он создает и
@@ -44,7 +46,7 @@ loop:
 			ms, err := w.Notifyer.CreateMessages(w.BatchSize)
 			if err != nil {
 				// продолждаем работу. Если ошибка, просто опять уходим в таймаут
-				log.Error().
+				w.Logger.Error().
 					Str("Message", "Ошибка при генерации сообщений из базы").
 					Err(err)
 			}
@@ -57,7 +59,7 @@ loop:
 			ts, err := w.Notifyer.ReserveMessages(w.BatchSize, entity.StatusFailed)
 			if err != nil {
 				// продолждаем работу если ошибка, просто опять уходим в таймаут
-				log.Error().
+				w.Logger.Error().
 					Str("Message", "Ошибка при получении сообщений из базы").
 					Err(err)
 
@@ -79,7 +81,7 @@ loop:
 				defer wg.Done()
 				err := w.Notifyer.SendSMS(m)
 				if err != nil {
-					log.Error().
+					w.Logger.Error().
 						Str("Message", "Ошибка при отправке смс").
 						Err(err)
 
@@ -93,7 +95,7 @@ loop:
 				// мы просто его обновляем в базе
 				err = w.Notifyer.UpdateMessage(m) // todo можно сделать updatefast без возвращения значения)
 				if err != nil {
-					log.Error().
+					w.Logger.Error().
 						Str("Message", "Сообщение было отправлено, но не удалось обновить статус в хранилище").
 						Err(err)
 				}
@@ -117,10 +119,10 @@ loop:
 		}
 
 	}
-	log.Info().
+	w.Logger.Info().
 		Str("Message", "Воркер ожидает остановку горутин")
 	wg.Wait()
 
-	log.Info().
+	w.Logger.Info().
 		Str("Message", "Воркер завершает работу")
 }

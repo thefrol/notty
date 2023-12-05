@@ -11,6 +11,9 @@ import (
 )
 
 func main() {
+	// Создадим корневой логгер
+	rootLogger := log.With().Str("service", "server").Logger()
+
 	// читаем переменные окружения
 	cfg := server.MustConfig()
 
@@ -22,15 +25,15 @@ func main() {
 	sr := sqlrepo.NewSubscriptions(db)
 	stats := sqlrepo.NewStatistics(db)
 
-	ml := log.With().Str("resository", "messages").Logger()
+	ml := log.With().Str("repository", "messages").Logger()
 	mr := sqlrepo.NewMessages(db, ml)
 
 	// создаем приложение
 	notty := app.New(cr, sr, stats, mr)
 
 	// создаем веб-апи
-	serverLogger := log.With().Str("service", "server").Logger()
-	server := api.New(notty, serverLogger)
+
+	server := api.New(notty, rootLogger)
 
 	// запускаем сервак
 	server.ListenAndServe(cfg.Addr)
