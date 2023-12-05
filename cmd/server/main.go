@@ -1,6 +1,10 @@
 package main
 
 import (
+	"context"
+	"os/signal"
+	"syscall"
+
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"gitlab.com/thefrol/notty/internal/api/config"
@@ -12,6 +16,9 @@ import (
 )
 
 func main() {
+	// это корневой контекст приложения
+	rootContext := context.Background()
+
 	// Создадим корневой логгер
 	rootLogger := log.With().
 		Str("service", "server").
@@ -49,6 +56,26 @@ func main() {
 
 	server := api.New(notty, rootLogger)
 
-	// запускаем сервак
-	server.ListenAndServe(cfg.Addr)
+	// создадим контекст, который завершается при получении указанных сигналов
+	ctx, stop := signal.NotifyContext(rootContext,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+	defer stop()
+
+	// запустим сервер, который нежно завершится при завершении контекта
+	rootLogger.Info().
+		Str("addr", cfg.Addr).
+		Msg("Запускается сервер")
+	if err = server.ListenAndServe(ctx, cfg.Addr); err != nil {
+		rootLogger.Fatal().
+			Err(err).
+			Msg("Не удалось запустить сервер")
+	}
+
+	// если мы оказались тут, значит сервер аккуратно завершился
+	rootLogger.Info().
+		Msg("main() завершается")
+
 }
