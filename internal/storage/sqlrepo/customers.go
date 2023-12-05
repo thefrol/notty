@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
@@ -126,51 +125,4 @@ func (c Customers) Create(cl entity.Customer) (entity.Customer, error) {
 	}
 
 	return scan.Client(r)
-}
-
-// Filter возвращает всех клиентов для определенной рассылки
-// поскольку таких сообщений может быть ну очень много, то
-// то возвращает канал
-func (c Customers) Filter(tag string, operator string, size int) (chan entity.Customer, error) {
-	// todo это откуда-то не отсюда
-	// надо удалить
-	rs, err := c.db.Query(`
-		SELECT
-			id,
-			name,
-			phone,
-			operator,
-			tag	
-		FROM
-			customer c
-		WHERE
-			tag ilike $1
-			AND operator ilike $2
-		`, tag, operator)
-
-	if err != nil {
-		return nil, err
-	}
-	in := make(chan entity.Customer, size)
-
-	go func() {
-		defer rs.Close()
-
-		for rs.Next() {
-			c, err := scan.Client(rs)
-			if err != nil {
-				log.Printf("Ошибка при чтении строки запроса %v\n", err)
-				return
-			}
-			in <- c
-
-		}
-
-		if err := rs.Err(); err != nil {
-			log.Printf("Ошибка при чтении запроса %v\n", err)
-		}
-		close(in)
-	}()
-
-	return in, nil
 }

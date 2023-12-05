@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
+	"github.com/rs/zerolog/log"
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
@@ -81,17 +82,31 @@ func (p PosterService) Send(m entity.Message) error {
 		return err
 	}
 
-	fmt.Printf("Отправка %+v\n", r)
+	log.Info().
+		Str("Message", "отправка сообщения").
+		Int64("Id", r.ID).
+		Str("Text", r.text).
+		Int("Phone", r.phone)
 
 	resp, err := p.client.R().
 		SetBody(r).
 		Post(u)
 
-	fmt.Println("RESPONSE:", resp.StatusCode())
-
 	if err != nil {
+		log.Info().
+			Str("Message", "ошибка запроса к смс-серверу").
+			Int64("Id", r.ID).
+			Str("Text", r.text).
+			Int("Phone", r.phone).
+			AnErr("err", err)
 		return err
 	}
+	log.Info().
+		Str("Message", "результат запроса на отправку").
+		Int64("Id", r.ID).
+		Str("Text", r.text).
+		Int("Phone", r.phone).
+		Int("ResponseCode", resp.StatusCode())
 
 	if resp.StatusCode() == 400 {
 		return ErrorInvalidData

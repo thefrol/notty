@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/rs/zerolog"
 	"gitlab.com/thefrol/notty/internal/api/generated"
 	"gitlab.com/thefrol/notty/internal/api/respond"
 	"gitlab.com/thefrol/notty/internal/app"
@@ -10,7 +11,8 @@ import (
 
 // Server представляет собой набор хендлеров для фасада нашего сервера
 type Server struct {
-	app app.App // арр-аррр-аррррр ! пираты
+	app    app.App // арр-аррр-аррррр ! пираты
+	logger zerolog.Logger
 }
 
 // GetMessage implements generated.ServerInterface.
@@ -19,8 +21,8 @@ func (a *Server) GetMessage(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 // New создает новый сервис - набор хендлеров
-func New(app app.App) Server {
-	return Server{app: app}
+func New(app app.App, logger zerolog.Logger) Server {
+	return Server{app: app, logger: logger}
 }
 
 // OpenAPI создает хендлер по которому будут находиться

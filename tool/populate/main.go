@@ -3,10 +3,9 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"os"
 
+	"github.com/rs/zerolog/log"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 )
@@ -24,7 +23,9 @@ func main() {
 	}
 
 	if dsn == "" {
-		fmt.Println("Нужно передать строку подключения в переменной NOTTY_DSN или первым параметром командной строки")
+		log.Fatal().
+			Str("Message", "Ошибка конфигурации").
+			Str("Description", "Нужно передать строку подключения в переменной NOTTY_DSN или первым параметром командной строки")
 		os.Exit(3)
 	}
 
@@ -37,10 +38,10 @@ func main() {
 	for _, c := range custs {
 		_, err := customerRepo.Create(c)
 		if err != nil {
-			log.Println(err)
+			log.Error().Err(err)
 		}
 	}
-	fmt.Println("Клиенты добавлены")
+	log.Info().Str("Message", "Клиенты добавлены")
 
 	// Добавим рассылки
 
@@ -49,8 +50,8 @@ func main() {
 	for _, s := range subs {
 		_, err := SubsRepo.Create(s)
 		if err != nil {
-			log.Println(err)
+			log.Error().Err(err)
 		}
 	}
-	fmt.Println("Рассылки добавлены")
+	log.Info().Str("Message", "Рассылки добавлены")
 }

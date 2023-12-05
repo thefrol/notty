@@ -5,12 +5,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gojuno/minimock/v3"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
 	"gitlab.com/thefrol/notty/internal/api"
 	"gitlab.com/thefrol/notty/internal/app"
@@ -85,7 +85,7 @@ func (suite *ApiTestSuite) SetupTest() {
 	// app
 	app := app.New(suite.customersRepoMock, nil, nil, nil)
 	//api
-	suite.api = api.New(app)
+	suite.api = api.New(app, log.Logger)
 	suite.handlers = suite.api.OpenAPI()
 }
 
@@ -192,9 +192,7 @@ func (suite *ApiTestSuite) TestUpdateExistingCustomer() {
 	}
 
 	data, err := json.Marshal(&c)
-	if err != nil {
-		log.Fatal(err)
-	}
+	suite.Require().NoError(err)
 
 	req := httptest.NewRequest(
 		http.MethodPost,
@@ -223,9 +221,7 @@ func (suite *ApiTestSuite) TestUpdateNotExistingCustomer() {
 	}
 
 	data, err := json.Marshal(&c)
-	if err != nil {
-		log.Fatal(err)
-	}
+	suite.Require().NoError(err)
 
 	req := httptest.NewRequest(
 		http.MethodPost,
@@ -255,9 +251,7 @@ func (suite *ApiTestSuite) TestCreateNotExistingCustomer() {
 	}
 
 	data, err := json.Marshal(&c)
-	if err != nil {
-		log.Fatal(err)
-	}
+	suite.Require().NoError(err)
 
 	req := httptest.NewRequest(
 		http.MethodPost,
@@ -283,9 +277,7 @@ func (suite *ApiTestSuite) TestCreateNoId() {
 	}
 
 	data, err := json.Marshal(&c)
-	if err != nil {
-		log.Fatal(err)
-	}
+	suite.Require().NoError(err)
 
 	req := httptest.NewRequest(
 		http.MethodPost,
@@ -312,9 +304,7 @@ func (suite *ApiTestSuite) TestCreateCustomerExists() {
 	}
 
 	data, err := json.Marshal(&c)
-	if err != nil {
-		log.Fatal(err)
-	}
+	suite.Require().NoError(err)
 
 	req := httptest.NewRequest(
 		http.MethodPost,

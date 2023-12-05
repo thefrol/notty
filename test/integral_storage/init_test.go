@@ -7,6 +7,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
@@ -34,7 +35,7 @@ func (suite *Storage) SetupTest() {
 	}
 
 	// создаем мок отправщика
-	suite.messages = sqlrepo.NewMessages(db)
+	suite.messages = sqlrepo.NewMessages(db, log.Logger)
 }
 
 func TestIntergralSQLRepositories(t *testing.T) {

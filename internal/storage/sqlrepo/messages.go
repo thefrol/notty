@@ -4,53 +4,23 @@ package sqlrepo
 import (
 	"database/sql"
 	"fmt"
-	"log"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo/scan"
 )
 
 type Messages struct {
-	db *sql.DB
+	db     *sql.DB
+	logger zerolog.Logger
 }
 
-func NewMessages(db *sql.DB) Messages {
+func NewMessages(db *sql.DB, logger zerolog.Logger) Messages {
 	return Messages{
-		db: db,
+		db:     db,
+		logger: logger,
 	}
-}
-
-// deprecated
-// todo delete
-func (m Messages) Create(ms entity.Message) (entity.Message, error) {
-	if ms.Id != "" {
-		log.Println("Создается сообщение с ненулевым айдишником")
-	}
-	id := uuid.New().String()
-	r, err := m.db.Exec(`
-		INSERT INTO
-			Messages(
-				id,
-				sub_id,
-				customer_id,
-				message_text,
-				phone,
-				status,
-				sent
-			)
-		VALUES($1,$2,$3,$4,$5,$6,$7)`, id,
-		ms.SubscriptionId, ms.CustomerId, ms.Text, ms.Phone,
-		ms.Status, ms.Sent)
-	if err != nil {
-		return entity.Message{}, err
-	}
-
-	if rs, err := r.RowsAffected(); err != nil && rs != int64(1) {
-		return entity.Message{}, fmt.Errorf("ошибка создания сообщения %w", err)
-	}
-
-	return m.Get(id)
 }
 
 // ReserverFromStatus резервирует n сообщений со статусом status, и устанавливает им
@@ -101,7 +71,7 @@ func (m Messages) ReserveFromStatus(n int, status string) ([]entity.Message, err
 	for rs.Next() {
 		msg, err := scan.Message(rs)
 		if err != nil {
-			log.Println(err)
+			m.logger.Error().AnErr("Ошибка обработки результата SQL запроса", err)
 			return nil, err
 		}
 		batch = append(batch, msg)
@@ -121,11 +91,29 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 	// Я реально думаю, что транзакция должа быть тут, потому что реализация
 	// хранилища не должна вылезать за этот слой. Что если у нас будет
 	// не транзакционная БД? Что если у нас вообще будет не БД
+
+	// Операция довольно сложная с возможно несколькими процессами, поэтому
+	// логгируем довольно обширно, сразу передаем айдишник всем причастным логгерам
+	opLogger := m.logger.With().
+		Str("operation", "LockedSpawn").
+		Str("table", "Messages").
+		Str("operation_id", uuid.NewString()).Logger()
+
+	opLogger.Info().
+		Str("status", "started").
+		Str("description", "Сейчас будет заблокирована база данных, чтобы создать сообщения")
+
 	tx, err := m.db.Begin()
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		m.logger.Info().
+			Str("transaction", "rollback").
+			Str("status", "fail").
+			Str("lock", "released")
+		tx.Rollback()
+	}()
 
 	// теперь заблокируем таблицу, чтобы никто
 	// другой не смог создать такие же сообщения.
@@ -135,6 +123,8 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 	if err != nil {
 		return nil, err
 	}
+	opLogger.Info().
+		Str("lock", "aquired")
 
 	rs, err := tx.Query(`
 		WITH
@@ -200,13 +190,14 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 	for rs.Next() {
 		msg, err := scan.Message(rs)
 		if err != nil {
-			log.Println(err)
+			opLogger.Error().AnErr("Ошибка обработки результата SQL запроса(scan())", err)
 			return nil, err
 		}
 		batch = append(batch, msg)
 	}
 
 	if err := rs.Err(); err != nil {
+		opLogger.Error().AnErr("Ошибка обработки результата SQL запроса(в строках)", err)
 		return nil, err
 	}
 
@@ -219,6 +210,10 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 	if err != nil {
 		return nil, err
 	}
+	opLogger.Info().
+		Str("status", "success").
+		Str("lock", "released on commit")
+
 	return batch, nil
 }
 
@@ -240,8 +235,8 @@ func (m Messages) Get(id string) (res entity.Message, err error) {
 	return scan.Message(r)
 }
 
-func (c Messages) ByStatus(status string, n int) ([]entity.Message, error) {
-	rs, err := c.db.Query(`
+func (m Messages) ByStatus(status string, n int) ([]entity.Message, error) {
+	rs, err := m.db.Query(`
 	SELECT
 		id,
 		customer_id,
@@ -263,7 +258,7 @@ func (c Messages) ByStatus(status string, n int) ([]entity.Message, error) {
 	for rs.Next() {
 		msg, err := scan.Message(rs)
 		if err != nil {
-			log.Println(err)
+			m.logger.Error().AnErr("Ошибка обработки результата SQL запроса", err)
 			return nil, err
 		}
 		batch = append(batch, msg)
@@ -275,8 +270,8 @@ func (c Messages) ByStatus(status string, n int) ([]entity.Message, error) {
 	return batch, nil
 }
 
-func (c Messages) Delete(id string) error {
-	rs, err := c.db.Exec(`
+func (m Messages) Delete(id string) error {
+	rs, err := m.db.Exec(`
 		DELETE
 		FROM
 			Messages
@@ -294,8 +289,8 @@ func (c Messages) Delete(id string) error {
 	return nil
 }
 
-func (c Messages) Update(msg entity.Message) (res entity.Message, err error) {
-	r, err := c.db.Exec(`
+func (m Messages) Update(msg entity.Message) (res entity.Message, err error) {
+	r, err := m.db.Exec(`
 		UPDATE
 			Messages
 		SET
@@ -316,5 +311,5 @@ func (c Messages) Update(msg entity.Message) (res entity.Message, err error) {
 		return entity.Message{}, fmt.Errorf("ошибка апдейта сообщения %w", err)
 	}
 
-	return c.Get(msg.Id)
+	return m.Get(msg.Id)
 }

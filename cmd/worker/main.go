@@ -10,10 +10,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"time"
 
+	"github.com/rs/zerolog/log"
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/service"
 	"gitlab.com/thefrol/notty/internal/sms"
@@ -37,7 +37,8 @@ func main() {
 	// конфигурируем
 	dsn, ok := os.LookupEnv("NOTTY_DSN")
 	if !ok {
-		fmt.Println("Нужно передать строку подключения в переменной NOTTY_DSN")
+		log.Info().
+			Str("Message", "Неправильная конфигурации. Нужно передать строку подключения в переменной NOTTY_DSN")
 		os.Exit(3)
 	}
 
@@ -45,7 +46,7 @@ func main() {
 	db := postgres.MustConnect(dsn)
 
 	//создаем сервисы
-	mr := sqlrepo.NewMessages(db)
+	mr := sqlrepo.NewMessages(db, log.Logger)
 	sms := sms.NewEndpoint(endpoint, retryWait, retryCount, token)
 
 	notty := app.NewNotifyerrrr(mr, sms) // todo стремно, канеш, что сколько лишних полей
