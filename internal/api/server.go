@@ -7,7 +7,7 @@ import (
 
 	"github.com/Lavalier/zchi"
 	"github.com/go-chi/chi"
-	auth "gitlab.com/thefrol/notty/pkg/jwt"
+	"github.com/go-chi/jwtauth/v5"
 )
 
 // ListenAndServe запускает сервер Нотти, который будет выполняет
@@ -29,8 +29,9 @@ func (a *Server) ListenAndServe(ctx context.Context, addr, key string) error {
 	r.Group(func(r chi.Router) {
 		// если указан ключ, то закрываем доступ
 		if key != "" {
-			r.Use(auth.WithJWT(key))
 			a.logger.Info().Msg("Апи закрыто авторизацией через jwt")
+			tokenAuth := jwtauth.New("HS256", []byte(key), nil)
+			r.Use(jwtauth.Verifier(tokenAuth))
 		} else {
 			a.logger.Error().Msg("Апи открыто для доступа")
 		}
