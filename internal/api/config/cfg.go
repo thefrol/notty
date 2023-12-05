@@ -7,9 +7,15 @@ import (
 )
 
 type Config struct {
-	// по умолчанию вот такие параметры
+
+	// адрес, на котором сервер будет слушать
 	Addr string `env:"ADDR" envDefault:":8080"`
-	DSN  string `env:"NOTTY_DSN"`
+
+	// строка подключения к бд
+	DSN string `env:"NOTTY_DSN"`
+
+	// ключ для подписывания jwt
+	Key string `env:"KEY"`
 }
 
 // Parse забирает переменные окружения в структуру Config,
