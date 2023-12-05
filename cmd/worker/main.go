@@ -50,7 +50,12 @@ func main() {
 	}
 
 	// соединяемся с БД
-	db := postgres.MustConnect(dsn)
+	db, err := postgres.Connect(dsn)
+	if err != nil {
+		rootLogger.Fatal().
+			Err(err).
+			Msg("Не удалось подключить к базе данных")
+	}
 
 	//создаем репозитории/адаптеры
 	mr := sqlrepo.NewMessages(db, rootLogger)

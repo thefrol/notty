@@ -22,12 +22,17 @@ func main() {
 	cfg, err := config.Parse()
 	if err != nil {
 		rootLogger.Fatal().
-			Str("Message", "Ошибка понфигурации").
-			Err(err)
+			Err(err).
+			Msg("Ошибка конфигурации")
 	}
 
 	// соединяемся с БД
-	db := postgres.MustConnect(cfg.DSN)
+	db, err := postgres.Connect(cfg.DSN)
+	if err != nil {
+		rootLogger.Fatal().
+			Err(err).
+			Msg("Не удалось подключить к базе данных")
+	}
 
 	// создаем репозитории
 	cr := sqlrepo.NewCustomers(db)
