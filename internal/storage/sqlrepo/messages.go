@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo/scan"
@@ -90,11 +91,29 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 	// Я реально думаю, что транзакция должа быть тут, потому что реализация
 	// хранилища не должна вылезать за этот слой. Что если у нас будет
 	// не транзакционная БД? Что если у нас вообще будет не БД
+
+	// Операция довольно сложная с возможно несколькими процессами, поэтому
+	// логгируем довольно обширно, сразу передаем айдишник всем причастным логгерам
+	opLogger := m.logger.With().
+		Str("operation", "LockedSpawn").
+		Str("table", "Messages").
+		Str("operation_id", uuid.NewString()).Logger()
+
+	opLogger.Info().
+		Str("status", "started").
+		Str("description", "Сейчас будет заблокирована база данных, чтобы создать сообщения")
+
 	tx, err := m.db.Begin()
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer func() {
+		m.logger.Info().
+			Str("transaction", "rollback").
+			Str("status", "fail").
+			Str("lock", "released")
+		tx.Rollback()
+	}()
 
 	// теперь заблокируем таблицу, чтобы никто
 	// другой не смог создать такие же сообщения.
@@ -104,6 +123,8 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 	if err != nil {
 		return nil, err
 	}
+	opLogger.Info().
+		Str("lock", "aquired")
 
 	rs, err := tx.Query(`
 		WITH
@@ -169,13 +190,14 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 	for rs.Next() {
 		msg, err := scan.Message(rs)
 		if err != nil {
-			m.logger.Error().AnErr("Ошибка обработки результата SQL запроса", err)
+			opLogger.Error().AnErr("Ошибка обработки результата SQL запроса(scan())", err)
 			return nil, err
 		}
 		batch = append(batch, msg)
 	}
 
 	if err := rs.Err(); err != nil {
+		opLogger.Error().AnErr("Ошибка обработки результата SQL запроса(в строках)", err)
 		return nil, err
 	}
 
@@ -188,6 +210,10 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 	if err != nil {
 		return nil, err
 	}
+	opLogger.Info().
+		Str("status", "success").
+		Str("lock", "released on commit")
+
 	return batch, nil
 }
 
