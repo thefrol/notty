@@ -7,6 +7,7 @@ import (
 
 	"github.com/Lavalier/zchi"
 	"github.com/go-chi/chi"
+	"github.com/go-chi/jwtauth/v5"
 )
 
 // ListenAndServe запускает сервер Нотти, который будет выполняет
@@ -15,12 +16,28 @@ import (
 // При завершении контекста берет десять секунд за закрытие соединений
 // и потом возвращает управление. Вернет err==nil если завершение прошло хорошо
 // , и err!=nil если проблемы с запуском сервера
-func (a *Server) ListenAndServe(ctx context.Context, addr string) error {
+func (a *Server) ListenAndServe(ctx context.Context, addr, key string) error {
 	r := chi.NewRouter()
 
+	// логирование запросов
 	r.Use(zchi.Logger(a.logger))
-	r.Mount("/", a.OpenAPI())
+
+	// добавим сваггер
 	r.Get("/docs", a.Swagger())
+
+	// и основное ап, закрытое токеном
+	r.Group(func(r chi.Router) {
+		// если указан ключ, то закрываем доступ
+		if key != "" {
+			a.logger.Info().Msg("Апи закрыто авторизацией через jwt")
+			tokenAuth := jwtauth.New("HS256", []byte(key), nil)
+			r.Use(jwtauth.Verifier(tokenAuth))
+		} else {
+			a.logger.Error().Msg("Апи открыто для доступа")
+		}
+
+		r.Mount("/", a.OpenAPI())
+	})
 
 	server := &http.Server{Addr: addr, Handler: r}
 
