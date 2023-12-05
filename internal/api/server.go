@@ -7,6 +7,7 @@ import (
 
 	"github.com/Lavalier/zchi"
 	"github.com/go-chi/chi"
+	auth "gitlab.com/thefrol/notty/pkg/jwt"
 )
 
 // ListenAndServe запускает сервер Нотти, который будет выполняет
@@ -15,12 +16,18 @@ import (
 // При завершении контекста берет десять секунд за закрытие соединений
 // и потом возвращает управление. Вернет err==nil если завершение прошло хорошо
 // , и err!=nil если проблемы с запуском сервера
-func (a *Server) ListenAndServe(ctx context.Context, addr string) error {
+func (a *Server) ListenAndServe(ctx context.Context, addr, key string) error {
 	r := chi.NewRouter()
 
+	// логирование запросов
 	r.Use(zchi.Logger(a.logger))
-	r.Mount("/", a.OpenAPI())
+
+	// добавим сваггер
 	r.Get("/docs", a.Swagger())
+
+	// и основное апи, закрытое токеном
+	r.With(auth.WithJWT(key)).
+		Mount("/", a.OpenAPI())
 
 	server := &http.Server{Addr: addr, Handler: r}
 

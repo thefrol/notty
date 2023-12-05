@@ -68,7 +68,7 @@ func main() {
 	rootLogger.Info().
 		Str("addr", cfg.Addr).
 		Msg("Запускается сервер")
-	if err = server.ListenAndServe(ctx, cfg.Addr); err != nil {
+	if err = server.ListenAndServe(ctx, cfg.Addr, "123"); err != nil {
 		rootLogger.Fatal().
 			Err(err).
 			Msg("Не удалось запустить сервер")
