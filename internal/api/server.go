@@ -25,9 +25,18 @@ func (a *Server) ListenAndServe(ctx context.Context, addr, key string) error {
 	// добавим сваггер
 	r.Get("/docs", a.Swagger())
 
-	// и основное апи, закрытое токеном
-	r.With(auth.WithJWT(key)).
-		Mount("/", a.OpenAPI())
+	// и основное ап, закрытое токеном
+	r.Group(func(r chi.Router) {
+		// если указан ключ, то закрываем доступ
+		if key != "" {
+			r.Use(auth.WithJWT(key))
+			a.logger.Info().Msg("Апи закрыто авторизацией через jwt")
+		} else {
+			a.logger.Error().Msg("Апи открыто для доступа")
+		}
+
+		r.Mount("/", a.OpenAPI())
+	})
 
 	server := &http.Server{Addr: addr, Handler: r}
 
