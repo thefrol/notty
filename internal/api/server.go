@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/Lavalier/zchi"
 	"github.com/go-chi/chi"
 )
 
@@ -11,6 +12,7 @@ import (
 func (a *Server) ListenAndServe(addr string) {
 	r := chi.NewRouter()
 
+	r.Use(zchi.Logger(a.logger))
 	r.Mount("/", a.OpenAPI())
 	r.Get("/docs", a.Swagger())
 

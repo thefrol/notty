@@ -5,12 +5,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gojuno/minimock/v3"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/suite"
 	"gitlab.com/thefrol/notty/internal/api"
 	"gitlab.com/thefrol/notty/internal/app"
@@ -78,7 +78,7 @@ func (suite *SubscriptionTestSuite) SetupTest() {
 	// app
 	app := app.New(nil, subscriptionsRepo, nil, nil)
 	//api
-	suite.api = api.New(app)
+	suite.api = api.New(app, log.Logger)
 	suite.handlers = suite.api.OpenAPI()
 }
 
@@ -184,9 +184,7 @@ func (suite *SubscriptionTestSuite) TestUpdateExistingSubscription() {
 	}
 
 	data, err := json.Marshal(&c)
-	if err != nil {
-		log.Fatal(err)
-	}
+	suite.Require().NoError(err)
 
 	req := httptest.NewRequest(
 		http.MethodPost,
@@ -213,9 +211,7 @@ func (suite *SubscriptionTestSuite) TestUpdateNotExistingSubscription() {
 	}
 
 	data, err := json.Marshal(&c)
-	if err != nil {
-		log.Fatal(err)
-	}
+	suite.Require().NoError(err)
 
 	req := httptest.NewRequest(
 		http.MethodPost,
@@ -243,9 +239,7 @@ func (suite *SubscriptionTestSuite) TestCreateNotExistingSubscription() {
 	}
 
 	data, err := json.Marshal(&c)
-	if err != nil {
-		log.Fatal(err)
-	}
+	suite.Require().NoError(err)
 
 	req := httptest.NewRequest(
 		http.MethodPost,
@@ -268,9 +262,7 @@ func (suite *SubscriptionTestSuite) TestCreateNoId() {
 	c := entity.Subscription{}
 
 	data, err := json.Marshal(&c)
-	if err != nil {
-		log.Fatal(err)
-	}
+	suite.Require().NoError(err)
 
 	req := httptest.NewRequest(
 		http.MethodPost,
@@ -295,9 +287,7 @@ func (suite *SubscriptionTestSuite) TestCreateSubscriptionExists() {
 	}
 
 	data, err := json.Marshal(&c)
-	if err != nil {
-		log.Fatal(err)
-	}
+	suite.Require().NoError(err)
 
 	req := httptest.NewRequest(
 		http.MethodPost,

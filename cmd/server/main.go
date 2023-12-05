@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/rs/zerolog/log"
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/app/config/server"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
@@ -16,17 +17,18 @@ func main() {
 	// соединяемся с БД
 	db := postgres.MustConnect(cfg.DSN)
 
-	// создаем сервиси и репозитории
+	// создаем репозитории
 	cr := sqlrepo.NewCustomers(db)
 	sr := sqlrepo.NewSubscriptions(db)
+	mr := sqlrepo.NewMessages(db)
 	stats := sqlrepo.NewStatistics(db)
 
-	mr := sqlrepo.NewMessages(db)
 	// создаем приложение
 	notty := app.New(cr, sr, stats, mr)
 
-	// создаем сервис апи
-	server := api.New(notty)
+	// создаем веб-апи
+	serverLogger := log.With().Str("service", "server").Logger()
+	server := api.New(notty, serverLogger)
 
 	// запускаем сервак
 	server.ListenAndServe(cfg.Addr)
