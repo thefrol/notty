@@ -38,10 +38,12 @@ func main() {
 	for _, c := range custs {
 		_, err := customerRepo.Create(c)
 		if err != nil {
-			log.Error().Err(err)
+			log.Error().
+				Err(err).
+				Msg("Ошибка добавления клиента")
 		}
 	}
-	log.Info().Str("Message", "Клиенты добавлены")
+	log.Info().Msg("Клиенты добавлены")
 
 	// Добавим рассылки
 
@@ -50,8 +52,10 @@ func main() {
 	for _, s := range subs {
 		_, err := SubsRepo.Create(s)
 		if err != nil {
-			log.Error().Err(err)
+			log.Error().
+				Err(err).
+				Msg("Ошибка добавления подписки")
 		}
 	}
-	log.Info().Str("Message", "Рассылки добавлены")
+	log.Info().Msg("Рассылки добавлены")
 }

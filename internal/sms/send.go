@@ -83,10 +83,10 @@ func (p PosterService) Send(m entity.Message) error {
 	}
 
 	log.Info().
-		Str("Message", "отправка сообщения").
 		Int64("Id", r.ID).
 		Str("Text", r.text).
-		Int("Phone", r.phone)
+		Int("Phone", r.phone).
+		Msg("Отправка сообщения")
 
 	resp, err := p.client.R().
 		SetBody(r).
@@ -94,19 +94,20 @@ func (p PosterService) Send(m entity.Message) error {
 
 	if err != nil {
 		log.Info().
-			Str("Message", "ошибка запроса к смс-серверу").
 			Int64("Id", r.ID).
 			Str("Text", r.text).
 			Int("Phone", r.phone).
-			AnErr("err", err)
+			AnErr("err", err).
+			Msg("ошибка запроса к смс-серверу")
+
 		return err
 	}
 	log.Info().
-		Str("Message", "результат запроса на отправку").
 		Int64("Id", r.ID).
 		Str("Text", r.text).
 		Int("Phone", r.phone).
-		Int("ResponseCode", resp.StatusCode())
+		Int("ResponseCode", resp.StatusCode()).
+		Msg("Результаты отправки сообщения")
 
 	if resp.StatusCode() == 400 {
 		return ErrorInvalidData

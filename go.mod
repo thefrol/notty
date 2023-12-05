@@ -17,6 +17,7 @@ require (
 	github.com/pressly/goose/v3 v3.15.1
 	github.com/rs/zerolog v1.31.0
 	github.com/stretchr/testify v1.8.4
+	go.finelli.dev/gooseloggers v1.0.0
 )
 
 require (

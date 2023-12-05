@@ -101,7 +101,7 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 
 	opLogger.Info().
 		Str("status", "started").
-		Str("description", "Сейчас будет заблокирована база данных, чтобы создать сообщения")
+		Msg("Сейчас будет заблокирована база данных, чтобы создать сообщения")
 
 	tx, err := m.db.Begin()
 	if err != nil {
@@ -111,7 +111,9 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 		m.logger.Info().
 			Str("transaction", "rollback").
 			Str("status", "fail").
-			Str("lock", "released")
+			Str("lock", "released").
+			Msg("Откатываются изменения при генерации сообщений")
+
 		tx.Rollback()
 	}()
 
@@ -124,7 +126,8 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 		return nil, err
 	}
 	opLogger.Info().
-		Str("lock", "aquired")
+		Str("lock", "aquired").
+		Msg("Начало генерации сообщений. Заблокирована таблица")
 
 	rs, err := tx.Query(`
 		WITH
@@ -212,7 +215,8 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 	}
 	opLogger.Info().
 		Str("status", "success").
-		Str("lock", "released on commit")
+		Str("lock", "released").
+		Msg("Успех. Сообщения сгенерированы. Блокировка снята")
 
 	return batch, nil
 }

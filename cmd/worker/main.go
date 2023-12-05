@@ -13,6 +13,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/service"
@@ -35,20 +36,28 @@ var token = os.Getenv("ENDPOINT_TOKEN")
 
 func main() {
 	// создадим корневой логгер
-	rootLogger := log.With().Str("service", "worker").Logger()
+	rootLogger := log.With().
+		Str("service", "worker").
+		Str("instance_id", uuid.NewString()).
+		Logger()
 
 	// конфигурируем
 	dsn, ok := os.LookupEnv("NOTTY_DSN")
 	if !ok {
-		log.Info().
-			Str("Message", "Неправильная конфигурации. Нужно передать строку подключения в переменной NOTTY_DSN")
+		rootLogger.Info().
+			Msg("Неправильная конфигурации. Нужно передать строку подключения в переменной NOTTY_DSN")
 		os.Exit(3)
 	}
 
 	// соединяемся с БД
-	db := postgres.MustConnect(dsn)
+	db, err := postgres.Connect(dsn)
+	if err != nil {
+		rootLogger.Fatal().
+			Err(err).
+			Msg("Не удалось подключить к базе данных")
+	}
 
-	//создаем сервисы
+	//создаем репозитории/адаптеры
 	mr := sqlrepo.NewMessages(db, rootLogger)
 	sms := sms.NewEndpoint(endpoint, retryWait, retryCount, token)
 
