@@ -11,6 +11,8 @@ package main
 import (
 	"context"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/google/uuid"
@@ -35,6 +37,9 @@ const (
 var token = os.Getenv("ENDPOINT_TOKEN")
 
 func main() {
+	// это корневой контекст приложения
+	rootContext := context.Background()
+
 	// создадим корневой логгер
 	rootLogger := log.With().
 		Str("service", "worker").
@@ -71,7 +76,18 @@ func main() {
 		Logger:    rootLogger,
 	}
 
+	// создадим контекст, который завершается при получении указанных сигналов
+	ctx, stop := signal.NotifyContext(rootContext,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+	defer stop()
+
 	// Запускаем воркера на постоянку)
-	worker.FetchAndSend(context.TODO())
+	worker.FetchAndSend(ctx)
+
+	rootLogger.Info().
+		Msg("окончание main()")
 
 }

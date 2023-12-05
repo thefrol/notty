@@ -108,13 +108,13 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 		return nil, err
 	}
 	defer func() {
-		m.logger.Info().
-			Str("transaction", "rollback").
-			Str("status", "fail").
-			Str("lock", "released").
-			Msg("Откатываются изменения при генерации сообщений")
-
-		tx.Rollback()
+		if err := tx.Rollback(); err != sql.ErrTxDone {
+			m.logger.Info().
+				Str("transaction", "rollback").
+				Str("status", "fail").
+				Str("lock", "released").
+				Msg("Откатываются изменения при генерации сообщений")
+		}
 	}()
 
 	// теперь заблокируем таблицу, чтобы никто
