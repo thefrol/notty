@@ -45,7 +45,7 @@ func main() {
 	dsn, ok := os.LookupEnv("NOTTY_DSN")
 	if !ok {
 		rootLogger.Info().
-			Str("Message", "Неправильная конфигурации. Нужно передать строку подключения в переменной NOTTY_DSN")
+			Msg("Неправильная конфигурации. Нужно передать строку подключения в переменной NOTTY_DSN")
 		os.Exit(3)
 	}
 

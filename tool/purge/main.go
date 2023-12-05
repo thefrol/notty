@@ -40,5 +40,5 @@ func main() {
 		log.Fatal().Err(err)
 	}
 
-	log.Info().Str("Message", "База очищена")
+	log.Info().Msg("База очищена")
 }
