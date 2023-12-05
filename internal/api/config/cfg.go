@@ -1,4 +1,4 @@
-package server
+package config
 
 import (
 	"github.com/caarlos0/env/v10"
@@ -11,13 +11,13 @@ type Config struct {
 	DSN  string `env:"NOTTY_DSN"`
 }
 
-// MustConfig забирает переменные окружения в структуру Config,
+// MustParse забирает переменные окружения в структуру Config,
 // если конфиг не удался завершает работу программы.
 //
 // Используются переменные:
 // NOTTY_DSN - строка соединения с БД
 // ADDR - адрес создаваемого сервера, по умолчанию ":8080"
-func MustConfig() Config {
+func MustParse() Config {
 	cfg := Config{}
 	err := env.Parse(&cfg)
 	if err != nil {

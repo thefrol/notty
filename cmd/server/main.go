@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/rs/zerolog/log"
+	"gitlab.com/thefrol/notty/internal/api/config"
 	"gitlab.com/thefrol/notty/internal/app"
-	"gitlab.com/thefrol/notty/internal/app/config/server"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 
@@ -15,7 +15,7 @@ func main() {
 	rootLogger := log.With().Str("service", "server").Logger()
 
 	// читаем переменные окружения
-	cfg := server.MustConfig()
+	cfg := config.MustParse()
 
 	// соединяемся с БД
 	db := postgres.MustConnect(cfg.DSN)
