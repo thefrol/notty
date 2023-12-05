@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"gitlab.com/thefrol/notty/internal/api/config"
 	"gitlab.com/thefrol/notty/internal/app"
@@ -12,10 +13,18 @@ import (
 
 func main() {
 	// Создадим корневой логгер
-	rootLogger := log.With().Str("service", "server").Logger()
+	rootLogger := log.With().
+		Str("service", "server").
+		Str("instance_id", uuid.NewString()).
+		Logger()
 
 	// читаем переменные окружения
-	cfg := config.MustParse()
+	cfg, err := config.Parse()
+	if err != nil {
+		rootLogger.Fatal().
+			Str("Message", "Ошибка понфигурации").
+			Err(err)
+	}
 
 	// соединяемся с БД
 	db := postgres.MustConnect(cfg.DSN)
