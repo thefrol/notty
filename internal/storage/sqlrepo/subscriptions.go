@@ -1,6 +1,7 @@
 package sqlrepo
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -23,8 +24,8 @@ func NewSubscriptions(db *sql.DB) Subscriptions {
 	}
 }
 
-func (c Subscriptions) Get(id string) (res entity.Subscription, err error) {
-	r := c.db.QueryRow(`
+func (c Subscriptions) Get(ctx context.Context, id string) (res entity.Subscription, err error) {
+	r := c.db.QueryRowContext(ctx, `
 		SELECT
 			id,
 			msg_text, 
@@ -52,8 +53,8 @@ func (c Subscriptions) Get(id string) (res entity.Subscription, err error) {
 	return s, nil
 }
 
-func (c Subscriptions) Delete(id string) error {
-	rs, err := c.db.Exec(`
+func (c Subscriptions) Delete(ctx context.Context, id string) error {
+	rs, err := c.db.ExecContext(ctx, `
 		DELETE
 		FROM
 			Subscription
@@ -71,8 +72,8 @@ func (c Subscriptions) Delete(id string) error {
 	return nil
 }
 
-func (c Subscriptions) Update(cl entity.Subscription) (entity.Subscription, error) {
-	r := c.db.QueryRow(`
+func (c Subscriptions) Update(ctx context.Context, cl entity.Subscription) (entity.Subscription, error) {
+	r := c.db.QueryRowContext(ctx, `
 		UPDATE
 			Subscription
 		SET	
@@ -107,8 +108,8 @@ func (c Subscriptions) Update(cl entity.Subscription) (entity.Subscription, erro
 
 //todo запросы надо скомпилировать
 
-func (c Subscriptions) Create(cl entity.Subscription) (entity.Subscription, error) {
-	r := c.db.QueryRow(`
+func (c Subscriptions) Create(ctx context.Context, cl entity.Subscription) (entity.Subscription, error) {
+	r := c.db.QueryRowContext(ctx, `
 		INSERT INTO
 			Subscription(
 				id,
@@ -136,11 +137,12 @@ func (c Subscriptions) Create(cl entity.Subscription) (entity.Subscription, erro
 
 }
 
+// todo delete
 // Active возвращает список активных рассылок
-func (s Subscriptions) Active() ([]entity.Subscription, error) {
+func (s Subscriptions) Active(ctx context.Context) ([]entity.Subscription, error) {
 	var subs []entity.Subscription
 
-	rs, err := s.db.Query(`
+	rs, err := s.db.QueryContext(ctx, `
 		SELECT
 			id,
 			msg_text, 

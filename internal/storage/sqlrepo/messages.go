@@ -2,6 +2,7 @@
 package sqlrepo
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -28,11 +29,11 @@ func NewMessages(db *sql.DB, logger zerolog.Logger) Messages {
 //
 // todo главная проблема этого запроса, что мы хотим выполять его параллельно с
 // LockedSpawn, но тот уже заблокировал таблицу
-func (m Messages) ReserveFromStatus(n int, status string) ([]entity.Message, error) {
+func (m Messages) ReserveFromStatus(ctx context.Context, n int, status string) ([]entity.Message, error) {
 	// тут используется подзапрос, чтобы мы могли получить
 	// строго определенное количество сообщений
 	// LIMIT с update не работает
-	rs, err := m.db.Query(`
+	rs, err := m.db.QueryContext(ctx, `
 		UPDATE
 			Messages
 		SET
@@ -87,7 +88,7 @@ func (m Messages) ReserveFromStatus(n int, status string) ([]entity.Message, err
 // LockedSpawn создает сообщения, блокируя таблицу в базе. Таким образом
 // при двух параллельных вызовах этого метода, два разных процесса получат
 // разные сообщения гарантированно
-func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
+func (m Messages) LockedSpawn(ctx context.Context, n int, status string) ([]entity.Message, error) {
 	// Я реально думаю, что транзакция должа быть тут, потому что реализация
 	// хранилища не должна вылезать за этот слой. Что если у нас будет
 	// не транзакционная БД? Что если у нас вообще будет не БД
@@ -103,7 +104,7 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 		Str("status", "started").
 		Msg("Сейчас будет заблокирована база данных, чтобы создать сообщения")
 
-	tx, err := m.db.Begin()
+	tx, err := m.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +122,7 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 	// другой не смог создать такие же сообщения.
 	// да и даже не смог бы начать их искать.
 	// Просто сейчас нельзя!
-	_, err = tx.Exec("LOCK TABLE Messages") // todo выбрать какую-то менее строгую блокировку
+	_, err = tx.ExecContext(ctx, "LOCK TABLE Messages") // todo выбрать какую-то менее строгую блокировку
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +130,7 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 		Str("lock", "aquired").
 		Msg("Начало генерации сообщений. Заблокирована таблица")
 
-	rs, err := tx.Query(`
+	rs, err := tx.QueryContext(ctx, `
 		WITH
 			proto AS(
 				SELECT
@@ -221,8 +222,8 @@ func (m Messages) LockedSpawn(n int, status string) ([]entity.Message, error) {
 	return batch, nil
 }
 
-func (m Messages) Get(id string) (res entity.Message, err error) {
-	r := m.db.QueryRow(`
+func (m Messages) Get(ctx context.Context, id string) (res entity.Message, err error) {
+	r := m.db.QueryRowContext(ctx, `
 		SELECT
 			id,
 			customer_id,
@@ -239,8 +240,8 @@ func (m Messages) Get(id string) (res entity.Message, err error) {
 	return scan.Message(r)
 }
 
-func (m Messages) ByStatus(status string, n int) ([]entity.Message, error) {
-	rs, err := m.db.Query(`
+func (m Messages) ByStatus(ctx context.Context, status string, n int) ([]entity.Message, error) {
+	rs, err := m.db.QueryContext(ctx, `
 	SELECT
 		id,
 		customer_id,
@@ -274,8 +275,8 @@ func (m Messages) ByStatus(status string, n int) ([]entity.Message, error) {
 	return batch, nil
 }
 
-func (m Messages) Delete(id string) error {
-	rs, err := m.db.Exec(`
+func (m Messages) Delete(ctx context.Context, id string) error {
+	rs, err := m.db.ExecContext(ctx, `
 		DELETE
 		FROM
 			Messages
@@ -293,8 +294,8 @@ func (m Messages) Delete(id string) error {
 	return nil
 }
 
-func (m Messages) Update(msg entity.Message) (res entity.Message, err error) {
-	r, err := m.db.Exec(`
+func (m Messages) Update(ctx context.Context, msg entity.Message) (res entity.Message, err error) {
+	r, err := m.db.ExecContext(ctx, `
 		UPDATE
 			Messages
 		SET
@@ -315,5 +316,5 @@ func (m Messages) Update(msg entity.Message) (res entity.Message, err error) {
 		return entity.Message{}, fmt.Errorf("ошибка апдейта сообщения %w", err)
 	}
 
-	return m.Get(msg.Id)
-}
+	return m.Get(ctx, msg.Id)
+} //todo use RETURNING

@@ -56,7 +56,7 @@ func (suite *FromDbToSend) TestSendingByTag() {
 	// а ещё нам нужно проверить, что они записаны в базу нормально
 	// хотя это не по этому тесту конечно вообще
 
-	msgs, err := suite.messages.ByStatus("done", 10)
+	msgs, err := suite.messages.ByStatus(context.TODO(), "done", 10)
 	suite.NoError(err)
 
 	suite.True(In(msgs, "anna", "will-send"), "Должен быть в отправленных")
@@ -68,16 +68,16 @@ func (suite *FromDbToSend) TestSendingByTag() {
 	anyStatus := "%"
 
 	// по всем
-	s, err := suite.stats.All()
+	s, err := suite.stats.All(context.TODO())
 	suite.NoError(err)
 	suite.Equal(dto.Statistics{"done": 2}, s)
 
 	// по рассылкам
-	s, err = suite.stats.Filter("will-send", anyClient, anyStatus)
+	s, err = suite.stats.Filter(context.TODO(), "will-send", anyClient, anyStatus)
 	suite.NoError(err)
 	suite.Equal(dto.Statistics{"done": 2}, s)
 
-	s, err = suite.stats.Filter("no-send", anyClient, anyStatus)
+	s, err = suite.stats.Filter(context.TODO(), "no-send", anyClient, anyStatus)
 	suite.NoError(err)
 	suite.Equal(dto.Statistics{}, s)
 
@@ -87,7 +87,7 @@ func (suite *FromDbToSend) TestSendingByTag() {
 	sub := anySub
 	status := anyStatus
 
-	s, err = suite.stats.Filter(sub, client, status)
+	s, err = suite.stats.Filter(context.TODO(), sub, client, status)
 	suite.NoError(err)
 	suite.Equal(dto.Statistics{"done": 1}, s)
 
@@ -95,7 +95,7 @@ func (suite *FromDbToSend) TestSendingByTag() {
 	sub = anySub
 	status = anyStatus
 
-	s, err = suite.stats.Filter(anySub, client, anyStatus)
+	s, err = suite.stats.Filter(context.TODO(), anySub, client, anyStatus)
 	suite.NoError(err)
 	suite.Equal(dto.Statistics{"done": 1}, s)
 

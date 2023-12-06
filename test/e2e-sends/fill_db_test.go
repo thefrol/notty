@@ -4,6 +4,7 @@
 package e2esends
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
@@ -41,7 +42,7 @@ func Fill(db *sql.DB) error {
 
 func FillCustomers(cs sqlrepo.Customers) error {
 	var err error
-	_, err = cs.Create(entity.Customer{
+	_, err = cs.Create(context.Background(), entity.Customer{
 		Id:       "anna",
 		Name:     "Анна Новикова",
 		Phone:    "+79163332211",
@@ -52,7 +53,7 @@ func FillCustomers(cs sqlrepo.Customers) error {
 		return err
 	}
 
-	_, err = cs.Create(entity.Customer{
+	_, err = cs.Create(context.TODO(), entity.Customer{
 		Id:       "ksu",
 		Name:     "Ксения Иванова",
 		Phone:    "+79163332211",
@@ -63,7 +64,7 @@ func FillCustomers(cs sqlrepo.Customers) error {
 		return err
 	}
 
-	_, err = cs.Create(entity.Customer{
+	_, err = cs.Create(context.TODO(), entity.Customer{
 		Id:       "ivan-testov",
 		Name:     "Иван Тестов",
 		Phone:    "+79163332211",
@@ -79,7 +80,7 @@ func FillCustomers(cs sqlrepo.Customers) error {
 
 func FillSubs(ss sqlrepo.Subscriptions) error {
 	var err error
-	_, err = ss.Create(entity.Subscription{
+	_, err = ss.Create(context.TODO(), entity.Subscription{
 		Id:             "will-send",
 		Text:           "Текст сообщения",
 		Desc:           "рассылка, которая разошлется",
@@ -93,7 +94,7 @@ func FillSubs(ss sqlrepo.Subscriptions) error {
 		return err
 	}
 
-	_, err = ss.Create(entity.Subscription{
+	_, err = ss.Create(context.TODO(), entity.Subscription{
 		Id:             "no-send",
 		Text:           "Что-то из далекого прошло случано попало в будущее",
 		Desc:           "не должно быть отправлено",

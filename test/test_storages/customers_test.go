@@ -1,6 +1,7 @@
 package storages_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/pressly/goose/v3"
@@ -35,18 +36,18 @@ func Test_CustomerWorkflow(t *testing.T) {
 		Phone:    "+79161234533",
 		Tag:      "test_user",
 	}
-	_, err := clients.Create(c)
+	_, err := clients.Create(context.TODO(), c)
 	require.NoError(t, err)
 
-	g, err := clients.Get(c.Id)
+	g, err := clients.Get(context.TODO(), c.Id)
 	require.NoError(t, err)
 
 	assert.Equal(t, c, g)
 
-	err = clients.Delete(c.Id)
+	err = clients.Delete(context.TODO(), c.Id)
 	require.NoError(t, err)
 
-	_, err = clients.Get(c.Id)
+	_, err = clients.Get(context.TODO(), c.Id)
 	require.Error(t, err)
 
 }

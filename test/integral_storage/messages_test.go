@@ -3,6 +3,8 @@
 package integralstorage
 
 import (
+	"context"
+
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
@@ -10,7 +12,7 @@ func (suite *Storage) TestSpawning() {
 	expectedMessageCount := 2
 	statusRequested := "TEST_STATUS"
 
-	batch, err := suite.messages.LockedSpawn(10, statusRequested)
+	batch, err := suite.messages.LockedSpawn(context.TODO(), 10, statusRequested)
 	suite.NoError(err)
 
 	// проверим, что мы сгенерировали два сообщения
@@ -22,7 +24,7 @@ func (suite *Storage) TestSpawning() {
 
 	// найдем все сгенерированные сообщения в базе
 	for _, m := range batch {
-		m, err := suite.messages.Get(m.Id)
+		m, err := suite.messages.Get(context.TODO(), m.Id)
 		suite.NoError(err)                     // найдено
 		suite.Equal(statusRequested, m.Status) // с правильным статусом созданы
 	}
@@ -43,11 +45,11 @@ func (suite *Storage) TestReserveFailedMessages() {
 		// ну и указать в презентации как это вылезло из тестирования,
 		// где я забивал не полную инфу
 
-		got, err := suite.messages.ReserveFromStatus(5, entity.StatusFailed)
+		got, err := suite.messages.ReserveFromStatus(context.TODO(), 5, entity.StatusFailed)
 		suite.NoError(err)
 		suite.Equal(2, len(got)) // мы получили два сообщения
 
-		got, err = suite.messages.ReserveFromStatus(5, entity.StatusFailed)
+		got, err = suite.messages.ReserveFromStatus(context.TODO(), 5, entity.StatusFailed)
 		suite.NoError(err)
 		suite.Equal(0, len(got)) // теперь мы получим ничего при втором запуске
 
@@ -64,13 +66,13 @@ func (suite *Storage) TestReserveFailedMessages() {
 
 		// запросим 3 хотя в наличе шесть
 		requestN := 3
-		got, err := suite.messages.ReserveFromStatus(requestN, entity.StatusFailed)
+		got, err := suite.messages.ReserveFromStatus(context.TODO(), requestN, entity.StatusFailed)
 		suite.NoError(err)
 		suite.Equal(3, len(got)) // 3/6
 
 		// теперь запросим пять, хотя осталось только три
 		requestN = 5
-		got, err = suite.messages.ReserveFromStatus(requestN, entity.StatusFailed)
+		got, err = suite.messages.ReserveFromStatus(context.TODO(), requestN, entity.StatusFailed)
 		suite.NoError(err)
 		suite.Equal(3, len(got)) // 6/6
 	})

@@ -3,6 +3,7 @@
 package main
 
 import (
+	"context"
 	"os"
 
 	"github.com/rs/zerolog/log"
@@ -36,7 +37,7 @@ func main() {
 	customerRepo := sqlrepo.NewCustomers(conn)
 
 	for _, c := range custs {
-		_, err := customerRepo.Create(c)
+		_, err := customerRepo.Create(context.TODO(), c)
 		if err != nil {
 			log.Error().
 				Err(err).
@@ -50,7 +51,7 @@ func main() {
 	SubsRepo := sqlrepo.NewSubscriptions(conn)
 
 	for _, s := range subs {
-		_, err := SubsRepo.Create(s)
+		_, err := SubsRepo.Create(context.TODO(), s)
 		if err != nil {
 			log.Error().
 				Err(err).
