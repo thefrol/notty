@@ -7,7 +7,7 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/thefrol/notty/internal/dto"
+	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/internal/service"
 )
@@ -70,16 +70,16 @@ func (suite *FromDbToSend) TestSendingByTag() {
 	// по всем
 	s, err := suite.stats.All(context.TODO())
 	suite.NoError(err)
-	suite.Equal(dto.Statistics{"done": 2}, s)
+	suite.Equal(app.Statistics{"done": 2}, s)
 
 	// по рассылкам
 	s, err = suite.stats.Filter(context.TODO(), "will-send", anyClient, anyStatus)
 	suite.NoError(err)
-	suite.Equal(dto.Statistics{"done": 2}, s)
+	suite.Equal(app.Statistics{"done": 2}, s)
 
 	s, err = suite.stats.Filter(context.TODO(), "no-send", anyClient, anyStatus)
 	suite.NoError(err)
-	suite.Equal(dto.Statistics{}, s)
+	suite.Equal(app.Statistics{}, s)
 
 	// по клиентам
 
@@ -89,7 +89,7 @@ func (suite *FromDbToSend) TestSendingByTag() {
 
 	s, err = suite.stats.Filter(context.TODO(), sub, client, status)
 	suite.NoError(err)
-	suite.Equal(dto.Statistics{"done": 1}, s)
+	suite.Equal(app.Statistics{"done": 1}, s)
 
 	client = "ivan-testov"
 	sub = anySub
@@ -97,7 +97,7 @@ func (suite *FromDbToSend) TestSendingByTag() {
 
 	s, err = suite.stats.Filter(context.TODO(), anySub, client, anyStatus)
 	suite.NoError(err)
-	suite.Equal(dto.Statistics{"done": 1}, s)
+	suite.Equal(app.Statistics{"done": 1}, s)
 
 }
 

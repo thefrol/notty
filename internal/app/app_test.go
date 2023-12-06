@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/suite"
 	"gitlab.com/thefrol/notty/internal/app"
 
-	"gitlab.com/thefrol/notty/internal/dto"
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/internal/mock"
 )
@@ -26,7 +25,7 @@ func (suite *AppTestSuite) SetupTest() {
 	stats := mock.NewStatisterMock(mc)
 
 	// статистика по всем сообщениям
-	stats.AllMock.Expect(context.Background()).Return(dto.Statistics{
+	stats.AllMock.Expect(context.Background()).Return(app.Statistics{
 		"done": 4,
 	}, nil)
 
@@ -35,12 +34,12 @@ func (suite *AppTestSuite) SetupTest() {
 	// наполняем моки
 
 	// для общей статистики
-	stats.FilterMock.When(context.Background(), "%", "%", "%").Then(dto.Statistics{
+	stats.FilterMock.When(context.Background(), "%", "%", "%").Then(app.Statistics{
 		"done": 4,
 	}, nil)
 
 	// статистика по клиентам
-	stats.FilterMock.When(context.Background(), "%", "test-customer", "%").Then(dto.Statistics{
+	stats.FilterMock.When(context.Background(), "%", "test-customer", "%").Then(app.Statistics{
 		"done": 2,
 	}, nil)
 
@@ -53,7 +52,7 @@ func (suite *AppTestSuite) SetupTest() {
 		Then(entity.Customer{}, app.ErrorCustomerNotFound)
 
 	// статистика по клиентам
-	stats.FilterMock.When(context.Background(), "test-sub", "%", "%").Then(dto.Statistics{
+	stats.FilterMock.When(context.Background(), "test-sub", "%", "%").Then(app.Statistics{
 		"done": 5,
 	}, nil)
 
@@ -76,13 +75,13 @@ func TestAppSuite(t *testing.T) {
 func (suite *AppTestSuite) TestAllStatistics() {
 	st, err := suite.app.FullStats(context.Background())
 	suite.NoError(err)
-	suite.Equal(dto.Statistics{"done": 4}, st)
+	suite.Equal(app.Statistics{"done": 4}, st)
 }
 
 func (suite *AppTestSuite) TestCustomerStatistics() {
 	st, err := suite.app.StatsByClient(context.Background(), "test-customer")
 	suite.NoError(err)
-	suite.Equal(dto.Statistics{"done": 2}, st)
+	suite.Equal(app.Statistics{"done": 2}, st)
 }
 
 func (suite *AppTestSuite) TestCustomerNotExistsStatistics() {
@@ -93,7 +92,7 @@ func (suite *AppTestSuite) TestCustomerNotExistsStatistics() {
 func (suite *AppTestSuite) TestSubStatistics() {
 	st, err := suite.app.StatsBySubscription(context.Background(), "test-sub")
 	suite.NoError(err)
-	suite.Equal(dto.Statistics{"done": 5}, st)
+	suite.Equal(app.Statistics{"done": 5}, st)
 }
 
 func (suite *AppTestSuite) TestSubNotExistsStatistics() {

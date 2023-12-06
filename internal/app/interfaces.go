@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 
-	"gitlab.com/thefrol/notty/internal/dto"
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
@@ -22,8 +21,8 @@ type Subscripter interface {
 }
 
 type Statister interface {
-	All(context.Context) (dto.Statistics, error)
-	Filter(ctx context.Context, subId, customerId, status string) (dto.Statistics, error)
+	All(context.Context) (Statistics, error)
+	Filter(ctx context.Context, subId, customerId, status string) (Statistics, error)
 }
 
 type Messager interface {

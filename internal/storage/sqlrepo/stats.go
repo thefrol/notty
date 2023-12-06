@@ -9,7 +9,7 @@ import (
 	"context"
 	"database/sql"
 
-	"gitlab.com/thefrol/notty/internal/dto"
+	"gitlab.com/thefrol/notty/internal/app"
 )
 
 // Statistics отвечает за сбор статистики
@@ -27,7 +27,7 @@ func NewStatistics(db *sql.DB) *Statistics {
 }
 
 // All возвращает статистику по всем вообщениям,
-func (r Statistics) All(ctx context.Context) (dto.Statistics, error) {
+func (r Statistics) All(ctx context.Context) (app.Statistics, error) {
 	rs, err := r.db.QueryContext(ctx, `
 	SELECT
 		status,
@@ -64,7 +64,7 @@ func (r Statistics) All(ctx context.Context) (dto.Statistics, error) {
 }
 
 // Filters возвращает статистику по рассылкам
-func (r Statistics) Filter(ctx context.Context, subId string, customerId string, status string) (dto.Statistics, error) {
+func (r Statistics) Filter(ctx context.Context, subId string, customerId string, status string) (app.Statistics, error) {
 	rs, err := r.db.QueryContext(ctx, `
 	SELECT
 		status,
