@@ -18,8 +18,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"gitlab.com/thefrol/notty/internal/app"
-	"gitlab.com/thefrol/notty/internal/service"
-	"gitlab.com/thefrol/notty/internal/service/fabrique"
+	"gitlab.com/thefrol/notty/internal/notifyloop"
+	"gitlab.com/thefrol/notty/internal/notifyloop/fabrique"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 )
@@ -69,7 +69,7 @@ func main() {
 	notty := app.NewNotifyerrrr(mr, sender)
 
 	// создаем приложение
-	worker := service.Worker{
+	worker := notifyloop.Worker{
 		Notifyer:  notty,
 		Timeout:   timeout,
 		BatchSize: batchSize,
