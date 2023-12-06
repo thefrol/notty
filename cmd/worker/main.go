@@ -19,7 +19,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/service"
-	"gitlab.com/thefrol/notty/internal/sms"
+	"gitlab.com/thefrol/notty/internal/service/fabrique"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 )
@@ -64,9 +64,9 @@ func main() {
 
 	//создаем репозитории/адаптеры
 	mr := sqlrepo.NewMessages(db, rootLogger)
-	sms := sms.NewEndpoint(endpoint, retryWait, retryCount, token)
+	sender := fabrique.NewEndpoint(endpoint, retryWait, retryCount, token)
 
-	notty := app.NewNotifyerrrr(mr, sms)
+	notty := app.NewNotifyerrrr(mr, sender)
 
 	// создаем приложение
 	worker := service.Worker{
