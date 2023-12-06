@@ -3,13 +3,15 @@
 package app
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
 //todo SubscriptionRequest
 
-func (app *App) NewSubscription(s entity.Subscription) (entity.Subscription, error) {
+func (app *App) NewSubscription(ctx context.Context, s entity.Subscription) (entity.Subscription, error) {
 	// добавить uuid если не задан, если задан
 	// то проверить существует ли такой челик в базе
 	//

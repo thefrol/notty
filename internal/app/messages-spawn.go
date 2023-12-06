@@ -1,6 +1,8 @@
 package app
 
 import (
+	"context"
+
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
@@ -20,23 +22,23 @@ func NewNotifyerrrr(messages Messager, sender Sender) *Notifyerrrr {
 }
 
 // CreateMessages создает n сообщений, или меньше.
-func (notty Notifyerrrr) CreateMessages(n int) ([]entity.Message, error) {
+func (notty Notifyerrrr) CreateMessages(ctx context.Context, n int) ([]entity.Message, error) {
 	return notty.messages.LockedSpawn(n, entity.StatusInitial)
 }
 
 // ReserveMessages резервирует n сообщений с изначальным статусом
 // fromStatus
-func (notty Notifyerrrr) ReserveMessages(n int, fromStatus string) ([]entity.Message, error) {
+func (notty Notifyerrrr) ReserveMessages(ctx context.Context, n int, fromStatus string) ([]entity.Message, error) {
 	return notty.messages.ReserveFromStatus(n, fromStatus)
 }
 
 // SendSMS отправляет смской сообщение m
-func (notty Notifyerrrr) SendSMS(m entity.Message) error {
+func (notty Notifyerrrr) SendSMS(ctx context.Context, m entity.Message) error {
 	return notty.sender.Send(m)
 }
 
 // UpdateMessage обновляеят статус у сообщения
-func (notty Notifyerrrr) UpdateMessage(m entity.Message) error {
+func (notty Notifyerrrr) UpdateMessage(ctx context.Context, m entity.Message) error {
 	_, err := notty.messages.Update(m)
 	if err != nil {
 		return err

@@ -1,6 +1,8 @@
 package app
 
 import (
+	"context"
+
 	"gitlab.com/thefrol/notty/internal/dto"
 )
 
@@ -20,16 +22,13 @@ func New(customers Customerere, subscriptions Subscripter, stats Statister, mess
 	}
 }
 
-// для упрощения логики статистики можно было бы выделить вот это копание в сервис,
-// опустить на уровень пониже
-
 // FullStats возвращает статистику по всем сообщениям
-func (a App) FullStats() (dto.Statistics, error) {
+func (a App) FullStats(ctx context.Context) (dto.Statistics, error) {
 	return a.statistics.Filter("%", "%", "%")
 }
 
 // StatsBySubscription возвращает статистику сообщений по конкретной подписке
-func (a App) StatsBySubscription(id string) (dto.Statistics, error) {
+func (a App) StatsBySubscription(ctx context.Context, id string) (dto.Statistics, error) {
 	_, err := a.subscriptions.Get(id)
 	if err != nil {
 		//if err=subscriptions.ErrorNotFound
@@ -45,7 +44,7 @@ func (a App) StatsBySubscription(id string) (dto.Statistics, error) {
 }
 
 // StatsByClient возвращает статистику сообщений по клиенту
-func (a App) StatsByClient(id string) (dto.Statistics, error) {
+func (a App) StatsByClient(ctx context.Context, id string) (dto.Statistics, error) {
 	_, err := a.customers.Get(id)
 	if err != nil {
 		return dto.Statistics{}, ErrorCustomerNotFound

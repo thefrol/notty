@@ -3,13 +3,15 @@
 package app
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
 //todo customerRequest
 
-func (app *App) NewCustomer(c entity.Customer) (entity.Customer, error) {
+func (app *App) NewCustomer(ctx context.Context, c entity.Customer) (entity.Customer, error) {
 	// добавить uuid если не задан, если задан
 	// то проверить существует ли такой челик в базе
 	//

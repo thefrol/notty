@@ -2,9 +2,11 @@
 
 package app
 
+import "context"
+
 //todo customerRequest
 
-func (app *App) RemoveCustomer(id string) error {
+func (app *App) RemoveCustomer(ctx context.Context, id string) error {
 
 	_, err := app.customers.Get(id)
 	if err != nil {

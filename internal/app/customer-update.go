@@ -3,12 +3,14 @@
 package app
 
 import (
+	"context"
+
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
 //todo customerRequest
 
-func (app *App) UpdateCustomer(c entity.Customer) (entity.Customer, error) {
+func (app *App) UpdateCustomer(ctx context.Context, c entity.Customer) (entity.Customer, error) {
 	if err := c.Validate(); err != nil {
 		return entity.Customer{}, err
 	}

@@ -2,9 +2,11 @@
 
 package app
 
+import "context"
+
 //todo SubscriptionRequest
 
-func (app *App) RemoveSubscription(id string) error {
+func (app *App) RemoveSubscription(ctx context.Context, id string) error {
 
 	_, err := app.subscriptions.Get(id)
 	if err != nil {

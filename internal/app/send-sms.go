@@ -1,6 +1,10 @@
 package app
 
-import "gitlab.com/thefrol/notty/internal/entity"
+import (
+	"context"
+
+	"gitlab.com/thefrol/notty/internal/entity"
+)
 
 type SMSer interface {
 	Send(entity.Message) error
@@ -20,7 +24,7 @@ func NewNotifyer(proxy SMSer, messages Messager) Notifyer {
 	}
 }
 
-func (n Notifyer) SendNotification(m entity.Message) error {
+func (n Notifyer) SendNotification(ctx context.Context, m entity.Message) error {
 	return n.proxy.Send(m)
 }
 

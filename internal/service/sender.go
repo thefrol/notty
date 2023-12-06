@@ -43,7 +43,7 @@ loop:
 
 		// Создаем канал с новосгенерированными сообщениями
 		newMessages := chans.GeneratorFunc(func() []entity.Message {
-			ms, err := w.Notifyer.CreateMessages(w.BatchSize)
+			ms, err := w.Notifyer.CreateMessages(context.TODO(), w.BatchSize)
 			if err != nil {
 				// продолждаем работу. Если ошибка, просто опять уходим в таймаут
 				w.Logger.Error().
@@ -56,7 +56,7 @@ loop:
 		// Также резервируем сообщения из тех, что ранее не получилось
 		// отправить. Они лежат в базе со статусов `fail`
 		resendsMessages := chans.GeneratorFunc(func() []entity.Message {
-			ts, err := w.Notifyer.ReserveMessages(w.BatchSize, entity.StatusFailed)
+			ts, err := w.Notifyer.ReserveMessages(context.TODO(), w.BatchSize, entity.StatusFailed)
 			if err != nil {
 				// продолждаем работу если ошибка, просто опять уходим в таймаут
 				w.Logger.Error().
@@ -79,7 +79,7 @@ loop:
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				err := w.Notifyer.SendSMS(m)
+				err := w.Notifyer.SendSMS(context.TODO(), m)
 				if err != nil {
 					w.Logger.Error().
 						Err(err).
@@ -93,7 +93,7 @@ loop:
 
 				// теперь у нас есть сообщение с нужным статусом,
 				// мы просто его обновляем в базе
-				err = w.Notifyer.UpdateMessage(m) // todo можно сделать updatefast без возвращения значения)
+				err = w.Notifyer.UpdateMessage(context.TODO(), m) // todo можно сделать updatefast без возвращения значения)
 				if err != nil {
 					w.Logger.Error().
 						Err(err).

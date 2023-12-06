@@ -1,6 +1,7 @@
 package app_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/gojuno/minimock/v3"
@@ -73,29 +74,29 @@ func TestAppSuite(t *testing.T) {
 // Тестируем статистику
 
 func (suite *AppTestSuite) TestAllStatistics() {
-	st, err := suite.app.FullStats()
+	st, err := suite.app.FullStats(context.Background())
 	suite.NoError(err)
 	suite.Equal(dto.Statistics{"done": 4}, st)
 }
 
 func (suite *AppTestSuite) TestCustomerStatistics() {
-	st, err := suite.app.StatsByClient("test-customer")
+	st, err := suite.app.StatsByClient(context.Background(), "test-customer")
 	suite.NoError(err)
 	suite.Equal(dto.Statistics{"done": 2}, st)
 }
 
 func (suite *AppTestSuite) TestCustomerNotExistsStatistics() {
-	_, err := suite.app.StatsByClient("no-customer")
+	_, err := suite.app.StatsByClient(context.Background(), "no-customer")
 	suite.ErrorIs(err, app.ErrorCustomerNotFound)
 }
 
 func (suite *AppTestSuite) TestSubStatistics() {
-	st, err := suite.app.StatsBySubscription("test-sub")
+	st, err := suite.app.StatsBySubscription(context.Background(), "test-sub")
 	suite.NoError(err)
 	suite.Equal(dto.Statistics{"done": 5}, st)
 }
 
 func (suite *AppTestSuite) TestSubNotExistsStatistics() {
-	_, err := suite.app.StatsBySubscription("no-sub")
+	_, err := suite.app.StatsBySubscription(context.Background(), "no-sub")
 	suite.ErrorIs(err, app.ErrorSubscriptionNotFound)
 }

@@ -3,12 +3,14 @@
 package app
 
 import (
+	"context"
+
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
 //todo SubscriptionRequest
 
-func (app *App) UpdateSubscription(c entity.Subscription) (entity.Subscription, error) {
+func (app *App) UpdateSubscription(ctx context.Context, c entity.Subscription) (entity.Subscription, error) {
 	if err := c.Validate(); err != nil {
 		return entity.Subscription{}, err
 	}

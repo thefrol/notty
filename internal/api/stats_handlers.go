@@ -10,7 +10,7 @@ import (
 
 // FullStats implements generated.ServerInterface.
 func (a *Server) FullStats(w http.ResponseWriter, r *http.Request) {
-	stats, err := a.app.FullStats()
+	stats, err := a.app.FullStats(r.Context())
 	if err != nil {
 		respond.InternalServerError(w, "Unknown error %v", err)
 	}
@@ -19,7 +19,7 @@ func (a *Server) FullStats(w http.ResponseWriter, r *http.Request) {
 
 // StatsBySubscriptionId implements generated.ServerInterface.
 func (a *Server) StatsBySubscriptionId(w http.ResponseWriter, r *http.Request, id string) {
-	stats, err := a.app.StatsBySubscription(id)
+	stats, err := a.app.StatsBySubscription(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, app.ErrorSubscriptionNotFound) {
 			respond.NotFound(w, "рассылка с id %s не найдена: %v", id, err)
@@ -33,7 +33,7 @@ func (a *Server) StatsBySubscriptionId(w http.ResponseWriter, r *http.Request, i
 
 // StatsBySubscriptionId implements generated.ServerInterface.
 func (a *Server) StatsByCustomerId(w http.ResponseWriter, r *http.Request, id string) {
-	stats, err := a.app.StatsByClient(id)
+	stats, err := a.app.StatsByClient(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, app.ErrorCustomerNotFound) {
 			respond.NotFound(w, "клиент с id %s не найден: %v", id, err)
