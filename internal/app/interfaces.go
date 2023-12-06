@@ -1,40 +1,37 @@
 package app
 
 import (
+	"context"
+
 	"gitlab.com/thefrol/notty/internal/dto"
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
 type Customerere interface {
-	Create(entity.Customer) (entity.Customer, error)
-	Get(string) (entity.Customer, error)
-	Update(entity.Customer) (entity.Customer, error)
-	Delete(string) error
+	Create(context.Context, entity.Customer) (entity.Customer, error)
+	Get(context.Context, string) (entity.Customer, error)
+	Update(context.Context, entity.Customer) (entity.Customer, error)
+	Delete(context.Context, string) error
 }
 
 type Subscripter interface {
-	Create(entity.Subscription) (entity.Subscription, error)
-	Get(string) (entity.Subscription, error)
-	Update(entity.Subscription) (entity.Subscription, error)
-	Delete(string) error
+	Create(context.Context, entity.Subscription) (entity.Subscription, error)
+	Get(context.Context, string) (entity.Subscription, error)
+	Update(context.Context, entity.Subscription) (entity.Subscription, error)
+	Delete(context.Context, string) error
 }
 
 type Statister interface {
-	All() (dto.Statistics, error)
-	Filter(subId, customerId, status string) (dto.Statistics, error)
+	All(context.Context) (dto.Statistics, error)
+	Filter(ctx context.Context, subId, customerId, status string) (dto.Statistics, error)
 }
 
 type Messager interface {
-	LockedSpawn(n int, status string) ([]entity.Message, error)
-	ReserveFromStatus(n int, status string) ([]entity.Message, error)
-	Update(entity.Message) (entity.Message, error)
-	// todo
-	//
-	// мне очень не нравится, что тут сигнатуры у функций похожи,
-	// но параметры имеют разную логику. В локедСпавн - он устанавливает значние
-	// а в Reserve ищет значение
+	LockedSpawn(ctx context.Context, n int, status string) ([]entity.Message, error)
+	ReserveFromStatus(ctx context.Context, n int, status string) ([]entity.Message, error)
+	Update(context.Context, entity.Message) (entity.Message, error)
 }
 
 type Sender interface {
-	Send(entity.Message) error
+	Send(context.Context, entity.Message) error
 }

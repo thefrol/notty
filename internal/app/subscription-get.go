@@ -12,5 +12,5 @@ import (
 
 func (app *App) GetSubscription(ctx context.Context, id string) (entity.Subscription, error) {
 
-	return app.subscriptions.Get(id)
+	return app.subscriptions.Get(ctx, id)
 }

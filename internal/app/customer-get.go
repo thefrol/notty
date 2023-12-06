@@ -12,5 +12,5 @@ import (
 
 func (app *App) GetCustomer(ctx context.Context, id string) (entity.Customer, error) {
 
-	return app.customers.Get(id)
+	return app.customers.Get(ctx, id)
 }

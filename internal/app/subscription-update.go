@@ -16,7 +16,7 @@ func (app *App) UpdateSubscription(ctx context.Context, c entity.Subscription) (
 	}
 
 	// не уверен, что мне нужна эта проверка. Он же инсерт делать не будет //todo
-	_, err := app.subscriptions.Get(c.Id)
+	_, err := app.subscriptions.Get(ctx, c.Id)
 	if err != nil {
 		// todo NotFound
 		// должно быть что-то типа RepoNotFound
@@ -24,7 +24,7 @@ func (app *App) UpdateSubscription(ctx context.Context, c entity.Subscription) (
 	}
 	// todo проверки на значения подписок если надо, может какие-то поля менять нельяз или типа того
 
-	res, err := app.subscriptions.Update(c)
+	res, err := app.subscriptions.Update(ctx, c)
 	if err != nil {
 		return entity.Subscription{}, err // todo Not Modified
 	}

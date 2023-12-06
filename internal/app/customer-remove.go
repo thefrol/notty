@@ -8,10 +8,10 @@ import "context"
 
 func (app *App) RemoveCustomer(ctx context.Context, id string) error {
 
-	_, err := app.customers.Get(id)
+	_, err := app.customers.Get(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	return app.customers.Delete(id)
+	return app.customers.Delete(ctx, id)
 }

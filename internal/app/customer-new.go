@@ -20,7 +20,7 @@ func (app *App) NewCustomer(ctx context.Context, c entity.Customer) (entity.Cust
 	if c.Id == "" {
 		c.Id = uuid.NewString()
 	} else {
-		_, err := app.customers.Get(c.Id)
+		_, err := app.customers.Get(ctx, c.Id)
 		if err == nil {
 			return entity.Customer{}, ErrorCustomerExists
 		}
@@ -30,5 +30,5 @@ func (app *App) NewCustomer(ctx context.Context, c entity.Customer) (entity.Cust
 		return entity.Customer{}, err
 	}
 
-	return app.customers.Create(c)
+	return app.customers.Create(ctx, c)
 }

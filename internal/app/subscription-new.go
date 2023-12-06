@@ -20,7 +20,7 @@ func (app *App) NewSubscription(ctx context.Context, s entity.Subscription) (ent
 	if s.Id == "" {
 		s.Id = uuid.NewString()
 	} else {
-		_, err := app.subscriptions.Get(s.Id)
+		_, err := app.subscriptions.Get(ctx, s.Id)
 		if err == nil {
 			return entity.Subscription{}, ErrorSubscriptionExists
 		}
@@ -30,5 +30,5 @@ func (app *App) NewSubscription(ctx context.Context, s entity.Subscription) (ent
 		return entity.Subscription{}, err
 	}
 
-	return app.subscriptions.Create(s)
+	return app.subscriptions.Create(ctx, s)
 }
