@@ -87,7 +87,7 @@ loop:
 		// Также резервируем сообщения из тех, что ранее не получилось
 		// отправить. Они лежат в базе со статусов `fail`
 		resendsMessages := chans.GeneratorFunc(func() []entity.Message {
-			ts, err := w.Notifyer.ReserveMessages(workContext, w.BatchSize, entity.StatusFailed)
+			ts, err := w.Notifyer.ReserveFailed(workContext, w.BatchSize)
 			if err != nil {
 				// продолждаем работу если ошибка, просто опять уходим в таймаут
 				w.Logger.Error().
