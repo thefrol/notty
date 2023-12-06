@@ -80,7 +80,7 @@ func (suite *SubscriptionTestSuite) SetupTest() {
 	app := app.New(nil, subscriptionsRepo, nil, nil)
 	//api
 	suite.api = api.New(app, log.Logger)
-	suite.handlers = suite.api.OpenAPI()
+	suite.handlers = suite.api.Handler()
 }
 
 func (suite *SubscriptionTestSuite) TestSubscriptionGetById() {

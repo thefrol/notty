@@ -36,8 +36,10 @@ func (a *Server) ListenAndServe(ctx context.Context, addr, key string) error {
 			a.logger.Error().Msg("Апи открыто для доступа")
 		}
 
-		r.Mount("/", a.OpenAPI())
+		r.Mount("/", a.Handler())
 	})
+
+	// создаем сервер
 
 	server := &http.Server{Addr: addr, Handler: r}
 
