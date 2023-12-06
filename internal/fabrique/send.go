@@ -1,6 +1,6 @@
 // Этот пакет предоставляет интерфейс к внешнему сервису
-// отправки смс
-package sms
+// отправки смс от Fabrique
+package fabrique
 
 import (
 	"context"
