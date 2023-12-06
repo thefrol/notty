@@ -14,7 +14,7 @@ func (a *Server) FullStats(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		respond.InternalServerError(w, "Unknown error %v", err)
 	}
-	stats.ToResponseWriter(w) // чет не оч todo
+	respond.WithMap(w, stats)
 }
 
 // StatsBySubscriptionId implements generated.ServerInterface.
@@ -28,7 +28,7 @@ func (a *Server) StatsBySubscriptionId(w http.ResponseWriter, r *http.Request, i
 		respond.InternalServerError(w, "Unknown error %v", err)
 	}
 
-	stats.ToResponseWriter(w) // чет не оч todo
+	respond.WithMap(w, stats)
 }
 
 // StatsBySubscriptionId implements generated.ServerInterface.
@@ -42,5 +42,5 @@ func (a *Server) StatsByCustomerId(w http.ResponseWriter, r *http.Request, id st
 		respond.InternalServerError(w, "Unknown error %v", err)
 	}
 
-	stats.ToResponseWriter(w) // чет не оч todo
+	respond.WithMap(w, stats)
 }
