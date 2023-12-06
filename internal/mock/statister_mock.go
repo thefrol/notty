@@ -5,26 +5,27 @@ package mock
 //go:generate minimock -i gitlab.com/thefrol/notty/internal/app.Statister -o ./internal/mock/statister_mock.go -n StatisterMock
 
 import (
+	"context"
 	"sync"
 	mm_atomic "sync/atomic"
 	mm_time "time"
 
 	"github.com/gojuno/minimock/v3"
-	"gitlab.com/thefrol/notty/internal/dto"
+	"gitlab.com/thefrol/notty/internal/app"
 )
 
 // StatisterMock implements app.Statister
 type StatisterMock struct {
 	t minimock.Tester
 
-	funcAll          func() (s1 dto.Statistics, err error)
-	inspectFuncAll   func()
+	funcAll          func(ctx context.Context) (s1 app.Statistics, err error)
+	inspectFuncAll   func(ctx context.Context)
 	afterAllCounter  uint64
 	beforeAllCounter uint64
 	AllMock          mStatisterMockAll
 
-	funcFilter          func(subId string, customerId string, status string) (s1 dto.Statistics, err error)
-	inspectFuncFilter   func(subId string, customerId string, status string)
+	funcFilter          func(ctx context.Context, subId string, customerId string, status string) (s1 app.Statistics, err error)
+	inspectFuncFilter   func(ctx context.Context, subId string, customerId string, status string)
 	afterFilterCounter  uint64
 	beforeFilterCounter uint64
 	FilterMock          mStatisterMockFilter
@@ -38,6 +39,7 @@ func NewStatisterMock(t minimock.Tester) *StatisterMock {
 	}
 
 	m.AllMock = mStatisterMockAll{mock: m}
+	m.AllMock.callArgs = []*StatisterMockAllParams{}
 
 	m.FilterMock = mStatisterMockFilter{mock: m}
 	m.FilterMock.callArgs = []*StatisterMockFilterParams{}
@@ -49,24 +51,32 @@ type mStatisterMockAll struct {
 	mock               *StatisterMock
 	defaultExpectation *StatisterMockAllExpectation
 	expectations       []*StatisterMockAllExpectation
+
+	callArgs []*StatisterMockAllParams
+	mutex    sync.RWMutex
 }
 
 // StatisterMockAllExpectation specifies expectation struct of the Statister.All
 type StatisterMockAllExpectation struct {
-	mock *StatisterMock
-
+	mock    *StatisterMock
+	params  *StatisterMockAllParams
 	results *StatisterMockAllResults
 	Counter uint64
 }
 
+// StatisterMockAllParams contains parameters of the Statister.All
+type StatisterMockAllParams struct {
+	ctx context.Context
+}
+
 // StatisterMockAllResults contains results of the Statister.All
 type StatisterMockAllResults struct {
-	s1  dto.Statistics
+	s1  app.Statistics
 	err error
 }
 
 // Expect sets up expected params for Statister.All
-func (mmAll *mStatisterMockAll) Expect() *mStatisterMockAll {
+func (mmAll *mStatisterMockAll) Expect(ctx context.Context) *mStatisterMockAll {
 	if mmAll.mock.funcAll != nil {
 		mmAll.mock.t.Fatalf("StatisterMock.All mock is already set by Set")
 	}
@@ -75,11 +85,18 @@ func (mmAll *mStatisterMockAll) Expect() *mStatisterMockAll {
 		mmAll.defaultExpectation = &StatisterMockAllExpectation{}
 	}
 
+	mmAll.defaultExpectation.params = &StatisterMockAllParams{ctx}
+	for _, e := range mmAll.expectations {
+		if minimock.Equal(e.params, mmAll.defaultExpectation.params) {
+			mmAll.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmAll.defaultExpectation.params)
+		}
+	}
+
 	return mmAll
 }
 
 // Inspect accepts an inspector function that has same arguments as the Statister.All
-func (mmAll *mStatisterMockAll) Inspect(f func()) *mStatisterMockAll {
+func (mmAll *mStatisterMockAll) Inspect(f func(ctx context.Context)) *mStatisterMockAll {
 	if mmAll.mock.inspectFuncAll != nil {
 		mmAll.mock.t.Fatalf("Inspect function is already set for StatisterMock.All")
 	}
@@ -90,7 +107,7 @@ func (mmAll *mStatisterMockAll) Inspect(f func()) *mStatisterMockAll {
 }
 
 // Return sets up results that will be returned by Statister.All
-func (mmAll *mStatisterMockAll) Return(s1 dto.Statistics, err error) *StatisterMock {
+func (mmAll *mStatisterMockAll) Return(s1 app.Statistics, err error) *StatisterMock {
 	if mmAll.mock.funcAll != nil {
 		mmAll.mock.t.Fatalf("StatisterMock.All mock is already set by Set")
 	}
@@ -103,7 +120,7 @@ func (mmAll *mStatisterMockAll) Return(s1 dto.Statistics, err error) *StatisterM
 }
 
 // Set uses given function f to mock the Statister.All method
-func (mmAll *mStatisterMockAll) Set(f func() (s1 dto.Statistics, err error)) *StatisterMock {
+func (mmAll *mStatisterMockAll) Set(f func(ctx context.Context) (s1 app.Statistics, err error)) *StatisterMock {
 	if mmAll.defaultExpectation != nil {
 		mmAll.mock.t.Fatalf("Default expectation is already set for the Statister.All method")
 	}
@@ -116,17 +133,57 @@ func (mmAll *mStatisterMockAll) Set(f func() (s1 dto.Statistics, err error)) *St
 	return mmAll.mock
 }
 
+// When sets expectation for the Statister.All which will trigger the result defined by the following
+// Then helper
+func (mmAll *mStatisterMockAll) When(ctx context.Context) *StatisterMockAllExpectation {
+	if mmAll.mock.funcAll != nil {
+		mmAll.mock.t.Fatalf("StatisterMock.All mock is already set by Set")
+	}
+
+	expectation := &StatisterMockAllExpectation{
+		mock:   mmAll.mock,
+		params: &StatisterMockAllParams{ctx},
+	}
+	mmAll.expectations = append(mmAll.expectations, expectation)
+	return expectation
+}
+
+// Then sets up Statister.All return parameters for the expectation previously defined by the When method
+func (e *StatisterMockAllExpectation) Then(s1 app.Statistics, err error) *StatisterMock {
+	e.results = &StatisterMockAllResults{s1, err}
+	return e.mock
+}
+
 // All implements app.Statister
-func (mmAll *StatisterMock) All() (s1 dto.Statistics, err error) {
+func (mmAll *StatisterMock) All(ctx context.Context) (s1 app.Statistics, err error) {
 	mm_atomic.AddUint64(&mmAll.beforeAllCounter, 1)
 	defer mm_atomic.AddUint64(&mmAll.afterAllCounter, 1)
 
 	if mmAll.inspectFuncAll != nil {
-		mmAll.inspectFuncAll()
+		mmAll.inspectFuncAll(ctx)
+	}
+
+	mm_params := &StatisterMockAllParams{ctx}
+
+	// Record call args
+	mmAll.AllMock.mutex.Lock()
+	mmAll.AllMock.callArgs = append(mmAll.AllMock.callArgs, mm_params)
+	mmAll.AllMock.mutex.Unlock()
+
+	for _, e := range mmAll.AllMock.expectations {
+		if minimock.Equal(e.params, mm_params) {
+			mm_atomic.AddUint64(&e.Counter, 1)
+			return e.results.s1, e.results.err
+		}
 	}
 
 	if mmAll.AllMock.defaultExpectation != nil {
 		mm_atomic.AddUint64(&mmAll.AllMock.defaultExpectation.Counter, 1)
+		mm_want := mmAll.AllMock.defaultExpectation.params
+		mm_got := StatisterMockAllParams{ctx}
+		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
+			mmAll.t.Errorf("StatisterMock.All got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
+		}
 
 		mm_results := mmAll.AllMock.defaultExpectation.results
 		if mm_results == nil {
@@ -135,9 +192,9 @@ func (mmAll *StatisterMock) All() (s1 dto.Statistics, err error) {
 		return (*mm_results).s1, (*mm_results).err
 	}
 	if mmAll.funcAll != nil {
-		return mmAll.funcAll()
+		return mmAll.funcAll(ctx)
 	}
-	mmAll.t.Fatalf("Unexpected call to StatisterMock.All.")
+	mmAll.t.Fatalf("Unexpected call to StatisterMock.All. %v", ctx)
 	return
 }
 
@@ -149,6 +206,19 @@ func (mmAll *StatisterMock) AllAfterCounter() uint64 {
 // AllBeforeCounter returns a count of StatisterMock.All invocations
 func (mmAll *StatisterMock) AllBeforeCounter() uint64 {
 	return mm_atomic.LoadUint64(&mmAll.beforeAllCounter)
+}
+
+// Calls returns a list of arguments used in each call to StatisterMock.All.
+// The list is in the same order as the calls were made (i.e. recent calls have a higher index)
+func (mmAll *mStatisterMockAll) Calls() []*StatisterMockAllParams {
+	mmAll.mutex.RLock()
+
+	argCopy := make([]*StatisterMockAllParams, len(mmAll.callArgs))
+	copy(argCopy, mmAll.callArgs)
+
+	mmAll.mutex.RUnlock()
+
+	return argCopy
 }
 
 // MinimockAllDone returns true if the count of the All invocations corresponds
@@ -175,13 +245,17 @@ func (m *StatisterMock) MinimockAllDone() bool {
 func (m *StatisterMock) MinimockAllInspect() {
 	for _, e := range m.AllMock.expectations {
 		if mm_atomic.LoadUint64(&e.Counter) < 1 {
-			m.t.Error("Expected call to StatisterMock.All")
+			m.t.Errorf("Expected call to StatisterMock.All with params: %#v", *e.params)
 		}
 	}
 
 	// if default expectation was set then invocations count should be greater than zero
 	if m.AllMock.defaultExpectation != nil && mm_atomic.LoadUint64(&m.afterAllCounter) < 1 {
-		m.t.Error("Expected call to StatisterMock.All")
+		if m.AllMock.defaultExpectation.params == nil {
+			m.t.Error("Expected call to StatisterMock.All")
+		} else {
+			m.t.Errorf("Expected call to StatisterMock.All with params: %#v", *m.AllMock.defaultExpectation.params)
+		}
 	}
 	// if func was set then invocations count should be greater than zero
 	if m.funcAll != nil && mm_atomic.LoadUint64(&m.afterAllCounter) < 1 {
@@ -208,6 +282,7 @@ type StatisterMockFilterExpectation struct {
 
 // StatisterMockFilterParams contains parameters of the Statister.Filter
 type StatisterMockFilterParams struct {
+	ctx        context.Context
 	subId      string
 	customerId string
 	status     string
@@ -215,12 +290,12 @@ type StatisterMockFilterParams struct {
 
 // StatisterMockFilterResults contains results of the Statister.Filter
 type StatisterMockFilterResults struct {
-	s1  dto.Statistics
+	s1  app.Statistics
 	err error
 }
 
 // Expect sets up expected params for Statister.Filter
-func (mmFilter *mStatisterMockFilter) Expect(subId string, customerId string, status string) *mStatisterMockFilter {
+func (mmFilter *mStatisterMockFilter) Expect(ctx context.Context, subId string, customerId string, status string) *mStatisterMockFilter {
 	if mmFilter.mock.funcFilter != nil {
 		mmFilter.mock.t.Fatalf("StatisterMock.Filter mock is already set by Set")
 	}
@@ -229,7 +304,7 @@ func (mmFilter *mStatisterMockFilter) Expect(subId string, customerId string, st
 		mmFilter.defaultExpectation = &StatisterMockFilterExpectation{}
 	}
 
-	mmFilter.defaultExpectation.params = &StatisterMockFilterParams{subId, customerId, status}
+	mmFilter.defaultExpectation.params = &StatisterMockFilterParams{ctx, subId, customerId, status}
 	for _, e := range mmFilter.expectations {
 		if minimock.Equal(e.params, mmFilter.defaultExpectation.params) {
 			mmFilter.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmFilter.defaultExpectation.params)
@@ -240,7 +315,7 @@ func (mmFilter *mStatisterMockFilter) Expect(subId string, customerId string, st
 }
 
 // Inspect accepts an inspector function that has same arguments as the Statister.Filter
-func (mmFilter *mStatisterMockFilter) Inspect(f func(subId string, customerId string, status string)) *mStatisterMockFilter {
+func (mmFilter *mStatisterMockFilter) Inspect(f func(ctx context.Context, subId string, customerId string, status string)) *mStatisterMockFilter {
 	if mmFilter.mock.inspectFuncFilter != nil {
 		mmFilter.mock.t.Fatalf("Inspect function is already set for StatisterMock.Filter")
 	}
@@ -251,7 +326,7 @@ func (mmFilter *mStatisterMockFilter) Inspect(f func(subId string, customerId st
 }
 
 // Return sets up results that will be returned by Statister.Filter
-func (mmFilter *mStatisterMockFilter) Return(s1 dto.Statistics, err error) *StatisterMock {
+func (mmFilter *mStatisterMockFilter) Return(s1 app.Statistics, err error) *StatisterMock {
 	if mmFilter.mock.funcFilter != nil {
 		mmFilter.mock.t.Fatalf("StatisterMock.Filter mock is already set by Set")
 	}
@@ -264,7 +339,7 @@ func (mmFilter *mStatisterMockFilter) Return(s1 dto.Statistics, err error) *Stat
 }
 
 // Set uses given function f to mock the Statister.Filter method
-func (mmFilter *mStatisterMockFilter) Set(f func(subId string, customerId string, status string) (s1 dto.Statistics, err error)) *StatisterMock {
+func (mmFilter *mStatisterMockFilter) Set(f func(ctx context.Context, subId string, customerId string, status string) (s1 app.Statistics, err error)) *StatisterMock {
 	if mmFilter.defaultExpectation != nil {
 		mmFilter.mock.t.Fatalf("Default expectation is already set for the Statister.Filter method")
 	}
@@ -279,35 +354,35 @@ func (mmFilter *mStatisterMockFilter) Set(f func(subId string, customerId string
 
 // When sets expectation for the Statister.Filter which will trigger the result defined by the following
 // Then helper
-func (mmFilter *mStatisterMockFilter) When(subId string, customerId string, status string) *StatisterMockFilterExpectation {
+func (mmFilter *mStatisterMockFilter) When(ctx context.Context, subId string, customerId string, status string) *StatisterMockFilterExpectation {
 	if mmFilter.mock.funcFilter != nil {
 		mmFilter.mock.t.Fatalf("StatisterMock.Filter mock is already set by Set")
 	}
 
 	expectation := &StatisterMockFilterExpectation{
 		mock:   mmFilter.mock,
-		params: &StatisterMockFilterParams{subId, customerId, status},
+		params: &StatisterMockFilterParams{ctx, subId, customerId, status},
 	}
 	mmFilter.expectations = append(mmFilter.expectations, expectation)
 	return expectation
 }
 
 // Then sets up Statister.Filter return parameters for the expectation previously defined by the When method
-func (e *StatisterMockFilterExpectation) Then(s1 dto.Statistics, err error) *StatisterMock {
+func (e *StatisterMockFilterExpectation) Then(s1 app.Statistics, err error) *StatisterMock {
 	e.results = &StatisterMockFilterResults{s1, err}
 	return e.mock
 }
 
 // Filter implements app.Statister
-func (mmFilter *StatisterMock) Filter(subId string, customerId string, status string) (s1 dto.Statistics, err error) {
+func (mmFilter *StatisterMock) Filter(ctx context.Context, subId string, customerId string, status string) (s1 app.Statistics, err error) {
 	mm_atomic.AddUint64(&mmFilter.beforeFilterCounter, 1)
 	defer mm_atomic.AddUint64(&mmFilter.afterFilterCounter, 1)
 
 	if mmFilter.inspectFuncFilter != nil {
-		mmFilter.inspectFuncFilter(subId, customerId, status)
+		mmFilter.inspectFuncFilter(ctx, subId, customerId, status)
 	}
 
-	mm_params := &StatisterMockFilterParams{subId, customerId, status}
+	mm_params := &StatisterMockFilterParams{ctx, subId, customerId, status}
 
 	// Record call args
 	mmFilter.FilterMock.mutex.Lock()
@@ -324,7 +399,7 @@ func (mmFilter *StatisterMock) Filter(subId string, customerId string, status st
 	if mmFilter.FilterMock.defaultExpectation != nil {
 		mm_atomic.AddUint64(&mmFilter.FilterMock.defaultExpectation.Counter, 1)
 		mm_want := mmFilter.FilterMock.defaultExpectation.params
-		mm_got := StatisterMockFilterParams{subId, customerId, status}
+		mm_got := StatisterMockFilterParams{ctx, subId, customerId, status}
 		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
 			mmFilter.t.Errorf("StatisterMock.Filter got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
@@ -336,9 +411,9 @@ func (mmFilter *StatisterMock) Filter(subId string, customerId string, status st
 		return (*mm_results).s1, (*mm_results).err
 	}
 	if mmFilter.funcFilter != nil {
-		return mmFilter.funcFilter(subId, customerId, status)
+		return mmFilter.funcFilter(ctx, subId, customerId, status)
 	}
-	mmFilter.t.Fatalf("Unexpected call to StatisterMock.Filter. %v %v %v", subId, customerId, status)
+	mmFilter.t.Fatalf("Unexpected call to StatisterMock.Filter. %v %v %v %v", ctx, subId, customerId, status)
 	return
 }
 

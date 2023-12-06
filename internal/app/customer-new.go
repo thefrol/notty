@@ -3,13 +3,15 @@
 package app
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
 //todo customerRequest
 
-func (app *App) NewCustomer(c entity.Customer) (entity.Customer, error) {
+func (app *App) NewCustomer(ctx context.Context, c entity.Customer) (entity.Customer, error) {
 	// добавить uuid если не задан, если задан
 	// то проверить существует ли такой челик в базе
 	//
@@ -18,7 +20,7 @@ func (app *App) NewCustomer(c entity.Customer) (entity.Customer, error) {
 	if c.Id == "" {
 		c.Id = uuid.NewString()
 	} else {
-		_, err := app.customers.Get(c.Id)
+		_, err := app.customers.Get(ctx, c.Id)
 		if err == nil {
 			return entity.Customer{}, ErrorCustomerExists
 		}
@@ -28,5 +30,5 @@ func (app *App) NewCustomer(c entity.Customer) (entity.Customer, error) {
 		return entity.Customer{}, err
 	}
 
-	return app.customers.Create(c)
+	return app.customers.Create(ctx, c)
 }

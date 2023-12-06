@@ -3,6 +3,7 @@
 package sms
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -52,7 +53,7 @@ var (
 	ErrorInvalidData = errors.New("bad request")
 )
 
-func (p PosterService) Send(m entity.Message) error {
+func (p PosterService) Send(ctx context.Context, m entity.Message) error {
 
 	ph, err := strconv.Atoi(m.Phone[1:])
 	if err != nil {
@@ -90,6 +91,7 @@ func (p PosterService) Send(m entity.Message) error {
 
 	resp, err := p.client.R().
 		SetBody(r).
+		SetContext(ctx).
 		Post(u)
 
 	if err != nil {

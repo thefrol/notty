@@ -18,7 +18,7 @@ func (a *Server) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := a.app.NewSubscription(c) // todo а что если такой клиент существует??
+	res, err := a.app.NewSubscription(r.Context(), c) // todo а что если такой клиент существует??
 	if err != nil {
 		if errors.Is(err, app.ErrorSubscriptionExists) {
 			respond.Errorf(w, http.StatusConflict, "Рассылка с id %s существует ", c.Id)
@@ -38,7 +38,7 @@ func (a *Server) DeleteSubscription(w http.ResponseWriter, r *http.Request, id s
 		return
 	}
 
-	err := a.app.RemoveSubscription(id)
+	err := a.app.RemoveSubscription(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, app.ErrorSubscriptionNotFound) {
 			respond.NotFound(w, "Рассылка с id %s не обнаружена", id)
@@ -55,7 +55,7 @@ func (a *Server) GetSubscription(w http.ResponseWriter, r *http.Request, id stri
 		return
 	}
 
-	sub, err := a.app.GetSubscription(id)
+	sub, err := a.app.GetSubscription(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, app.ErrorSubscriptionNotFound) {
 			respond.NotFound(w, "Рассылка с id %s не обнаружена", id)
@@ -78,7 +78,7 @@ func (a *Server) UpdateSubscription(w http.ResponseWriter, r *http.Request, id s
 	c.Id = id // заменяем айдишник на тот, что стоит в запросе
 	// bug это что такое вообще!!!
 
-	res, err := a.app.UpdateSubscription(c) // todo а что если такой клиент существует??
+	res, err := a.app.UpdateSubscription(r.Context(), c) // todo а что если такой клиент существует??
 	if err != nil {
 		if errors.Is(err, app.ErrorSubscriptionNotFound) {
 			respond.NotFound(w, "Рассылка с id %s не обнаружена", id)

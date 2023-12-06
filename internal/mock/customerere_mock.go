@@ -5,6 +5,7 @@ package mock
 //go:generate minimock -i gitlab.com/thefrol/notty/internal/app.Customerere -o ./internal/mock/customerere_mock.go -n CustomerereMock
 
 import (
+	"context"
 	"sync"
 	mm_atomic "sync/atomic"
 	mm_time "time"
@@ -17,26 +18,26 @@ import (
 type CustomerereMock struct {
 	t minimock.Tester
 
-	funcCreate          func(c1 entity.Customer) (c2 entity.Customer, err error)
-	inspectFuncCreate   func(c1 entity.Customer)
+	funcCreate          func(ctx context.Context, c2 entity.Customer) (c3 entity.Customer, err error)
+	inspectFuncCreate   func(ctx context.Context, c2 entity.Customer)
 	afterCreateCounter  uint64
 	beforeCreateCounter uint64
 	CreateMock          mCustomerereMockCreate
 
-	funcDelete          func(s1 string) (err error)
-	inspectFuncDelete   func(s1 string)
+	funcDelete          func(ctx context.Context, s1 string) (err error)
+	inspectFuncDelete   func(ctx context.Context, s1 string)
 	afterDeleteCounter  uint64
 	beforeDeleteCounter uint64
 	DeleteMock          mCustomerereMockDelete
 
-	funcGet          func(s1 string) (c1 entity.Customer, err error)
-	inspectFuncGet   func(s1 string)
+	funcGet          func(ctx context.Context, s1 string) (c2 entity.Customer, err error)
+	inspectFuncGet   func(ctx context.Context, s1 string)
 	afterGetCounter  uint64
 	beforeGetCounter uint64
 	GetMock          mCustomerereMockGet
 
-	funcUpdate          func(c1 entity.Customer) (c2 entity.Customer, err error)
-	inspectFuncUpdate   func(c1 entity.Customer)
+	funcUpdate          func(ctx context.Context, c2 entity.Customer) (c3 entity.Customer, err error)
+	inspectFuncUpdate   func(ctx context.Context, c2 entity.Customer)
 	afterUpdateCounter  uint64
 	beforeUpdateCounter uint64
 	UpdateMock          mCustomerereMockUpdate
@@ -83,17 +84,18 @@ type CustomerereMockCreateExpectation struct {
 
 // CustomerereMockCreateParams contains parameters of the Customerere.Create
 type CustomerereMockCreateParams struct {
-	c1 entity.Customer
+	ctx context.Context
+	c2  entity.Customer
 }
 
 // CustomerereMockCreateResults contains results of the Customerere.Create
 type CustomerereMockCreateResults struct {
-	c2  entity.Customer
+	c3  entity.Customer
 	err error
 }
 
 // Expect sets up expected params for Customerere.Create
-func (mmCreate *mCustomerereMockCreate) Expect(c1 entity.Customer) *mCustomerereMockCreate {
+func (mmCreate *mCustomerereMockCreate) Expect(ctx context.Context, c2 entity.Customer) *mCustomerereMockCreate {
 	if mmCreate.mock.funcCreate != nil {
 		mmCreate.mock.t.Fatalf("CustomerereMock.Create mock is already set by Set")
 	}
@@ -102,7 +104,7 @@ func (mmCreate *mCustomerereMockCreate) Expect(c1 entity.Customer) *mCustomerere
 		mmCreate.defaultExpectation = &CustomerereMockCreateExpectation{}
 	}
 
-	mmCreate.defaultExpectation.params = &CustomerereMockCreateParams{c1}
+	mmCreate.defaultExpectation.params = &CustomerereMockCreateParams{ctx, c2}
 	for _, e := range mmCreate.expectations {
 		if minimock.Equal(e.params, mmCreate.defaultExpectation.params) {
 			mmCreate.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmCreate.defaultExpectation.params)
@@ -113,7 +115,7 @@ func (mmCreate *mCustomerereMockCreate) Expect(c1 entity.Customer) *mCustomerere
 }
 
 // Inspect accepts an inspector function that has same arguments as the Customerere.Create
-func (mmCreate *mCustomerereMockCreate) Inspect(f func(c1 entity.Customer)) *mCustomerereMockCreate {
+func (mmCreate *mCustomerereMockCreate) Inspect(f func(ctx context.Context, c2 entity.Customer)) *mCustomerereMockCreate {
 	if mmCreate.mock.inspectFuncCreate != nil {
 		mmCreate.mock.t.Fatalf("Inspect function is already set for CustomerereMock.Create")
 	}
@@ -124,7 +126,7 @@ func (mmCreate *mCustomerereMockCreate) Inspect(f func(c1 entity.Customer)) *mCu
 }
 
 // Return sets up results that will be returned by Customerere.Create
-func (mmCreate *mCustomerereMockCreate) Return(c2 entity.Customer, err error) *CustomerereMock {
+func (mmCreate *mCustomerereMockCreate) Return(c3 entity.Customer, err error) *CustomerereMock {
 	if mmCreate.mock.funcCreate != nil {
 		mmCreate.mock.t.Fatalf("CustomerereMock.Create mock is already set by Set")
 	}
@@ -132,12 +134,12 @@ func (mmCreate *mCustomerereMockCreate) Return(c2 entity.Customer, err error) *C
 	if mmCreate.defaultExpectation == nil {
 		mmCreate.defaultExpectation = &CustomerereMockCreateExpectation{mock: mmCreate.mock}
 	}
-	mmCreate.defaultExpectation.results = &CustomerereMockCreateResults{c2, err}
+	mmCreate.defaultExpectation.results = &CustomerereMockCreateResults{c3, err}
 	return mmCreate.mock
 }
 
 // Set uses given function f to mock the Customerere.Create method
-func (mmCreate *mCustomerereMockCreate) Set(f func(c1 entity.Customer) (c2 entity.Customer, err error)) *CustomerereMock {
+func (mmCreate *mCustomerereMockCreate) Set(f func(ctx context.Context, c2 entity.Customer) (c3 entity.Customer, err error)) *CustomerereMock {
 	if mmCreate.defaultExpectation != nil {
 		mmCreate.mock.t.Fatalf("Default expectation is already set for the Customerere.Create method")
 	}
@@ -152,35 +154,35 @@ func (mmCreate *mCustomerereMockCreate) Set(f func(c1 entity.Customer) (c2 entit
 
 // When sets expectation for the Customerere.Create which will trigger the result defined by the following
 // Then helper
-func (mmCreate *mCustomerereMockCreate) When(c1 entity.Customer) *CustomerereMockCreateExpectation {
+func (mmCreate *mCustomerereMockCreate) When(ctx context.Context, c2 entity.Customer) *CustomerereMockCreateExpectation {
 	if mmCreate.mock.funcCreate != nil {
 		mmCreate.mock.t.Fatalf("CustomerereMock.Create mock is already set by Set")
 	}
 
 	expectation := &CustomerereMockCreateExpectation{
 		mock:   mmCreate.mock,
-		params: &CustomerereMockCreateParams{c1},
+		params: &CustomerereMockCreateParams{ctx, c2},
 	}
 	mmCreate.expectations = append(mmCreate.expectations, expectation)
 	return expectation
 }
 
 // Then sets up Customerere.Create return parameters for the expectation previously defined by the When method
-func (e *CustomerereMockCreateExpectation) Then(c2 entity.Customer, err error) *CustomerereMock {
-	e.results = &CustomerereMockCreateResults{c2, err}
+func (e *CustomerereMockCreateExpectation) Then(c3 entity.Customer, err error) *CustomerereMock {
+	e.results = &CustomerereMockCreateResults{c3, err}
 	return e.mock
 }
 
 // Create implements app.Customerere
-func (mmCreate *CustomerereMock) Create(c1 entity.Customer) (c2 entity.Customer, err error) {
+func (mmCreate *CustomerereMock) Create(ctx context.Context, c2 entity.Customer) (c3 entity.Customer, err error) {
 	mm_atomic.AddUint64(&mmCreate.beforeCreateCounter, 1)
 	defer mm_atomic.AddUint64(&mmCreate.afterCreateCounter, 1)
 
 	if mmCreate.inspectFuncCreate != nil {
-		mmCreate.inspectFuncCreate(c1)
+		mmCreate.inspectFuncCreate(ctx, c2)
 	}
 
-	mm_params := &CustomerereMockCreateParams{c1}
+	mm_params := &CustomerereMockCreateParams{ctx, c2}
 
 	// Record call args
 	mmCreate.CreateMock.mutex.Lock()
@@ -190,14 +192,14 @@ func (mmCreate *CustomerereMock) Create(c1 entity.Customer) (c2 entity.Customer,
 	for _, e := range mmCreate.CreateMock.expectations {
 		if minimock.Equal(e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
-			return e.results.c2, e.results.err
+			return e.results.c3, e.results.err
 		}
 	}
 
 	if mmCreate.CreateMock.defaultExpectation != nil {
 		mm_atomic.AddUint64(&mmCreate.CreateMock.defaultExpectation.Counter, 1)
 		mm_want := mmCreate.CreateMock.defaultExpectation.params
-		mm_got := CustomerereMockCreateParams{c1}
+		mm_got := CustomerereMockCreateParams{ctx, c2}
 		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
 			mmCreate.t.Errorf("CustomerereMock.Create got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
@@ -206,12 +208,12 @@ func (mmCreate *CustomerereMock) Create(c1 entity.Customer) (c2 entity.Customer,
 		if mm_results == nil {
 			mmCreate.t.Fatal("No results are set for the CustomerereMock.Create")
 		}
-		return (*mm_results).c2, (*mm_results).err
+		return (*mm_results).c3, (*mm_results).err
 	}
 	if mmCreate.funcCreate != nil {
-		return mmCreate.funcCreate(c1)
+		return mmCreate.funcCreate(ctx, c2)
 	}
-	mmCreate.t.Fatalf("Unexpected call to CustomerereMock.Create. %v", c1)
+	mmCreate.t.Fatalf("Unexpected call to CustomerereMock.Create. %v %v", ctx, c2)
 	return
 }
 
@@ -299,7 +301,8 @@ type CustomerereMockDeleteExpectation struct {
 
 // CustomerereMockDeleteParams contains parameters of the Customerere.Delete
 type CustomerereMockDeleteParams struct {
-	s1 string
+	ctx context.Context
+	s1  string
 }
 
 // CustomerereMockDeleteResults contains results of the Customerere.Delete
@@ -308,7 +311,7 @@ type CustomerereMockDeleteResults struct {
 }
 
 // Expect sets up expected params for Customerere.Delete
-func (mmDelete *mCustomerereMockDelete) Expect(s1 string) *mCustomerereMockDelete {
+func (mmDelete *mCustomerereMockDelete) Expect(ctx context.Context, s1 string) *mCustomerereMockDelete {
 	if mmDelete.mock.funcDelete != nil {
 		mmDelete.mock.t.Fatalf("CustomerereMock.Delete mock is already set by Set")
 	}
@@ -317,7 +320,7 @@ func (mmDelete *mCustomerereMockDelete) Expect(s1 string) *mCustomerereMockDelet
 		mmDelete.defaultExpectation = &CustomerereMockDeleteExpectation{}
 	}
 
-	mmDelete.defaultExpectation.params = &CustomerereMockDeleteParams{s1}
+	mmDelete.defaultExpectation.params = &CustomerereMockDeleteParams{ctx, s1}
 	for _, e := range mmDelete.expectations {
 		if minimock.Equal(e.params, mmDelete.defaultExpectation.params) {
 			mmDelete.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmDelete.defaultExpectation.params)
@@ -328,7 +331,7 @@ func (mmDelete *mCustomerereMockDelete) Expect(s1 string) *mCustomerereMockDelet
 }
 
 // Inspect accepts an inspector function that has same arguments as the Customerere.Delete
-func (mmDelete *mCustomerereMockDelete) Inspect(f func(s1 string)) *mCustomerereMockDelete {
+func (mmDelete *mCustomerereMockDelete) Inspect(f func(ctx context.Context, s1 string)) *mCustomerereMockDelete {
 	if mmDelete.mock.inspectFuncDelete != nil {
 		mmDelete.mock.t.Fatalf("Inspect function is already set for CustomerereMock.Delete")
 	}
@@ -352,7 +355,7 @@ func (mmDelete *mCustomerereMockDelete) Return(err error) *CustomerereMock {
 }
 
 // Set uses given function f to mock the Customerere.Delete method
-func (mmDelete *mCustomerereMockDelete) Set(f func(s1 string) (err error)) *CustomerereMock {
+func (mmDelete *mCustomerereMockDelete) Set(f func(ctx context.Context, s1 string) (err error)) *CustomerereMock {
 	if mmDelete.defaultExpectation != nil {
 		mmDelete.mock.t.Fatalf("Default expectation is already set for the Customerere.Delete method")
 	}
@@ -367,14 +370,14 @@ func (mmDelete *mCustomerereMockDelete) Set(f func(s1 string) (err error)) *Cust
 
 // When sets expectation for the Customerere.Delete which will trigger the result defined by the following
 // Then helper
-func (mmDelete *mCustomerereMockDelete) When(s1 string) *CustomerereMockDeleteExpectation {
+func (mmDelete *mCustomerereMockDelete) When(ctx context.Context, s1 string) *CustomerereMockDeleteExpectation {
 	if mmDelete.mock.funcDelete != nil {
 		mmDelete.mock.t.Fatalf("CustomerereMock.Delete mock is already set by Set")
 	}
 
 	expectation := &CustomerereMockDeleteExpectation{
 		mock:   mmDelete.mock,
-		params: &CustomerereMockDeleteParams{s1},
+		params: &CustomerereMockDeleteParams{ctx, s1},
 	}
 	mmDelete.expectations = append(mmDelete.expectations, expectation)
 	return expectation
@@ -387,15 +390,15 @@ func (e *CustomerereMockDeleteExpectation) Then(err error) *CustomerereMock {
 }
 
 // Delete implements app.Customerere
-func (mmDelete *CustomerereMock) Delete(s1 string) (err error) {
+func (mmDelete *CustomerereMock) Delete(ctx context.Context, s1 string) (err error) {
 	mm_atomic.AddUint64(&mmDelete.beforeDeleteCounter, 1)
 	defer mm_atomic.AddUint64(&mmDelete.afterDeleteCounter, 1)
 
 	if mmDelete.inspectFuncDelete != nil {
-		mmDelete.inspectFuncDelete(s1)
+		mmDelete.inspectFuncDelete(ctx, s1)
 	}
 
-	mm_params := &CustomerereMockDeleteParams{s1}
+	mm_params := &CustomerereMockDeleteParams{ctx, s1}
 
 	// Record call args
 	mmDelete.DeleteMock.mutex.Lock()
@@ -412,7 +415,7 @@ func (mmDelete *CustomerereMock) Delete(s1 string) (err error) {
 	if mmDelete.DeleteMock.defaultExpectation != nil {
 		mm_atomic.AddUint64(&mmDelete.DeleteMock.defaultExpectation.Counter, 1)
 		mm_want := mmDelete.DeleteMock.defaultExpectation.params
-		mm_got := CustomerereMockDeleteParams{s1}
+		mm_got := CustomerereMockDeleteParams{ctx, s1}
 		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
 			mmDelete.t.Errorf("CustomerereMock.Delete got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
@@ -424,9 +427,9 @@ func (mmDelete *CustomerereMock) Delete(s1 string) (err error) {
 		return (*mm_results).err
 	}
 	if mmDelete.funcDelete != nil {
-		return mmDelete.funcDelete(s1)
+		return mmDelete.funcDelete(ctx, s1)
 	}
-	mmDelete.t.Fatalf("Unexpected call to CustomerereMock.Delete. %v", s1)
+	mmDelete.t.Fatalf("Unexpected call to CustomerereMock.Delete. %v %v", ctx, s1)
 	return
 }
 
@@ -514,17 +517,18 @@ type CustomerereMockGetExpectation struct {
 
 // CustomerereMockGetParams contains parameters of the Customerere.Get
 type CustomerereMockGetParams struct {
-	s1 string
+	ctx context.Context
+	s1  string
 }
 
 // CustomerereMockGetResults contains results of the Customerere.Get
 type CustomerereMockGetResults struct {
-	c1  entity.Customer
+	c2  entity.Customer
 	err error
 }
 
 // Expect sets up expected params for Customerere.Get
-func (mmGet *mCustomerereMockGet) Expect(s1 string) *mCustomerereMockGet {
+func (mmGet *mCustomerereMockGet) Expect(ctx context.Context, s1 string) *mCustomerereMockGet {
 	if mmGet.mock.funcGet != nil {
 		mmGet.mock.t.Fatalf("CustomerereMock.Get mock is already set by Set")
 	}
@@ -533,7 +537,7 @@ func (mmGet *mCustomerereMockGet) Expect(s1 string) *mCustomerereMockGet {
 		mmGet.defaultExpectation = &CustomerereMockGetExpectation{}
 	}
 
-	mmGet.defaultExpectation.params = &CustomerereMockGetParams{s1}
+	mmGet.defaultExpectation.params = &CustomerereMockGetParams{ctx, s1}
 	for _, e := range mmGet.expectations {
 		if minimock.Equal(e.params, mmGet.defaultExpectation.params) {
 			mmGet.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGet.defaultExpectation.params)
@@ -544,7 +548,7 @@ func (mmGet *mCustomerereMockGet) Expect(s1 string) *mCustomerereMockGet {
 }
 
 // Inspect accepts an inspector function that has same arguments as the Customerere.Get
-func (mmGet *mCustomerereMockGet) Inspect(f func(s1 string)) *mCustomerereMockGet {
+func (mmGet *mCustomerereMockGet) Inspect(f func(ctx context.Context, s1 string)) *mCustomerereMockGet {
 	if mmGet.mock.inspectFuncGet != nil {
 		mmGet.mock.t.Fatalf("Inspect function is already set for CustomerereMock.Get")
 	}
@@ -555,7 +559,7 @@ func (mmGet *mCustomerereMockGet) Inspect(f func(s1 string)) *mCustomerereMockGe
 }
 
 // Return sets up results that will be returned by Customerere.Get
-func (mmGet *mCustomerereMockGet) Return(c1 entity.Customer, err error) *CustomerereMock {
+func (mmGet *mCustomerereMockGet) Return(c2 entity.Customer, err error) *CustomerereMock {
 	if mmGet.mock.funcGet != nil {
 		mmGet.mock.t.Fatalf("CustomerereMock.Get mock is already set by Set")
 	}
@@ -563,12 +567,12 @@ func (mmGet *mCustomerereMockGet) Return(c1 entity.Customer, err error) *Custome
 	if mmGet.defaultExpectation == nil {
 		mmGet.defaultExpectation = &CustomerereMockGetExpectation{mock: mmGet.mock}
 	}
-	mmGet.defaultExpectation.results = &CustomerereMockGetResults{c1, err}
+	mmGet.defaultExpectation.results = &CustomerereMockGetResults{c2, err}
 	return mmGet.mock
 }
 
 // Set uses given function f to mock the Customerere.Get method
-func (mmGet *mCustomerereMockGet) Set(f func(s1 string) (c1 entity.Customer, err error)) *CustomerereMock {
+func (mmGet *mCustomerereMockGet) Set(f func(ctx context.Context, s1 string) (c2 entity.Customer, err error)) *CustomerereMock {
 	if mmGet.defaultExpectation != nil {
 		mmGet.mock.t.Fatalf("Default expectation is already set for the Customerere.Get method")
 	}
@@ -583,35 +587,35 @@ func (mmGet *mCustomerereMockGet) Set(f func(s1 string) (c1 entity.Customer, err
 
 // When sets expectation for the Customerere.Get which will trigger the result defined by the following
 // Then helper
-func (mmGet *mCustomerereMockGet) When(s1 string) *CustomerereMockGetExpectation {
+func (mmGet *mCustomerereMockGet) When(ctx context.Context, s1 string) *CustomerereMockGetExpectation {
 	if mmGet.mock.funcGet != nil {
 		mmGet.mock.t.Fatalf("CustomerereMock.Get mock is already set by Set")
 	}
 
 	expectation := &CustomerereMockGetExpectation{
 		mock:   mmGet.mock,
-		params: &CustomerereMockGetParams{s1},
+		params: &CustomerereMockGetParams{ctx, s1},
 	}
 	mmGet.expectations = append(mmGet.expectations, expectation)
 	return expectation
 }
 
 // Then sets up Customerere.Get return parameters for the expectation previously defined by the When method
-func (e *CustomerereMockGetExpectation) Then(c1 entity.Customer, err error) *CustomerereMock {
-	e.results = &CustomerereMockGetResults{c1, err}
+func (e *CustomerereMockGetExpectation) Then(c2 entity.Customer, err error) *CustomerereMock {
+	e.results = &CustomerereMockGetResults{c2, err}
 	return e.mock
 }
 
 // Get implements app.Customerere
-func (mmGet *CustomerereMock) Get(s1 string) (c1 entity.Customer, err error) {
+func (mmGet *CustomerereMock) Get(ctx context.Context, s1 string) (c2 entity.Customer, err error) {
 	mm_atomic.AddUint64(&mmGet.beforeGetCounter, 1)
 	defer mm_atomic.AddUint64(&mmGet.afterGetCounter, 1)
 
 	if mmGet.inspectFuncGet != nil {
-		mmGet.inspectFuncGet(s1)
+		mmGet.inspectFuncGet(ctx, s1)
 	}
 
-	mm_params := &CustomerereMockGetParams{s1}
+	mm_params := &CustomerereMockGetParams{ctx, s1}
 
 	// Record call args
 	mmGet.GetMock.mutex.Lock()
@@ -621,14 +625,14 @@ func (mmGet *CustomerereMock) Get(s1 string) (c1 entity.Customer, err error) {
 	for _, e := range mmGet.GetMock.expectations {
 		if minimock.Equal(e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
-			return e.results.c1, e.results.err
+			return e.results.c2, e.results.err
 		}
 	}
 
 	if mmGet.GetMock.defaultExpectation != nil {
 		mm_atomic.AddUint64(&mmGet.GetMock.defaultExpectation.Counter, 1)
 		mm_want := mmGet.GetMock.defaultExpectation.params
-		mm_got := CustomerereMockGetParams{s1}
+		mm_got := CustomerereMockGetParams{ctx, s1}
 		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
 			mmGet.t.Errorf("CustomerereMock.Get got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
@@ -637,12 +641,12 @@ func (mmGet *CustomerereMock) Get(s1 string) (c1 entity.Customer, err error) {
 		if mm_results == nil {
 			mmGet.t.Fatal("No results are set for the CustomerereMock.Get")
 		}
-		return (*mm_results).c1, (*mm_results).err
+		return (*mm_results).c2, (*mm_results).err
 	}
 	if mmGet.funcGet != nil {
-		return mmGet.funcGet(s1)
+		return mmGet.funcGet(ctx, s1)
 	}
-	mmGet.t.Fatalf("Unexpected call to CustomerereMock.Get. %v", s1)
+	mmGet.t.Fatalf("Unexpected call to CustomerereMock.Get. %v %v", ctx, s1)
 	return
 }
 
@@ -730,17 +734,18 @@ type CustomerereMockUpdateExpectation struct {
 
 // CustomerereMockUpdateParams contains parameters of the Customerere.Update
 type CustomerereMockUpdateParams struct {
-	c1 entity.Customer
+	ctx context.Context
+	c2  entity.Customer
 }
 
 // CustomerereMockUpdateResults contains results of the Customerere.Update
 type CustomerereMockUpdateResults struct {
-	c2  entity.Customer
+	c3  entity.Customer
 	err error
 }
 
 // Expect sets up expected params for Customerere.Update
-func (mmUpdate *mCustomerereMockUpdate) Expect(c1 entity.Customer) *mCustomerereMockUpdate {
+func (mmUpdate *mCustomerereMockUpdate) Expect(ctx context.Context, c2 entity.Customer) *mCustomerereMockUpdate {
 	if mmUpdate.mock.funcUpdate != nil {
 		mmUpdate.mock.t.Fatalf("CustomerereMock.Update mock is already set by Set")
 	}
@@ -749,7 +754,7 @@ func (mmUpdate *mCustomerereMockUpdate) Expect(c1 entity.Customer) *mCustomerere
 		mmUpdate.defaultExpectation = &CustomerereMockUpdateExpectation{}
 	}
 
-	mmUpdate.defaultExpectation.params = &CustomerereMockUpdateParams{c1}
+	mmUpdate.defaultExpectation.params = &CustomerereMockUpdateParams{ctx, c2}
 	for _, e := range mmUpdate.expectations {
 		if minimock.Equal(e.params, mmUpdate.defaultExpectation.params) {
 			mmUpdate.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmUpdate.defaultExpectation.params)
@@ -760,7 +765,7 @@ func (mmUpdate *mCustomerereMockUpdate) Expect(c1 entity.Customer) *mCustomerere
 }
 
 // Inspect accepts an inspector function that has same arguments as the Customerere.Update
-func (mmUpdate *mCustomerereMockUpdate) Inspect(f func(c1 entity.Customer)) *mCustomerereMockUpdate {
+func (mmUpdate *mCustomerereMockUpdate) Inspect(f func(ctx context.Context, c2 entity.Customer)) *mCustomerereMockUpdate {
 	if mmUpdate.mock.inspectFuncUpdate != nil {
 		mmUpdate.mock.t.Fatalf("Inspect function is already set for CustomerereMock.Update")
 	}
@@ -771,7 +776,7 @@ func (mmUpdate *mCustomerereMockUpdate) Inspect(f func(c1 entity.Customer)) *mCu
 }
 
 // Return sets up results that will be returned by Customerere.Update
-func (mmUpdate *mCustomerereMockUpdate) Return(c2 entity.Customer, err error) *CustomerereMock {
+func (mmUpdate *mCustomerereMockUpdate) Return(c3 entity.Customer, err error) *CustomerereMock {
 	if mmUpdate.mock.funcUpdate != nil {
 		mmUpdate.mock.t.Fatalf("CustomerereMock.Update mock is already set by Set")
 	}
@@ -779,12 +784,12 @@ func (mmUpdate *mCustomerereMockUpdate) Return(c2 entity.Customer, err error) *C
 	if mmUpdate.defaultExpectation == nil {
 		mmUpdate.defaultExpectation = &CustomerereMockUpdateExpectation{mock: mmUpdate.mock}
 	}
-	mmUpdate.defaultExpectation.results = &CustomerereMockUpdateResults{c2, err}
+	mmUpdate.defaultExpectation.results = &CustomerereMockUpdateResults{c3, err}
 	return mmUpdate.mock
 }
 
 // Set uses given function f to mock the Customerere.Update method
-func (mmUpdate *mCustomerereMockUpdate) Set(f func(c1 entity.Customer) (c2 entity.Customer, err error)) *CustomerereMock {
+func (mmUpdate *mCustomerereMockUpdate) Set(f func(ctx context.Context, c2 entity.Customer) (c3 entity.Customer, err error)) *CustomerereMock {
 	if mmUpdate.defaultExpectation != nil {
 		mmUpdate.mock.t.Fatalf("Default expectation is already set for the Customerere.Update method")
 	}
@@ -799,35 +804,35 @@ func (mmUpdate *mCustomerereMockUpdate) Set(f func(c1 entity.Customer) (c2 entit
 
 // When sets expectation for the Customerere.Update which will trigger the result defined by the following
 // Then helper
-func (mmUpdate *mCustomerereMockUpdate) When(c1 entity.Customer) *CustomerereMockUpdateExpectation {
+func (mmUpdate *mCustomerereMockUpdate) When(ctx context.Context, c2 entity.Customer) *CustomerereMockUpdateExpectation {
 	if mmUpdate.mock.funcUpdate != nil {
 		mmUpdate.mock.t.Fatalf("CustomerereMock.Update mock is already set by Set")
 	}
 
 	expectation := &CustomerereMockUpdateExpectation{
 		mock:   mmUpdate.mock,
-		params: &CustomerereMockUpdateParams{c1},
+		params: &CustomerereMockUpdateParams{ctx, c2},
 	}
 	mmUpdate.expectations = append(mmUpdate.expectations, expectation)
 	return expectation
 }
 
 // Then sets up Customerere.Update return parameters for the expectation previously defined by the When method
-func (e *CustomerereMockUpdateExpectation) Then(c2 entity.Customer, err error) *CustomerereMock {
-	e.results = &CustomerereMockUpdateResults{c2, err}
+func (e *CustomerereMockUpdateExpectation) Then(c3 entity.Customer, err error) *CustomerereMock {
+	e.results = &CustomerereMockUpdateResults{c3, err}
 	return e.mock
 }
 
 // Update implements app.Customerere
-func (mmUpdate *CustomerereMock) Update(c1 entity.Customer) (c2 entity.Customer, err error) {
+func (mmUpdate *CustomerereMock) Update(ctx context.Context, c2 entity.Customer) (c3 entity.Customer, err error) {
 	mm_atomic.AddUint64(&mmUpdate.beforeUpdateCounter, 1)
 	defer mm_atomic.AddUint64(&mmUpdate.afterUpdateCounter, 1)
 
 	if mmUpdate.inspectFuncUpdate != nil {
-		mmUpdate.inspectFuncUpdate(c1)
+		mmUpdate.inspectFuncUpdate(ctx, c2)
 	}
 
-	mm_params := &CustomerereMockUpdateParams{c1}
+	mm_params := &CustomerereMockUpdateParams{ctx, c2}
 
 	// Record call args
 	mmUpdate.UpdateMock.mutex.Lock()
@@ -837,14 +842,14 @@ func (mmUpdate *CustomerereMock) Update(c1 entity.Customer) (c2 entity.Customer,
 	for _, e := range mmUpdate.UpdateMock.expectations {
 		if minimock.Equal(e.params, mm_params) {
 			mm_atomic.AddUint64(&e.Counter, 1)
-			return e.results.c2, e.results.err
+			return e.results.c3, e.results.err
 		}
 	}
 
 	if mmUpdate.UpdateMock.defaultExpectation != nil {
 		mm_atomic.AddUint64(&mmUpdate.UpdateMock.defaultExpectation.Counter, 1)
 		mm_want := mmUpdate.UpdateMock.defaultExpectation.params
-		mm_got := CustomerereMockUpdateParams{c1}
+		mm_got := CustomerereMockUpdateParams{ctx, c2}
 		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
 			mmUpdate.t.Errorf("CustomerereMock.Update got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
@@ -853,12 +858,12 @@ func (mmUpdate *CustomerereMock) Update(c1 entity.Customer) (c2 entity.Customer,
 		if mm_results == nil {
 			mmUpdate.t.Fatal("No results are set for the CustomerereMock.Update")
 		}
-		return (*mm_results).c2, (*mm_results).err
+		return (*mm_results).c3, (*mm_results).err
 	}
 	if mmUpdate.funcUpdate != nil {
-		return mmUpdate.funcUpdate(c1)
+		return mmUpdate.funcUpdate(ctx, c2)
 	}
-	mmUpdate.t.Fatalf("Unexpected call to CustomerereMock.Update. %v", c1)
+	mmUpdate.t.Fatalf("Unexpected call to CustomerereMock.Update. %v %v", ctx, c2)
 	return
 }
 

@@ -1,6 +1,7 @@
 package storages_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -32,10 +33,10 @@ func Test_SubscriptionWorkflow(t *testing.T) {
 		PhoneFilter:    "123",
 		TagFilter:      "1252",
 	}
-	_, err := subscriptions.Create(c)
+	_, err := subscriptions.Create(context.TODO(), c)
 	require.NoError(t, err)
 
-	g, err := subscriptions.Get(c.Id)
+	g, err := subscriptions.Get(context.TODO(), c.Id)
 
 	require.NoError(t, err)
 
@@ -43,10 +44,10 @@ func Test_SubscriptionWorkflow(t *testing.T) {
 	g.End = c.End
 	assert.Equal(t, c, g)
 
-	err = subscriptions.Delete(c.Id)
+	err = subscriptions.Delete(context.TODO(), c.Id)
 	require.NoError(t, err)
 
-	_, err = subscriptions.Get(c.Id)
+	_, err = subscriptions.Get(context.TODO(), c.Id)
 	require.Error(t, err)
 
 }

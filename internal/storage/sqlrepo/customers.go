@@ -3,6 +3,7 @@
 package sqlrepo
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -42,8 +43,8 @@ WHERE
 
 // Get возвращает клиента с указанным id, или вощвращаем
 // app.ErrorCustomerNotFound - ошибку
-func (c Customers) Get(id string) (res entity.Customer, err error) {
-	r := c.db.QueryRow(getCustomer, id)
+func (c Customers) Get(ctx context.Context, id string) (res entity.Customer, err error) {
+	r := c.db.QueryRowContext(ctx, getCustomer, id)
 	if err := r.Err(); err != nil {
 		return entity.Customer{}, err
 	}
@@ -65,8 +66,8 @@ FROM
 WHERE
 	id=$1`
 
-func (c Customers) Delete(id string) error {
-	rs, err := c.db.Exec(deleteCustomer, id)
+func (c Customers) Delete(ctx context.Context, id string) error {
+	rs, err := c.db.ExecContext(ctx, deleteCustomer, id)
 	if err != nil {
 		return err
 	}
@@ -90,8 +91,8 @@ WHERE
 	id=$1
 RETURNING *`
 
-func (c Customers) Update(cl entity.Customer) (entity.Customer, error) {
-	r := c.db.QueryRow(updateCustomer, cl.Id, cl.Name, cl.Phone, cl.Operator, cl.Tag)
+func (c Customers) Update(ctx context.Context, cl entity.Customer) (entity.Customer, error) {
+	r := c.db.QueryRowContext(ctx, updateCustomer, cl.Id, cl.Name, cl.Phone, cl.Operator, cl.Tag)
 	if err := r.Err(); err != nil {
 		return entity.Customer{}, err
 	}
@@ -118,8 +119,8 @@ INSERT INTO
 VALUES($1,$2,$3,$4,$5)
 RETURNING *`
 
-func (c Customers) Create(cl entity.Customer) (entity.Customer, error) {
-	r := c.db.QueryRow(createCustomer, cl.Id, cl.Name, cl.Phone, cl.Operator, cl.Tag)
+func (c Customers) Create(ctx context.Context, cl entity.Customer) (entity.Customer, error) {
+	r := c.db.QueryRowContext(ctx, createCustomer, cl.Id, cl.Name, cl.Phone, cl.Operator, cl.Tag)
 	if err := r.Err(); err != nil {
 		return entity.Customer{}, nil //todo ??? ошибка же
 	}

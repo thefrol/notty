@@ -6,9 +6,10 @@
 package sqlrepo
 
 import (
+	"context"
 	"database/sql"
 
-	"gitlab.com/thefrol/notty/internal/dto"
+	"gitlab.com/thefrol/notty/internal/app"
 )
 
 // Statistics отвечает за сбор статистики
@@ -26,8 +27,8 @@ func NewStatistics(db *sql.DB) *Statistics {
 }
 
 // All возвращает статистику по всем вообщениям,
-func (r Statistics) All() (dto.Statistics, error) {
-	rs, err := r.db.Query(`
+func (r Statistics) All(ctx context.Context) (app.Statistics, error) {
+	rs, err := r.db.QueryContext(ctx, `
 	SELECT
 		status,
 		COUNT(status)
@@ -63,8 +64,8 @@ func (r Statistics) All() (dto.Statistics, error) {
 }
 
 // Filters возвращает статистику по рассылкам
-func (r Statistics) Filter(subId string, customerId string, status string) (dto.Statistics, error) {
-	rs, err := r.db.Query(`
+func (r Statistics) Filter(ctx context.Context, subId string, customerId string, status string) (app.Statistics, error) {
+	rs, err := r.db.QueryContext(ctx, `
 	SELECT
 		status,
 		COUNT(status)

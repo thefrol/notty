@@ -1,11 +1,12 @@
 package storages_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gitlab.com/thefrol/notty/internal/dto"
+	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 )
@@ -34,26 +35,26 @@ func Test_StatsValues(t *testing.T) {
 
 	require.NoError(t, err, "не могу наполнить базу сообщениями")
 
-	svc := sqlrepo.NewStatistics(conn)
+	stats := sqlrepo.NewStatistics(conn)
 
 	// фильтруем все сообщения
-	st, err := svc.Filter("%", "%", "%")
+	st, err := stats.Filter(context.TODO(), "%", "%", "%")
 	assert.NoError(t, err)
-	assert.Equal(t, dto.Statistics{"done": 3}, st)
+	assert.Equal(t, app.Statistics{"done": 3}, st)
 
-	st, err = svc.All()
+	st, err = stats.All(context.TODO())
 	assert.NoError(t, err)
-	assert.Equal(t, dto.Statistics{"done": 3}, st)
+	assert.Equal(t, app.Statistics{"done": 3}, st)
 
 	// только по первой подписке
-	st, err = svc.Filter("sub-id-1", "%", "%")
+	st, err = stats.Filter(context.TODO(), "sub-id-1", "%", "%")
 	assert.NoError(t, err)
-	assert.Equal(t, dto.Statistics{"done": 2}, st)
+	assert.Equal(t, app.Statistics{"done": 2}, st)
 
 	// только по первому клиенту
-	st, err = svc.Filter("%", "customer-id-1", "%")
+	st, err = stats.Filter(context.TODO(), "%", "customer-id-1", "%")
 	assert.NoError(t, err)
-	assert.Equal(t, dto.Statistics{"done": 1}, st)
+	assert.Equal(t, app.Statistics{"done": 1}, st)
 
 }
 

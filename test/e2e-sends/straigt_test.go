@@ -7,7 +7,7 @@ import (
 	"context"
 	"time"
 
-	"gitlab.com/thefrol/notty/internal/dto"
+	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/internal/service"
 )
@@ -24,7 +24,7 @@ func (suite *FromDbToSend) TestSendingByTag() {
 
 	// тут мок будет просто считать количество запросов на отправку
 	sended := 0
-	suite.senderMock.SendMock.Set(func(m1 entity.Message) (err error) {
+	suite.senderMock.SendMock.Set(func(ctx context.Context, m1 entity.Message) (err error) {
 		// просто считаем количество
 		sended++
 		return nil
@@ -56,7 +56,7 @@ func (suite *FromDbToSend) TestSendingByTag() {
 	// а ещё нам нужно проверить, что они записаны в базу нормально
 	// хотя это не по этому тесту конечно вообще
 
-	msgs, err := suite.messages.ByStatus("done", 10)
+	msgs, err := suite.messages.ByStatus(context.TODO(), "done", 10)
 	suite.NoError(err)
 
 	suite.True(In(msgs, "anna", "will-send"), "Должен быть в отправленных")
@@ -68,18 +68,18 @@ func (suite *FromDbToSend) TestSendingByTag() {
 	anyStatus := "%"
 
 	// по всем
-	s, err := suite.stats.All()
+	s, err := suite.stats.All(context.TODO())
 	suite.NoError(err)
-	suite.Equal(dto.Statistics{"done": 2}, s)
+	suite.Equal(app.Statistics{"done": 2}, s)
 
 	// по рассылкам
-	s, err = suite.stats.Filter("will-send", anyClient, anyStatus)
+	s, err = suite.stats.Filter(context.TODO(), "will-send", anyClient, anyStatus)
 	suite.NoError(err)
-	suite.Equal(dto.Statistics{"done": 2}, s)
+	suite.Equal(app.Statistics{"done": 2}, s)
 
-	s, err = suite.stats.Filter("no-send", anyClient, anyStatus)
+	s, err = suite.stats.Filter(context.TODO(), "no-send", anyClient, anyStatus)
 	suite.NoError(err)
-	suite.Equal(dto.Statistics{}, s)
+	suite.Equal(app.Statistics{}, s)
 
 	// по клиентам
 
@@ -87,17 +87,17 @@ func (suite *FromDbToSend) TestSendingByTag() {
 	sub := anySub
 	status := anyStatus
 
-	s, err = suite.stats.Filter(sub, client, status)
+	s, err = suite.stats.Filter(context.TODO(), sub, client, status)
 	suite.NoError(err)
-	suite.Equal(dto.Statistics{"done": 1}, s)
+	suite.Equal(app.Statistics{"done": 1}, s)
 
 	client = "ivan-testov"
 	sub = anySub
 	status = anyStatus
 
-	s, err = suite.stats.Filter(anySub, client, anyStatus)
+	s, err = suite.stats.Filter(context.TODO(), anySub, client, anyStatus)
 	suite.NoError(err)
-	suite.Equal(dto.Statistics{"done": 1}, s)
+	suite.Equal(app.Statistics{"done": 1}, s)
 
 }
 

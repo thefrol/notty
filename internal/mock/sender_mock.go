@@ -5,6 +5,7 @@ package mock
 //go:generate minimock -i gitlab.com/thefrol/notty/internal/app.Sender -o ./internal/mock/sender_mock.go -n SenderMock
 
 import (
+	"context"
 	"sync"
 	mm_atomic "sync/atomic"
 	mm_time "time"
@@ -17,8 +18,8 @@ import (
 type SenderMock struct {
 	t minimock.Tester
 
-	funcSend          func(m1 entity.Message) (err error)
-	inspectFuncSend   func(m1 entity.Message)
+	funcSend          func(ctx context.Context, m1 entity.Message) (err error)
+	inspectFuncSend   func(ctx context.Context, m1 entity.Message)
 	afterSendCounter  uint64
 	beforeSendCounter uint64
 	SendMock          mSenderMockSend
@@ -56,7 +57,8 @@ type SenderMockSendExpectation struct {
 
 // SenderMockSendParams contains parameters of the Sender.Send
 type SenderMockSendParams struct {
-	m1 entity.Message
+	ctx context.Context
+	m1  entity.Message
 }
 
 // SenderMockSendResults contains results of the Sender.Send
@@ -65,7 +67,7 @@ type SenderMockSendResults struct {
 }
 
 // Expect sets up expected params for Sender.Send
-func (mmSend *mSenderMockSend) Expect(m1 entity.Message) *mSenderMockSend {
+func (mmSend *mSenderMockSend) Expect(ctx context.Context, m1 entity.Message) *mSenderMockSend {
 	if mmSend.mock.funcSend != nil {
 		mmSend.mock.t.Fatalf("SenderMock.Send mock is already set by Set")
 	}
@@ -74,7 +76,7 @@ func (mmSend *mSenderMockSend) Expect(m1 entity.Message) *mSenderMockSend {
 		mmSend.defaultExpectation = &SenderMockSendExpectation{}
 	}
 
-	mmSend.defaultExpectation.params = &SenderMockSendParams{m1}
+	mmSend.defaultExpectation.params = &SenderMockSendParams{ctx, m1}
 	for _, e := range mmSend.expectations {
 		if minimock.Equal(e.params, mmSend.defaultExpectation.params) {
 			mmSend.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmSend.defaultExpectation.params)
@@ -85,7 +87,7 @@ func (mmSend *mSenderMockSend) Expect(m1 entity.Message) *mSenderMockSend {
 }
 
 // Inspect accepts an inspector function that has same arguments as the Sender.Send
-func (mmSend *mSenderMockSend) Inspect(f func(m1 entity.Message)) *mSenderMockSend {
+func (mmSend *mSenderMockSend) Inspect(f func(ctx context.Context, m1 entity.Message)) *mSenderMockSend {
 	if mmSend.mock.inspectFuncSend != nil {
 		mmSend.mock.t.Fatalf("Inspect function is already set for SenderMock.Send")
 	}
@@ -109,7 +111,7 @@ func (mmSend *mSenderMockSend) Return(err error) *SenderMock {
 }
 
 // Set uses given function f to mock the Sender.Send method
-func (mmSend *mSenderMockSend) Set(f func(m1 entity.Message) (err error)) *SenderMock {
+func (mmSend *mSenderMockSend) Set(f func(ctx context.Context, m1 entity.Message) (err error)) *SenderMock {
 	if mmSend.defaultExpectation != nil {
 		mmSend.mock.t.Fatalf("Default expectation is already set for the Sender.Send method")
 	}
@@ -124,14 +126,14 @@ func (mmSend *mSenderMockSend) Set(f func(m1 entity.Message) (err error)) *Sende
 
 // When sets expectation for the Sender.Send which will trigger the result defined by the following
 // Then helper
-func (mmSend *mSenderMockSend) When(m1 entity.Message) *SenderMockSendExpectation {
+func (mmSend *mSenderMockSend) When(ctx context.Context, m1 entity.Message) *SenderMockSendExpectation {
 	if mmSend.mock.funcSend != nil {
 		mmSend.mock.t.Fatalf("SenderMock.Send mock is already set by Set")
 	}
 
 	expectation := &SenderMockSendExpectation{
 		mock:   mmSend.mock,
-		params: &SenderMockSendParams{m1},
+		params: &SenderMockSendParams{ctx, m1},
 	}
 	mmSend.expectations = append(mmSend.expectations, expectation)
 	return expectation
@@ -144,15 +146,15 @@ func (e *SenderMockSendExpectation) Then(err error) *SenderMock {
 }
 
 // Send implements app.Sender
-func (mmSend *SenderMock) Send(m1 entity.Message) (err error) {
+func (mmSend *SenderMock) Send(ctx context.Context, m1 entity.Message) (err error) {
 	mm_atomic.AddUint64(&mmSend.beforeSendCounter, 1)
 	defer mm_atomic.AddUint64(&mmSend.afterSendCounter, 1)
 
 	if mmSend.inspectFuncSend != nil {
-		mmSend.inspectFuncSend(m1)
+		mmSend.inspectFuncSend(ctx, m1)
 	}
 
-	mm_params := &SenderMockSendParams{m1}
+	mm_params := &SenderMockSendParams{ctx, m1}
 
 	// Record call args
 	mmSend.SendMock.mutex.Lock()
@@ -169,7 +171,7 @@ func (mmSend *SenderMock) Send(m1 entity.Message) (err error) {
 	if mmSend.SendMock.defaultExpectation != nil {
 		mm_atomic.AddUint64(&mmSend.SendMock.defaultExpectation.Counter, 1)
 		mm_want := mmSend.SendMock.defaultExpectation.params
-		mm_got := SenderMockSendParams{m1}
+		mm_got := SenderMockSendParams{ctx, m1}
 		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
 			mmSend.t.Errorf("SenderMock.Send got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
@@ -181,9 +183,9 @@ func (mmSend *SenderMock) Send(m1 entity.Message) (err error) {
 		return (*mm_results).err
 	}
 	if mmSend.funcSend != nil {
-		return mmSend.funcSend(m1)
+		return mmSend.funcSend(ctx, m1)
 	}
-	mmSend.t.Fatalf("Unexpected call to SenderMock.Send. %v", m1)
+	mmSend.t.Fatalf("Unexpected call to SenderMock.Send. %v %v", ctx, m1)
 	return
 }
 

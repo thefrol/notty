@@ -3,13 +3,15 @@
 package app
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 	"gitlab.com/thefrol/notty/internal/entity"
 )
 
 //todo SubscriptionRequest
 
-func (app *App) NewSubscription(s entity.Subscription) (entity.Subscription, error) {
+func (app *App) NewSubscription(ctx context.Context, s entity.Subscription) (entity.Subscription, error) {
 	// добавить uuid если не задан, если задан
 	// то проверить существует ли такой челик в базе
 	//
@@ -18,7 +20,7 @@ func (app *App) NewSubscription(s entity.Subscription) (entity.Subscription, err
 	if s.Id == "" {
 		s.Id = uuid.NewString()
 	} else {
-		_, err := app.subscriptions.Get(s.Id)
+		_, err := app.subscriptions.Get(ctx, s.Id)
 		if err == nil {
 			return entity.Subscription{}, ErrorSubscriptionExists
 		}
@@ -28,5 +30,5 @@ func (app *App) NewSubscription(s entity.Subscription) (entity.Subscription, err
 		return entity.Subscription{}, err
 	}
 
-	return app.subscriptions.Create(s)
+	return app.subscriptions.Create(ctx, s)
 }

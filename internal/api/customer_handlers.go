@@ -18,7 +18,7 @@ func (a *Server) CreateClient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := a.app.NewCustomer(c) // todo а что если такой клиент существует??
+	res, err := a.app.NewCustomer(r.Context(), c) // todo а что если такой клиент существует??
 	if err != nil {
 		if errors.Is(err, app.ErrorCustomerExists) {
 			respond.Errorf(w, http.StatusConflict, "Клиент уже с id %s существует ", c.Id)
@@ -38,7 +38,7 @@ func (a *Server) GetClient(w http.ResponseWriter, r *http.Request, id string) {
 		return
 	}
 
-	c, err := a.app.GetCustomer(id)
+	c, err := a.app.GetCustomer(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, app.ErrorCustomerNotFound) {
 			respond.NotFound(w, "Клиент с id %s не обнаружен", id)
@@ -57,7 +57,7 @@ func (a *Server) DeleteClient(w http.ResponseWriter, r *http.Request, id string)
 		return
 	}
 
-	err := a.app.RemoveCustomer(id)
+	err := a.app.RemoveCustomer(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, app.ErrorCustomerNotFound) {
 			respond.NotFound(w, "Клиент с id %s не обнаружен", id)
@@ -79,7 +79,7 @@ func (a *Server) UpdateClient(w http.ResponseWriter, r *http.Request, id string)
 	c.Id = id // заменяем айдишник на тот, что стоит в запросе
 	// bug это что такое вообще!!!
 
-	res, err := a.app.UpdateCustomer(c) // todo а что если такой клиент существует??
+	res, err := a.app.UpdateCustomer(r.Context(), c) // todo а что если такой клиент существует??
 	if err != nil {
 		if errors.Is(err, app.ErrorCustomerNotFound) {
 			respond.NotFound(w, "Клиент с id %s не обнаружен", id)
