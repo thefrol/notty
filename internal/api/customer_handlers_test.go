@@ -3,6 +3,7 @@ package api_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -46,7 +47,7 @@ func (suite *ApiTestSuite) SetupTest() {
 		Name: "Апий Тестировальный",
 	}
 	//preparing customer repo
-	customersRepo.GetMock.Set(func(s1 string) (c1 entity.Customer, err error) {
+	customersRepo.GetMock.Set(func(ctx context.Context, s1 string) (c1 entity.Customer, err error) {
 		if s1 == existingUser.Id {
 			return entity.Customer{
 				Id:   existingUserId,
@@ -57,7 +58,7 @@ func (suite *ApiTestSuite) SetupTest() {
 		}
 	})
 
-	customersRepo.UpdateMock.Set(func(c1 entity.Customer) (entity.Customer, error) {
+	customersRepo.UpdateMock.Set(func(ctx context.Context, c1 entity.Customer) (entity.Customer, error) {
 		if c1.Id == existingUserId {
 			return existingUser, nil
 		} else {
@@ -66,7 +67,7 @@ func (suite *ApiTestSuite) SetupTest() {
 		}
 	})
 
-	customersRepo.DeleteMock.Set(func(id string) (err error) {
+	customersRepo.DeleteMock.Set(func(ctx context.Context, id string) (err error) {
 		if id == existingUserId {
 			return nil
 		} else {
@@ -75,7 +76,7 @@ func (suite *ApiTestSuite) SetupTest() {
 		}
 	})
 
-	customersRepo.CreateMock.Set(func(c entity.Customer) (entity.Customer, error) {
+	customersRepo.CreateMock.Set(func(ctx context.Context, c entity.Customer) (entity.Customer, error) {
 		if c.Id == existingUser.Id {
 			return entity.Customer{}, app.ErrorCustomerExists
 		}

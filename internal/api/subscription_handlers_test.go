@@ -3,6 +3,7 @@ package api_test
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -39,7 +40,7 @@ func (suite *SubscriptionTestSuite) SetupTest() {
 	subscriptionsRepo := mock.NewSubscripterMock(mc)
 	suite.subscriptionsRepoMock = subscriptionsRepo
 	//preparing subscription repo
-	subscriptionsRepo.GetMock.Set(func(s1 string) (c1 entity.Subscription, err error) {
+	subscriptionsRepo.GetMock.Set(func(ctx context.Context, s1 string) (c1 entity.Subscription, err error) {
 		if s1 == existingSubscriptionId {
 			return entity.Subscription{
 				Id:   existingSubscriptionId,
@@ -50,7 +51,7 @@ func (suite *SubscriptionTestSuite) SetupTest() {
 		}
 	})
 
-	subscriptionsRepo.UpdateMock.Set(func(s1 entity.Subscription) (entity.Subscription, error) {
+	subscriptionsRepo.UpdateMock.Set(func(ctx context.Context, s1 entity.Subscription) (entity.Subscription, error) {
 		if s1.Id == existingSubscriptionId {
 			return s1, nil
 		} else {
@@ -59,7 +60,7 @@ func (suite *SubscriptionTestSuite) SetupTest() {
 		}
 	})
 
-	subscriptionsRepo.DeleteMock.Set(func(id string) (err error) {
+	subscriptionsRepo.DeleteMock.Set(func(ctx context.Context, id string) (err error) {
 		if id == existingSubscriptionId {
 			return nil
 		} else {
@@ -68,7 +69,7 @@ func (suite *SubscriptionTestSuite) SetupTest() {
 		}
 	})
 
-	subscriptionsRepo.CreateMock.Set(func(s entity.Subscription) (entity.Subscription, error) {
+	subscriptionsRepo.CreateMock.Set(func(ctx context.Context, s entity.Subscription) (entity.Subscription, error) {
 		if s.Id == existingSubscriptionId {
 			return entity.Subscription{}, app.ErrorSubscriptionExists
 		}

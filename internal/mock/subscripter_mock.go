@@ -5,6 +5,7 @@ package mock
 //go:generate minimock -i gitlab.com/thefrol/notty/internal/app.Subscripter -o ./internal/mock/subscripter_mock.go -n SubscripterMock
 
 import (
+	"context"
 	"sync"
 	mm_atomic "sync/atomic"
 	mm_time "time"
@@ -17,26 +18,26 @@ import (
 type SubscripterMock struct {
 	t minimock.Tester
 
-	funcCreate          func(s1 entity.Subscription) (s2 entity.Subscription, err error)
-	inspectFuncCreate   func(s1 entity.Subscription)
+	funcCreate          func(ctx context.Context, s1 entity.Subscription) (s2 entity.Subscription, err error)
+	inspectFuncCreate   func(ctx context.Context, s1 entity.Subscription)
 	afterCreateCounter  uint64
 	beforeCreateCounter uint64
 	CreateMock          mSubscripterMockCreate
 
-	funcDelete          func(s1 string) (err error)
-	inspectFuncDelete   func(s1 string)
+	funcDelete          func(ctx context.Context, s1 string) (err error)
+	inspectFuncDelete   func(ctx context.Context, s1 string)
 	afterDeleteCounter  uint64
 	beforeDeleteCounter uint64
 	DeleteMock          mSubscripterMockDelete
 
-	funcGet          func(s1 string) (s2 entity.Subscription, err error)
-	inspectFuncGet   func(s1 string)
+	funcGet          func(ctx context.Context, s1 string) (s2 entity.Subscription, err error)
+	inspectFuncGet   func(ctx context.Context, s1 string)
 	afterGetCounter  uint64
 	beforeGetCounter uint64
 	GetMock          mSubscripterMockGet
 
-	funcUpdate          func(s1 entity.Subscription) (s2 entity.Subscription, err error)
-	inspectFuncUpdate   func(s1 entity.Subscription)
+	funcUpdate          func(ctx context.Context, s1 entity.Subscription) (s2 entity.Subscription, err error)
+	inspectFuncUpdate   func(ctx context.Context, s1 entity.Subscription)
 	afterUpdateCounter  uint64
 	beforeUpdateCounter uint64
 	UpdateMock          mSubscripterMockUpdate
@@ -83,7 +84,8 @@ type SubscripterMockCreateExpectation struct {
 
 // SubscripterMockCreateParams contains parameters of the Subscripter.Create
 type SubscripterMockCreateParams struct {
-	s1 entity.Subscription
+	ctx context.Context
+	s1  entity.Subscription
 }
 
 // SubscripterMockCreateResults contains results of the Subscripter.Create
@@ -93,7 +95,7 @@ type SubscripterMockCreateResults struct {
 }
 
 // Expect sets up expected params for Subscripter.Create
-func (mmCreate *mSubscripterMockCreate) Expect(s1 entity.Subscription) *mSubscripterMockCreate {
+func (mmCreate *mSubscripterMockCreate) Expect(ctx context.Context, s1 entity.Subscription) *mSubscripterMockCreate {
 	if mmCreate.mock.funcCreate != nil {
 		mmCreate.mock.t.Fatalf("SubscripterMock.Create mock is already set by Set")
 	}
@@ -102,7 +104,7 @@ func (mmCreate *mSubscripterMockCreate) Expect(s1 entity.Subscription) *mSubscri
 		mmCreate.defaultExpectation = &SubscripterMockCreateExpectation{}
 	}
 
-	mmCreate.defaultExpectation.params = &SubscripterMockCreateParams{s1}
+	mmCreate.defaultExpectation.params = &SubscripterMockCreateParams{ctx, s1}
 	for _, e := range mmCreate.expectations {
 		if minimock.Equal(e.params, mmCreate.defaultExpectation.params) {
 			mmCreate.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmCreate.defaultExpectation.params)
@@ -113,7 +115,7 @@ func (mmCreate *mSubscripterMockCreate) Expect(s1 entity.Subscription) *mSubscri
 }
 
 // Inspect accepts an inspector function that has same arguments as the Subscripter.Create
-func (mmCreate *mSubscripterMockCreate) Inspect(f func(s1 entity.Subscription)) *mSubscripterMockCreate {
+func (mmCreate *mSubscripterMockCreate) Inspect(f func(ctx context.Context, s1 entity.Subscription)) *mSubscripterMockCreate {
 	if mmCreate.mock.inspectFuncCreate != nil {
 		mmCreate.mock.t.Fatalf("Inspect function is already set for SubscripterMock.Create")
 	}
@@ -137,7 +139,7 @@ func (mmCreate *mSubscripterMockCreate) Return(s2 entity.Subscription, err error
 }
 
 // Set uses given function f to mock the Subscripter.Create method
-func (mmCreate *mSubscripterMockCreate) Set(f func(s1 entity.Subscription) (s2 entity.Subscription, err error)) *SubscripterMock {
+func (mmCreate *mSubscripterMockCreate) Set(f func(ctx context.Context, s1 entity.Subscription) (s2 entity.Subscription, err error)) *SubscripterMock {
 	if mmCreate.defaultExpectation != nil {
 		mmCreate.mock.t.Fatalf("Default expectation is already set for the Subscripter.Create method")
 	}
@@ -152,14 +154,14 @@ func (mmCreate *mSubscripterMockCreate) Set(f func(s1 entity.Subscription) (s2 e
 
 // When sets expectation for the Subscripter.Create which will trigger the result defined by the following
 // Then helper
-func (mmCreate *mSubscripterMockCreate) When(s1 entity.Subscription) *SubscripterMockCreateExpectation {
+func (mmCreate *mSubscripterMockCreate) When(ctx context.Context, s1 entity.Subscription) *SubscripterMockCreateExpectation {
 	if mmCreate.mock.funcCreate != nil {
 		mmCreate.mock.t.Fatalf("SubscripterMock.Create mock is already set by Set")
 	}
 
 	expectation := &SubscripterMockCreateExpectation{
 		mock:   mmCreate.mock,
-		params: &SubscripterMockCreateParams{s1},
+		params: &SubscripterMockCreateParams{ctx, s1},
 	}
 	mmCreate.expectations = append(mmCreate.expectations, expectation)
 	return expectation
@@ -172,15 +174,15 @@ func (e *SubscripterMockCreateExpectation) Then(s2 entity.Subscription, err erro
 }
 
 // Create implements app.Subscripter
-func (mmCreate *SubscripterMock) Create(s1 entity.Subscription) (s2 entity.Subscription, err error) {
+func (mmCreate *SubscripterMock) Create(ctx context.Context, s1 entity.Subscription) (s2 entity.Subscription, err error) {
 	mm_atomic.AddUint64(&mmCreate.beforeCreateCounter, 1)
 	defer mm_atomic.AddUint64(&mmCreate.afterCreateCounter, 1)
 
 	if mmCreate.inspectFuncCreate != nil {
-		mmCreate.inspectFuncCreate(s1)
+		mmCreate.inspectFuncCreate(ctx, s1)
 	}
 
-	mm_params := &SubscripterMockCreateParams{s1}
+	mm_params := &SubscripterMockCreateParams{ctx, s1}
 
 	// Record call args
 	mmCreate.CreateMock.mutex.Lock()
@@ -197,7 +199,7 @@ func (mmCreate *SubscripterMock) Create(s1 entity.Subscription) (s2 entity.Subsc
 	if mmCreate.CreateMock.defaultExpectation != nil {
 		mm_atomic.AddUint64(&mmCreate.CreateMock.defaultExpectation.Counter, 1)
 		mm_want := mmCreate.CreateMock.defaultExpectation.params
-		mm_got := SubscripterMockCreateParams{s1}
+		mm_got := SubscripterMockCreateParams{ctx, s1}
 		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
 			mmCreate.t.Errorf("SubscripterMock.Create got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
@@ -209,9 +211,9 @@ func (mmCreate *SubscripterMock) Create(s1 entity.Subscription) (s2 entity.Subsc
 		return (*mm_results).s2, (*mm_results).err
 	}
 	if mmCreate.funcCreate != nil {
-		return mmCreate.funcCreate(s1)
+		return mmCreate.funcCreate(ctx, s1)
 	}
-	mmCreate.t.Fatalf("Unexpected call to SubscripterMock.Create. %v", s1)
+	mmCreate.t.Fatalf("Unexpected call to SubscripterMock.Create. %v %v", ctx, s1)
 	return
 }
 
@@ -299,7 +301,8 @@ type SubscripterMockDeleteExpectation struct {
 
 // SubscripterMockDeleteParams contains parameters of the Subscripter.Delete
 type SubscripterMockDeleteParams struct {
-	s1 string
+	ctx context.Context
+	s1  string
 }
 
 // SubscripterMockDeleteResults contains results of the Subscripter.Delete
@@ -308,7 +311,7 @@ type SubscripterMockDeleteResults struct {
 }
 
 // Expect sets up expected params for Subscripter.Delete
-func (mmDelete *mSubscripterMockDelete) Expect(s1 string) *mSubscripterMockDelete {
+func (mmDelete *mSubscripterMockDelete) Expect(ctx context.Context, s1 string) *mSubscripterMockDelete {
 	if mmDelete.mock.funcDelete != nil {
 		mmDelete.mock.t.Fatalf("SubscripterMock.Delete mock is already set by Set")
 	}
@@ -317,7 +320,7 @@ func (mmDelete *mSubscripterMockDelete) Expect(s1 string) *mSubscripterMockDelet
 		mmDelete.defaultExpectation = &SubscripterMockDeleteExpectation{}
 	}
 
-	mmDelete.defaultExpectation.params = &SubscripterMockDeleteParams{s1}
+	mmDelete.defaultExpectation.params = &SubscripterMockDeleteParams{ctx, s1}
 	for _, e := range mmDelete.expectations {
 		if minimock.Equal(e.params, mmDelete.defaultExpectation.params) {
 			mmDelete.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmDelete.defaultExpectation.params)
@@ -328,7 +331,7 @@ func (mmDelete *mSubscripterMockDelete) Expect(s1 string) *mSubscripterMockDelet
 }
 
 // Inspect accepts an inspector function that has same arguments as the Subscripter.Delete
-func (mmDelete *mSubscripterMockDelete) Inspect(f func(s1 string)) *mSubscripterMockDelete {
+func (mmDelete *mSubscripterMockDelete) Inspect(f func(ctx context.Context, s1 string)) *mSubscripterMockDelete {
 	if mmDelete.mock.inspectFuncDelete != nil {
 		mmDelete.mock.t.Fatalf("Inspect function is already set for SubscripterMock.Delete")
 	}
@@ -352,7 +355,7 @@ func (mmDelete *mSubscripterMockDelete) Return(err error) *SubscripterMock {
 }
 
 // Set uses given function f to mock the Subscripter.Delete method
-func (mmDelete *mSubscripterMockDelete) Set(f func(s1 string) (err error)) *SubscripterMock {
+func (mmDelete *mSubscripterMockDelete) Set(f func(ctx context.Context, s1 string) (err error)) *SubscripterMock {
 	if mmDelete.defaultExpectation != nil {
 		mmDelete.mock.t.Fatalf("Default expectation is already set for the Subscripter.Delete method")
 	}
@@ -367,14 +370,14 @@ func (mmDelete *mSubscripterMockDelete) Set(f func(s1 string) (err error)) *Subs
 
 // When sets expectation for the Subscripter.Delete which will trigger the result defined by the following
 // Then helper
-func (mmDelete *mSubscripterMockDelete) When(s1 string) *SubscripterMockDeleteExpectation {
+func (mmDelete *mSubscripterMockDelete) When(ctx context.Context, s1 string) *SubscripterMockDeleteExpectation {
 	if mmDelete.mock.funcDelete != nil {
 		mmDelete.mock.t.Fatalf("SubscripterMock.Delete mock is already set by Set")
 	}
 
 	expectation := &SubscripterMockDeleteExpectation{
 		mock:   mmDelete.mock,
-		params: &SubscripterMockDeleteParams{s1},
+		params: &SubscripterMockDeleteParams{ctx, s1},
 	}
 	mmDelete.expectations = append(mmDelete.expectations, expectation)
 	return expectation
@@ -387,15 +390,15 @@ func (e *SubscripterMockDeleteExpectation) Then(err error) *SubscripterMock {
 }
 
 // Delete implements app.Subscripter
-func (mmDelete *SubscripterMock) Delete(s1 string) (err error) {
+func (mmDelete *SubscripterMock) Delete(ctx context.Context, s1 string) (err error) {
 	mm_atomic.AddUint64(&mmDelete.beforeDeleteCounter, 1)
 	defer mm_atomic.AddUint64(&mmDelete.afterDeleteCounter, 1)
 
 	if mmDelete.inspectFuncDelete != nil {
-		mmDelete.inspectFuncDelete(s1)
+		mmDelete.inspectFuncDelete(ctx, s1)
 	}
 
-	mm_params := &SubscripterMockDeleteParams{s1}
+	mm_params := &SubscripterMockDeleteParams{ctx, s1}
 
 	// Record call args
 	mmDelete.DeleteMock.mutex.Lock()
@@ -412,7 +415,7 @@ func (mmDelete *SubscripterMock) Delete(s1 string) (err error) {
 	if mmDelete.DeleteMock.defaultExpectation != nil {
 		mm_atomic.AddUint64(&mmDelete.DeleteMock.defaultExpectation.Counter, 1)
 		mm_want := mmDelete.DeleteMock.defaultExpectation.params
-		mm_got := SubscripterMockDeleteParams{s1}
+		mm_got := SubscripterMockDeleteParams{ctx, s1}
 		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
 			mmDelete.t.Errorf("SubscripterMock.Delete got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
@@ -424,9 +427,9 @@ func (mmDelete *SubscripterMock) Delete(s1 string) (err error) {
 		return (*mm_results).err
 	}
 	if mmDelete.funcDelete != nil {
-		return mmDelete.funcDelete(s1)
+		return mmDelete.funcDelete(ctx, s1)
 	}
-	mmDelete.t.Fatalf("Unexpected call to SubscripterMock.Delete. %v", s1)
+	mmDelete.t.Fatalf("Unexpected call to SubscripterMock.Delete. %v %v", ctx, s1)
 	return
 }
 
@@ -514,7 +517,8 @@ type SubscripterMockGetExpectation struct {
 
 // SubscripterMockGetParams contains parameters of the Subscripter.Get
 type SubscripterMockGetParams struct {
-	s1 string
+	ctx context.Context
+	s1  string
 }
 
 // SubscripterMockGetResults contains results of the Subscripter.Get
@@ -524,7 +528,7 @@ type SubscripterMockGetResults struct {
 }
 
 // Expect sets up expected params for Subscripter.Get
-func (mmGet *mSubscripterMockGet) Expect(s1 string) *mSubscripterMockGet {
+func (mmGet *mSubscripterMockGet) Expect(ctx context.Context, s1 string) *mSubscripterMockGet {
 	if mmGet.mock.funcGet != nil {
 		mmGet.mock.t.Fatalf("SubscripterMock.Get mock is already set by Set")
 	}
@@ -533,7 +537,7 @@ func (mmGet *mSubscripterMockGet) Expect(s1 string) *mSubscripterMockGet {
 		mmGet.defaultExpectation = &SubscripterMockGetExpectation{}
 	}
 
-	mmGet.defaultExpectation.params = &SubscripterMockGetParams{s1}
+	mmGet.defaultExpectation.params = &SubscripterMockGetParams{ctx, s1}
 	for _, e := range mmGet.expectations {
 		if minimock.Equal(e.params, mmGet.defaultExpectation.params) {
 			mmGet.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmGet.defaultExpectation.params)
@@ -544,7 +548,7 @@ func (mmGet *mSubscripterMockGet) Expect(s1 string) *mSubscripterMockGet {
 }
 
 // Inspect accepts an inspector function that has same arguments as the Subscripter.Get
-func (mmGet *mSubscripterMockGet) Inspect(f func(s1 string)) *mSubscripterMockGet {
+func (mmGet *mSubscripterMockGet) Inspect(f func(ctx context.Context, s1 string)) *mSubscripterMockGet {
 	if mmGet.mock.inspectFuncGet != nil {
 		mmGet.mock.t.Fatalf("Inspect function is already set for SubscripterMock.Get")
 	}
@@ -568,7 +572,7 @@ func (mmGet *mSubscripterMockGet) Return(s2 entity.Subscription, err error) *Sub
 }
 
 // Set uses given function f to mock the Subscripter.Get method
-func (mmGet *mSubscripterMockGet) Set(f func(s1 string) (s2 entity.Subscription, err error)) *SubscripterMock {
+func (mmGet *mSubscripterMockGet) Set(f func(ctx context.Context, s1 string) (s2 entity.Subscription, err error)) *SubscripterMock {
 	if mmGet.defaultExpectation != nil {
 		mmGet.mock.t.Fatalf("Default expectation is already set for the Subscripter.Get method")
 	}
@@ -583,14 +587,14 @@ func (mmGet *mSubscripterMockGet) Set(f func(s1 string) (s2 entity.Subscription,
 
 // When sets expectation for the Subscripter.Get which will trigger the result defined by the following
 // Then helper
-func (mmGet *mSubscripterMockGet) When(s1 string) *SubscripterMockGetExpectation {
+func (mmGet *mSubscripterMockGet) When(ctx context.Context, s1 string) *SubscripterMockGetExpectation {
 	if mmGet.mock.funcGet != nil {
 		mmGet.mock.t.Fatalf("SubscripterMock.Get mock is already set by Set")
 	}
 
 	expectation := &SubscripterMockGetExpectation{
 		mock:   mmGet.mock,
-		params: &SubscripterMockGetParams{s1},
+		params: &SubscripterMockGetParams{ctx, s1},
 	}
 	mmGet.expectations = append(mmGet.expectations, expectation)
 	return expectation
@@ -603,15 +607,15 @@ func (e *SubscripterMockGetExpectation) Then(s2 entity.Subscription, err error) 
 }
 
 // Get implements app.Subscripter
-func (mmGet *SubscripterMock) Get(s1 string) (s2 entity.Subscription, err error) {
+func (mmGet *SubscripterMock) Get(ctx context.Context, s1 string) (s2 entity.Subscription, err error) {
 	mm_atomic.AddUint64(&mmGet.beforeGetCounter, 1)
 	defer mm_atomic.AddUint64(&mmGet.afterGetCounter, 1)
 
 	if mmGet.inspectFuncGet != nil {
-		mmGet.inspectFuncGet(s1)
+		mmGet.inspectFuncGet(ctx, s1)
 	}
 
-	mm_params := &SubscripterMockGetParams{s1}
+	mm_params := &SubscripterMockGetParams{ctx, s1}
 
 	// Record call args
 	mmGet.GetMock.mutex.Lock()
@@ -628,7 +632,7 @@ func (mmGet *SubscripterMock) Get(s1 string) (s2 entity.Subscription, err error)
 	if mmGet.GetMock.defaultExpectation != nil {
 		mm_atomic.AddUint64(&mmGet.GetMock.defaultExpectation.Counter, 1)
 		mm_want := mmGet.GetMock.defaultExpectation.params
-		mm_got := SubscripterMockGetParams{s1}
+		mm_got := SubscripterMockGetParams{ctx, s1}
 		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
 			mmGet.t.Errorf("SubscripterMock.Get got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
@@ -640,9 +644,9 @@ func (mmGet *SubscripterMock) Get(s1 string) (s2 entity.Subscription, err error)
 		return (*mm_results).s2, (*mm_results).err
 	}
 	if mmGet.funcGet != nil {
-		return mmGet.funcGet(s1)
+		return mmGet.funcGet(ctx, s1)
 	}
-	mmGet.t.Fatalf("Unexpected call to SubscripterMock.Get. %v", s1)
+	mmGet.t.Fatalf("Unexpected call to SubscripterMock.Get. %v %v", ctx, s1)
 	return
 }
 
@@ -730,7 +734,8 @@ type SubscripterMockUpdateExpectation struct {
 
 // SubscripterMockUpdateParams contains parameters of the Subscripter.Update
 type SubscripterMockUpdateParams struct {
-	s1 entity.Subscription
+	ctx context.Context
+	s1  entity.Subscription
 }
 
 // SubscripterMockUpdateResults contains results of the Subscripter.Update
@@ -740,7 +745,7 @@ type SubscripterMockUpdateResults struct {
 }
 
 // Expect sets up expected params for Subscripter.Update
-func (mmUpdate *mSubscripterMockUpdate) Expect(s1 entity.Subscription) *mSubscripterMockUpdate {
+func (mmUpdate *mSubscripterMockUpdate) Expect(ctx context.Context, s1 entity.Subscription) *mSubscripterMockUpdate {
 	if mmUpdate.mock.funcUpdate != nil {
 		mmUpdate.mock.t.Fatalf("SubscripterMock.Update mock is already set by Set")
 	}
@@ -749,7 +754,7 @@ func (mmUpdate *mSubscripterMockUpdate) Expect(s1 entity.Subscription) *mSubscri
 		mmUpdate.defaultExpectation = &SubscripterMockUpdateExpectation{}
 	}
 
-	mmUpdate.defaultExpectation.params = &SubscripterMockUpdateParams{s1}
+	mmUpdate.defaultExpectation.params = &SubscripterMockUpdateParams{ctx, s1}
 	for _, e := range mmUpdate.expectations {
 		if minimock.Equal(e.params, mmUpdate.defaultExpectation.params) {
 			mmUpdate.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmUpdate.defaultExpectation.params)
@@ -760,7 +765,7 @@ func (mmUpdate *mSubscripterMockUpdate) Expect(s1 entity.Subscription) *mSubscri
 }
 
 // Inspect accepts an inspector function that has same arguments as the Subscripter.Update
-func (mmUpdate *mSubscripterMockUpdate) Inspect(f func(s1 entity.Subscription)) *mSubscripterMockUpdate {
+func (mmUpdate *mSubscripterMockUpdate) Inspect(f func(ctx context.Context, s1 entity.Subscription)) *mSubscripterMockUpdate {
 	if mmUpdate.mock.inspectFuncUpdate != nil {
 		mmUpdate.mock.t.Fatalf("Inspect function is already set for SubscripterMock.Update")
 	}
@@ -784,7 +789,7 @@ func (mmUpdate *mSubscripterMockUpdate) Return(s2 entity.Subscription, err error
 }
 
 // Set uses given function f to mock the Subscripter.Update method
-func (mmUpdate *mSubscripterMockUpdate) Set(f func(s1 entity.Subscription) (s2 entity.Subscription, err error)) *SubscripterMock {
+func (mmUpdate *mSubscripterMockUpdate) Set(f func(ctx context.Context, s1 entity.Subscription) (s2 entity.Subscription, err error)) *SubscripterMock {
 	if mmUpdate.defaultExpectation != nil {
 		mmUpdate.mock.t.Fatalf("Default expectation is already set for the Subscripter.Update method")
 	}
@@ -799,14 +804,14 @@ func (mmUpdate *mSubscripterMockUpdate) Set(f func(s1 entity.Subscription) (s2 e
 
 // When sets expectation for the Subscripter.Update which will trigger the result defined by the following
 // Then helper
-func (mmUpdate *mSubscripterMockUpdate) When(s1 entity.Subscription) *SubscripterMockUpdateExpectation {
+func (mmUpdate *mSubscripterMockUpdate) When(ctx context.Context, s1 entity.Subscription) *SubscripterMockUpdateExpectation {
 	if mmUpdate.mock.funcUpdate != nil {
 		mmUpdate.mock.t.Fatalf("SubscripterMock.Update mock is already set by Set")
 	}
 
 	expectation := &SubscripterMockUpdateExpectation{
 		mock:   mmUpdate.mock,
-		params: &SubscripterMockUpdateParams{s1},
+		params: &SubscripterMockUpdateParams{ctx, s1},
 	}
 	mmUpdate.expectations = append(mmUpdate.expectations, expectation)
 	return expectation
@@ -819,15 +824,15 @@ func (e *SubscripterMockUpdateExpectation) Then(s2 entity.Subscription, err erro
 }
 
 // Update implements app.Subscripter
-func (mmUpdate *SubscripterMock) Update(s1 entity.Subscription) (s2 entity.Subscription, err error) {
+func (mmUpdate *SubscripterMock) Update(ctx context.Context, s1 entity.Subscription) (s2 entity.Subscription, err error) {
 	mm_atomic.AddUint64(&mmUpdate.beforeUpdateCounter, 1)
 	defer mm_atomic.AddUint64(&mmUpdate.afterUpdateCounter, 1)
 
 	if mmUpdate.inspectFuncUpdate != nil {
-		mmUpdate.inspectFuncUpdate(s1)
+		mmUpdate.inspectFuncUpdate(ctx, s1)
 	}
 
-	mm_params := &SubscripterMockUpdateParams{s1}
+	mm_params := &SubscripterMockUpdateParams{ctx, s1}
 
 	// Record call args
 	mmUpdate.UpdateMock.mutex.Lock()
@@ -844,7 +849,7 @@ func (mmUpdate *SubscripterMock) Update(s1 entity.Subscription) (s2 entity.Subsc
 	if mmUpdate.UpdateMock.defaultExpectation != nil {
 		mm_atomic.AddUint64(&mmUpdate.UpdateMock.defaultExpectation.Counter, 1)
 		mm_want := mmUpdate.UpdateMock.defaultExpectation.params
-		mm_got := SubscripterMockUpdateParams{s1}
+		mm_got := SubscripterMockUpdateParams{ctx, s1}
 		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
 			mmUpdate.t.Errorf("SubscripterMock.Update got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
@@ -856,9 +861,9 @@ func (mmUpdate *SubscripterMock) Update(s1 entity.Subscription) (s2 entity.Subsc
 		return (*mm_results).s2, (*mm_results).err
 	}
 	if mmUpdate.funcUpdate != nil {
-		return mmUpdate.funcUpdate(s1)
+		return mmUpdate.funcUpdate(ctx, s1)
 	}
-	mmUpdate.t.Fatalf("Unexpected call to SubscripterMock.Update. %v", s1)
+	mmUpdate.t.Fatalf("Unexpected call to SubscripterMock.Update. %v %v", ctx, s1)
 	return
 }
 

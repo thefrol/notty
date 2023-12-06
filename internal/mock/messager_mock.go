@@ -5,6 +5,7 @@ package mock
 //go:generate minimock -i gitlab.com/thefrol/notty/internal/app.Messager -o ./internal/mock/messager_mock.go -n MessagerMock
 
 import (
+	"context"
 	"sync"
 	mm_atomic "sync/atomic"
 	mm_time "time"
@@ -17,20 +18,20 @@ import (
 type MessagerMock struct {
 	t minimock.Tester
 
-	funcLockedSpawn          func(n int, status string) (ma1 []entity.Message, err error)
-	inspectFuncLockedSpawn   func(n int, status string)
+	funcLockedSpawn          func(ctx context.Context, n int, status string) (ma1 []entity.Message, err error)
+	inspectFuncLockedSpawn   func(ctx context.Context, n int, status string)
 	afterLockedSpawnCounter  uint64
 	beforeLockedSpawnCounter uint64
 	LockedSpawnMock          mMessagerMockLockedSpawn
 
-	funcReserveFromStatus          func(n int, status string) (ma1 []entity.Message, err error)
-	inspectFuncReserveFromStatus   func(n int, status string)
+	funcReserveFromStatus          func(ctx context.Context, n int, status string) (ma1 []entity.Message, err error)
+	inspectFuncReserveFromStatus   func(ctx context.Context, n int, status string)
 	afterReserveFromStatusCounter  uint64
 	beforeReserveFromStatusCounter uint64
 	ReserveFromStatusMock          mMessagerMockReserveFromStatus
 
-	funcUpdate          func(m1 entity.Message) (m2 entity.Message, err error)
-	inspectFuncUpdate   func(m1 entity.Message)
+	funcUpdate          func(ctx context.Context, m1 entity.Message) (m2 entity.Message, err error)
+	inspectFuncUpdate   func(ctx context.Context, m1 entity.Message)
 	afterUpdateCounter  uint64
 	beforeUpdateCounter uint64
 	UpdateMock          mMessagerMockUpdate
@@ -74,6 +75,7 @@ type MessagerMockLockedSpawnExpectation struct {
 
 // MessagerMockLockedSpawnParams contains parameters of the Messager.LockedSpawn
 type MessagerMockLockedSpawnParams struct {
+	ctx    context.Context
 	n      int
 	status string
 }
@@ -85,7 +87,7 @@ type MessagerMockLockedSpawnResults struct {
 }
 
 // Expect sets up expected params for Messager.LockedSpawn
-func (mmLockedSpawn *mMessagerMockLockedSpawn) Expect(n int, status string) *mMessagerMockLockedSpawn {
+func (mmLockedSpawn *mMessagerMockLockedSpawn) Expect(ctx context.Context, n int, status string) *mMessagerMockLockedSpawn {
 	if mmLockedSpawn.mock.funcLockedSpawn != nil {
 		mmLockedSpawn.mock.t.Fatalf("MessagerMock.LockedSpawn mock is already set by Set")
 	}
@@ -94,7 +96,7 @@ func (mmLockedSpawn *mMessagerMockLockedSpawn) Expect(n int, status string) *mMe
 		mmLockedSpawn.defaultExpectation = &MessagerMockLockedSpawnExpectation{}
 	}
 
-	mmLockedSpawn.defaultExpectation.params = &MessagerMockLockedSpawnParams{n, status}
+	mmLockedSpawn.defaultExpectation.params = &MessagerMockLockedSpawnParams{ctx, n, status}
 	for _, e := range mmLockedSpawn.expectations {
 		if minimock.Equal(e.params, mmLockedSpawn.defaultExpectation.params) {
 			mmLockedSpawn.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmLockedSpawn.defaultExpectation.params)
@@ -105,7 +107,7 @@ func (mmLockedSpawn *mMessagerMockLockedSpawn) Expect(n int, status string) *mMe
 }
 
 // Inspect accepts an inspector function that has same arguments as the Messager.LockedSpawn
-func (mmLockedSpawn *mMessagerMockLockedSpawn) Inspect(f func(n int, status string)) *mMessagerMockLockedSpawn {
+func (mmLockedSpawn *mMessagerMockLockedSpawn) Inspect(f func(ctx context.Context, n int, status string)) *mMessagerMockLockedSpawn {
 	if mmLockedSpawn.mock.inspectFuncLockedSpawn != nil {
 		mmLockedSpawn.mock.t.Fatalf("Inspect function is already set for MessagerMock.LockedSpawn")
 	}
@@ -129,7 +131,7 @@ func (mmLockedSpawn *mMessagerMockLockedSpawn) Return(ma1 []entity.Message, err 
 }
 
 // Set uses given function f to mock the Messager.LockedSpawn method
-func (mmLockedSpawn *mMessagerMockLockedSpawn) Set(f func(n int, status string) (ma1 []entity.Message, err error)) *MessagerMock {
+func (mmLockedSpawn *mMessagerMockLockedSpawn) Set(f func(ctx context.Context, n int, status string) (ma1 []entity.Message, err error)) *MessagerMock {
 	if mmLockedSpawn.defaultExpectation != nil {
 		mmLockedSpawn.mock.t.Fatalf("Default expectation is already set for the Messager.LockedSpawn method")
 	}
@@ -144,14 +146,14 @@ func (mmLockedSpawn *mMessagerMockLockedSpawn) Set(f func(n int, status string) 
 
 // When sets expectation for the Messager.LockedSpawn which will trigger the result defined by the following
 // Then helper
-func (mmLockedSpawn *mMessagerMockLockedSpawn) When(n int, status string) *MessagerMockLockedSpawnExpectation {
+func (mmLockedSpawn *mMessagerMockLockedSpawn) When(ctx context.Context, n int, status string) *MessagerMockLockedSpawnExpectation {
 	if mmLockedSpawn.mock.funcLockedSpawn != nil {
 		mmLockedSpawn.mock.t.Fatalf("MessagerMock.LockedSpawn mock is already set by Set")
 	}
 
 	expectation := &MessagerMockLockedSpawnExpectation{
 		mock:   mmLockedSpawn.mock,
-		params: &MessagerMockLockedSpawnParams{n, status},
+		params: &MessagerMockLockedSpawnParams{ctx, n, status},
 	}
 	mmLockedSpawn.expectations = append(mmLockedSpawn.expectations, expectation)
 	return expectation
@@ -164,15 +166,15 @@ func (e *MessagerMockLockedSpawnExpectation) Then(ma1 []entity.Message, err erro
 }
 
 // LockedSpawn implements app.Messager
-func (mmLockedSpawn *MessagerMock) LockedSpawn(n int, status string) (ma1 []entity.Message, err error) {
+func (mmLockedSpawn *MessagerMock) LockedSpawn(ctx context.Context, n int, status string) (ma1 []entity.Message, err error) {
 	mm_atomic.AddUint64(&mmLockedSpawn.beforeLockedSpawnCounter, 1)
 	defer mm_atomic.AddUint64(&mmLockedSpawn.afterLockedSpawnCounter, 1)
 
 	if mmLockedSpawn.inspectFuncLockedSpawn != nil {
-		mmLockedSpawn.inspectFuncLockedSpawn(n, status)
+		mmLockedSpawn.inspectFuncLockedSpawn(ctx, n, status)
 	}
 
-	mm_params := &MessagerMockLockedSpawnParams{n, status}
+	mm_params := &MessagerMockLockedSpawnParams{ctx, n, status}
 
 	// Record call args
 	mmLockedSpawn.LockedSpawnMock.mutex.Lock()
@@ -189,7 +191,7 @@ func (mmLockedSpawn *MessagerMock) LockedSpawn(n int, status string) (ma1 []enti
 	if mmLockedSpawn.LockedSpawnMock.defaultExpectation != nil {
 		mm_atomic.AddUint64(&mmLockedSpawn.LockedSpawnMock.defaultExpectation.Counter, 1)
 		mm_want := mmLockedSpawn.LockedSpawnMock.defaultExpectation.params
-		mm_got := MessagerMockLockedSpawnParams{n, status}
+		mm_got := MessagerMockLockedSpawnParams{ctx, n, status}
 		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
 			mmLockedSpawn.t.Errorf("MessagerMock.LockedSpawn got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
@@ -201,9 +203,9 @@ func (mmLockedSpawn *MessagerMock) LockedSpawn(n int, status string) (ma1 []enti
 		return (*mm_results).ma1, (*mm_results).err
 	}
 	if mmLockedSpawn.funcLockedSpawn != nil {
-		return mmLockedSpawn.funcLockedSpawn(n, status)
+		return mmLockedSpawn.funcLockedSpawn(ctx, n, status)
 	}
-	mmLockedSpawn.t.Fatalf("Unexpected call to MessagerMock.LockedSpawn. %v %v", n, status)
+	mmLockedSpawn.t.Fatalf("Unexpected call to MessagerMock.LockedSpawn. %v %v %v", ctx, n, status)
 	return
 }
 
@@ -291,6 +293,7 @@ type MessagerMockReserveFromStatusExpectation struct {
 
 // MessagerMockReserveFromStatusParams contains parameters of the Messager.ReserveFromStatus
 type MessagerMockReserveFromStatusParams struct {
+	ctx    context.Context
 	n      int
 	status string
 }
@@ -302,7 +305,7 @@ type MessagerMockReserveFromStatusResults struct {
 }
 
 // Expect sets up expected params for Messager.ReserveFromStatus
-func (mmReserveFromStatus *mMessagerMockReserveFromStatus) Expect(n int, status string) *mMessagerMockReserveFromStatus {
+func (mmReserveFromStatus *mMessagerMockReserveFromStatus) Expect(ctx context.Context, n int, status string) *mMessagerMockReserveFromStatus {
 	if mmReserveFromStatus.mock.funcReserveFromStatus != nil {
 		mmReserveFromStatus.mock.t.Fatalf("MessagerMock.ReserveFromStatus mock is already set by Set")
 	}
@@ -311,7 +314,7 @@ func (mmReserveFromStatus *mMessagerMockReserveFromStatus) Expect(n int, status 
 		mmReserveFromStatus.defaultExpectation = &MessagerMockReserveFromStatusExpectation{}
 	}
 
-	mmReserveFromStatus.defaultExpectation.params = &MessagerMockReserveFromStatusParams{n, status}
+	mmReserveFromStatus.defaultExpectation.params = &MessagerMockReserveFromStatusParams{ctx, n, status}
 	for _, e := range mmReserveFromStatus.expectations {
 		if minimock.Equal(e.params, mmReserveFromStatus.defaultExpectation.params) {
 			mmReserveFromStatus.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmReserveFromStatus.defaultExpectation.params)
@@ -322,7 +325,7 @@ func (mmReserveFromStatus *mMessagerMockReserveFromStatus) Expect(n int, status 
 }
 
 // Inspect accepts an inspector function that has same arguments as the Messager.ReserveFromStatus
-func (mmReserveFromStatus *mMessagerMockReserveFromStatus) Inspect(f func(n int, status string)) *mMessagerMockReserveFromStatus {
+func (mmReserveFromStatus *mMessagerMockReserveFromStatus) Inspect(f func(ctx context.Context, n int, status string)) *mMessagerMockReserveFromStatus {
 	if mmReserveFromStatus.mock.inspectFuncReserveFromStatus != nil {
 		mmReserveFromStatus.mock.t.Fatalf("Inspect function is already set for MessagerMock.ReserveFromStatus")
 	}
@@ -346,7 +349,7 @@ func (mmReserveFromStatus *mMessagerMockReserveFromStatus) Return(ma1 []entity.M
 }
 
 // Set uses given function f to mock the Messager.ReserveFromStatus method
-func (mmReserveFromStatus *mMessagerMockReserveFromStatus) Set(f func(n int, status string) (ma1 []entity.Message, err error)) *MessagerMock {
+func (mmReserveFromStatus *mMessagerMockReserveFromStatus) Set(f func(ctx context.Context, n int, status string) (ma1 []entity.Message, err error)) *MessagerMock {
 	if mmReserveFromStatus.defaultExpectation != nil {
 		mmReserveFromStatus.mock.t.Fatalf("Default expectation is already set for the Messager.ReserveFromStatus method")
 	}
@@ -361,14 +364,14 @@ func (mmReserveFromStatus *mMessagerMockReserveFromStatus) Set(f func(n int, sta
 
 // When sets expectation for the Messager.ReserveFromStatus which will trigger the result defined by the following
 // Then helper
-func (mmReserveFromStatus *mMessagerMockReserveFromStatus) When(n int, status string) *MessagerMockReserveFromStatusExpectation {
+func (mmReserveFromStatus *mMessagerMockReserveFromStatus) When(ctx context.Context, n int, status string) *MessagerMockReserveFromStatusExpectation {
 	if mmReserveFromStatus.mock.funcReserveFromStatus != nil {
 		mmReserveFromStatus.mock.t.Fatalf("MessagerMock.ReserveFromStatus mock is already set by Set")
 	}
 
 	expectation := &MessagerMockReserveFromStatusExpectation{
 		mock:   mmReserveFromStatus.mock,
-		params: &MessagerMockReserveFromStatusParams{n, status},
+		params: &MessagerMockReserveFromStatusParams{ctx, n, status},
 	}
 	mmReserveFromStatus.expectations = append(mmReserveFromStatus.expectations, expectation)
 	return expectation
@@ -381,15 +384,15 @@ func (e *MessagerMockReserveFromStatusExpectation) Then(ma1 []entity.Message, er
 }
 
 // ReserveFromStatus implements app.Messager
-func (mmReserveFromStatus *MessagerMock) ReserveFromStatus(n int, status string) (ma1 []entity.Message, err error) {
+func (mmReserveFromStatus *MessagerMock) ReserveFromStatus(ctx context.Context, n int, status string) (ma1 []entity.Message, err error) {
 	mm_atomic.AddUint64(&mmReserveFromStatus.beforeReserveFromStatusCounter, 1)
 	defer mm_atomic.AddUint64(&mmReserveFromStatus.afterReserveFromStatusCounter, 1)
 
 	if mmReserveFromStatus.inspectFuncReserveFromStatus != nil {
-		mmReserveFromStatus.inspectFuncReserveFromStatus(n, status)
+		mmReserveFromStatus.inspectFuncReserveFromStatus(ctx, n, status)
 	}
 
-	mm_params := &MessagerMockReserveFromStatusParams{n, status}
+	mm_params := &MessagerMockReserveFromStatusParams{ctx, n, status}
 
 	// Record call args
 	mmReserveFromStatus.ReserveFromStatusMock.mutex.Lock()
@@ -406,7 +409,7 @@ func (mmReserveFromStatus *MessagerMock) ReserveFromStatus(n int, status string)
 	if mmReserveFromStatus.ReserveFromStatusMock.defaultExpectation != nil {
 		mm_atomic.AddUint64(&mmReserveFromStatus.ReserveFromStatusMock.defaultExpectation.Counter, 1)
 		mm_want := mmReserveFromStatus.ReserveFromStatusMock.defaultExpectation.params
-		mm_got := MessagerMockReserveFromStatusParams{n, status}
+		mm_got := MessagerMockReserveFromStatusParams{ctx, n, status}
 		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
 			mmReserveFromStatus.t.Errorf("MessagerMock.ReserveFromStatus got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
@@ -418,9 +421,9 @@ func (mmReserveFromStatus *MessagerMock) ReserveFromStatus(n int, status string)
 		return (*mm_results).ma1, (*mm_results).err
 	}
 	if mmReserveFromStatus.funcReserveFromStatus != nil {
-		return mmReserveFromStatus.funcReserveFromStatus(n, status)
+		return mmReserveFromStatus.funcReserveFromStatus(ctx, n, status)
 	}
-	mmReserveFromStatus.t.Fatalf("Unexpected call to MessagerMock.ReserveFromStatus. %v %v", n, status)
+	mmReserveFromStatus.t.Fatalf("Unexpected call to MessagerMock.ReserveFromStatus. %v %v %v", ctx, n, status)
 	return
 }
 
@@ -508,7 +511,8 @@ type MessagerMockUpdateExpectation struct {
 
 // MessagerMockUpdateParams contains parameters of the Messager.Update
 type MessagerMockUpdateParams struct {
-	m1 entity.Message
+	ctx context.Context
+	m1  entity.Message
 }
 
 // MessagerMockUpdateResults contains results of the Messager.Update
@@ -518,7 +522,7 @@ type MessagerMockUpdateResults struct {
 }
 
 // Expect sets up expected params for Messager.Update
-func (mmUpdate *mMessagerMockUpdate) Expect(m1 entity.Message) *mMessagerMockUpdate {
+func (mmUpdate *mMessagerMockUpdate) Expect(ctx context.Context, m1 entity.Message) *mMessagerMockUpdate {
 	if mmUpdate.mock.funcUpdate != nil {
 		mmUpdate.mock.t.Fatalf("MessagerMock.Update mock is already set by Set")
 	}
@@ -527,7 +531,7 @@ func (mmUpdate *mMessagerMockUpdate) Expect(m1 entity.Message) *mMessagerMockUpd
 		mmUpdate.defaultExpectation = &MessagerMockUpdateExpectation{}
 	}
 
-	mmUpdate.defaultExpectation.params = &MessagerMockUpdateParams{m1}
+	mmUpdate.defaultExpectation.params = &MessagerMockUpdateParams{ctx, m1}
 	for _, e := range mmUpdate.expectations {
 		if minimock.Equal(e.params, mmUpdate.defaultExpectation.params) {
 			mmUpdate.mock.t.Fatalf("Expectation set by When has same params: %#v", *mmUpdate.defaultExpectation.params)
@@ -538,7 +542,7 @@ func (mmUpdate *mMessagerMockUpdate) Expect(m1 entity.Message) *mMessagerMockUpd
 }
 
 // Inspect accepts an inspector function that has same arguments as the Messager.Update
-func (mmUpdate *mMessagerMockUpdate) Inspect(f func(m1 entity.Message)) *mMessagerMockUpdate {
+func (mmUpdate *mMessagerMockUpdate) Inspect(f func(ctx context.Context, m1 entity.Message)) *mMessagerMockUpdate {
 	if mmUpdate.mock.inspectFuncUpdate != nil {
 		mmUpdate.mock.t.Fatalf("Inspect function is already set for MessagerMock.Update")
 	}
@@ -562,7 +566,7 @@ func (mmUpdate *mMessagerMockUpdate) Return(m2 entity.Message, err error) *Messa
 }
 
 // Set uses given function f to mock the Messager.Update method
-func (mmUpdate *mMessagerMockUpdate) Set(f func(m1 entity.Message) (m2 entity.Message, err error)) *MessagerMock {
+func (mmUpdate *mMessagerMockUpdate) Set(f func(ctx context.Context, m1 entity.Message) (m2 entity.Message, err error)) *MessagerMock {
 	if mmUpdate.defaultExpectation != nil {
 		mmUpdate.mock.t.Fatalf("Default expectation is already set for the Messager.Update method")
 	}
@@ -577,14 +581,14 @@ func (mmUpdate *mMessagerMockUpdate) Set(f func(m1 entity.Message) (m2 entity.Me
 
 // When sets expectation for the Messager.Update which will trigger the result defined by the following
 // Then helper
-func (mmUpdate *mMessagerMockUpdate) When(m1 entity.Message) *MessagerMockUpdateExpectation {
+func (mmUpdate *mMessagerMockUpdate) When(ctx context.Context, m1 entity.Message) *MessagerMockUpdateExpectation {
 	if mmUpdate.mock.funcUpdate != nil {
 		mmUpdate.mock.t.Fatalf("MessagerMock.Update mock is already set by Set")
 	}
 
 	expectation := &MessagerMockUpdateExpectation{
 		mock:   mmUpdate.mock,
-		params: &MessagerMockUpdateParams{m1},
+		params: &MessagerMockUpdateParams{ctx, m1},
 	}
 	mmUpdate.expectations = append(mmUpdate.expectations, expectation)
 	return expectation
@@ -597,15 +601,15 @@ func (e *MessagerMockUpdateExpectation) Then(m2 entity.Message, err error) *Mess
 }
 
 // Update implements app.Messager
-func (mmUpdate *MessagerMock) Update(m1 entity.Message) (m2 entity.Message, err error) {
+func (mmUpdate *MessagerMock) Update(ctx context.Context, m1 entity.Message) (m2 entity.Message, err error) {
 	mm_atomic.AddUint64(&mmUpdate.beforeUpdateCounter, 1)
 	defer mm_atomic.AddUint64(&mmUpdate.afterUpdateCounter, 1)
 
 	if mmUpdate.inspectFuncUpdate != nil {
-		mmUpdate.inspectFuncUpdate(m1)
+		mmUpdate.inspectFuncUpdate(ctx, m1)
 	}
 
-	mm_params := &MessagerMockUpdateParams{m1}
+	mm_params := &MessagerMockUpdateParams{ctx, m1}
 
 	// Record call args
 	mmUpdate.UpdateMock.mutex.Lock()
@@ -622,7 +626,7 @@ func (mmUpdate *MessagerMock) Update(m1 entity.Message) (m2 entity.Message, err 
 	if mmUpdate.UpdateMock.defaultExpectation != nil {
 		mm_atomic.AddUint64(&mmUpdate.UpdateMock.defaultExpectation.Counter, 1)
 		mm_want := mmUpdate.UpdateMock.defaultExpectation.params
-		mm_got := MessagerMockUpdateParams{m1}
+		mm_got := MessagerMockUpdateParams{ctx, m1}
 		if mm_want != nil && !minimock.Equal(*mm_want, mm_got) {
 			mmUpdate.t.Errorf("MessagerMock.Update got unexpected parameters, want: %#v, got: %#v%s\n", *mm_want, mm_got, minimock.Diff(*mm_want, mm_got))
 		}
@@ -634,9 +638,9 @@ func (mmUpdate *MessagerMock) Update(m1 entity.Message) (m2 entity.Message, err 
 		return (*mm_results).m2, (*mm_results).err
 	}
 	if mmUpdate.funcUpdate != nil {
-		return mmUpdate.funcUpdate(m1)
+		return mmUpdate.funcUpdate(ctx, m1)
 	}
-	mmUpdate.t.Fatalf("Unexpected call to MessagerMock.Update. %v", m1)
+	mmUpdate.t.Fatalf("Unexpected call to MessagerMock.Update. %v %v", ctx, m1)
 	return
 }
 

@@ -26,7 +26,7 @@ func (suite *AppTestSuite) SetupTest() {
 	stats := mock.NewStatisterMock(mc)
 
 	// статистика по всем сообщениям
-	stats.AllMock.Expect().Return(dto.Statistics{
+	stats.AllMock.Expect(context.Background()).Return(dto.Statistics{
 		"done": 4,
 	}, nil)
 
@@ -35,34 +35,34 @@ func (suite *AppTestSuite) SetupTest() {
 	// наполняем моки
 
 	// для общей статистики
-	stats.FilterMock.When("%", "%", "%").Then(dto.Statistics{
+	stats.FilterMock.When(context.Background(), "%", "%", "%").Then(dto.Statistics{
 		"done": 4,
 	}, nil)
 
 	// статистика по клиентам
-	stats.FilterMock.When("%", "test-customer", "%").Then(dto.Statistics{
+	stats.FilterMock.When(context.Background(), "%", "test-customer", "%").Then(dto.Statistics{
 		"done": 2,
 	}, nil)
 
 	customers.GetMock.
-		When("test-customer").
+		When(context.Background(), "test-customer").
 		Then(entity.Customer{}, nil)
 
 	customers.GetMock.
-		When("no-customer").
+		When(context.Background(), "no-customer").
 		Then(entity.Customer{}, app.ErrorCustomerNotFound)
 
 	// статистика по клиентам
-	stats.FilterMock.When("test-sub", "%", "%").Then(dto.Statistics{
+	stats.FilterMock.When(context.Background(), "test-sub", "%", "%").Then(dto.Statistics{
 		"done": 5,
 	}, nil)
 
 	subs.GetMock.
-		When("test-sub").
+		When(context.Background(), "test-sub").
 		Then(entity.Subscription{}, nil)
 
 	subs.GetMock.
-		When("no-sub").
+		When(context.Background(), "no-sub").
 		Then(entity.Subscription{}, app.ErrorSubscriptionNotFound)
 
 }

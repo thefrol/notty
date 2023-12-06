@@ -24,7 +24,7 @@ func (suite *FromDbToSend) TestSendingByTag() {
 
 	// тут мок будет просто считать количество запросов на отправку
 	sended := 0
-	suite.senderMock.SendMock.Set(func(m1 entity.Message) (err error) {
+	suite.senderMock.SendMock.Set(func(ctx context.Context, m1 entity.Message) (err error) {
 		// просто считаем количество
 		sended++
 		return nil
