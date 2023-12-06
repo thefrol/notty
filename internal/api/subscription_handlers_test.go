@@ -77,7 +77,7 @@ func (suite *SubscriptionTestSuite) SetupTest() {
 	})
 
 	// app
-	app := app.New(nil, subscriptionsRepo, nil, nil)
+	app := app.New(nil, subscriptionsRepo, nil)
 	//api
 	suite.api = api.New(app, log.Logger)
 	suite.handlers = suite.api.Handler()

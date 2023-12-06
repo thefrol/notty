@@ -4,15 +4,13 @@ type App struct {
 	customers     Customerere
 	subscriptions Subscripter
 	statistics    Statister
-	messages      Messager
 }
 
-func New(customers Customerere, subscriptions Subscripter, stats Statister, messages Messager) App {
+func New(customers Customerere, subscriptions Subscripter, stats Statister) App {
 	return App{
 		customers:     customers,
 		subscriptions: subscriptions,
 		statistics:    stats,
-		messages:      messages,
 	}
 }
 

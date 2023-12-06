@@ -7,7 +7,6 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/pkg/chans"
 )
@@ -16,7 +15,7 @@ import (
 // генерировать и отправлять сообщения
 type Worker struct {
 	// Сервисное приложение, которое будет использоваться
-	Notifyer *app.Notifyerrrr
+	Notifyer *Notifyer
 
 	// таймаут между обращением на поиск новых сообщений в базе,
 	// которые можно отправить. Например, если не отправлено

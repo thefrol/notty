@@ -29,7 +29,7 @@ func (suite *AppTestSuite) SetupTest() {
 		"done": 4,
 	}, nil)
 
-	suite.app = app.New(customers, subs, stats, nil)
+	suite.app = app.New(customers, subs, stats)
 
 	// наполняем моки
 

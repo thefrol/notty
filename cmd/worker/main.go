@@ -17,7 +17,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
-	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/notifyloop"
 	"gitlab.com/thefrol/notty/internal/notifyloop/fabrique"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
@@ -66,7 +65,7 @@ func main() {
 	mr := sqlrepo.NewMessages(db, rootLogger)
 	sender := fabrique.NewEndpoint(endpoint, retryWait, retryCount, token)
 
-	notty := app.NewNotifyerrrr(mr, sender)
+	notty := notifyloop.NewNotifyer(mr, sender)
 
 	// создаем приложение
 	worker := notifyloop.Worker{

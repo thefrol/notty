@@ -24,13 +24,3 @@ type Statister interface {
 	All(context.Context) (Statistics, error)
 	Filter(ctx context.Context, subId, customerId, status string) (Statistics, error)
 }
-
-type Messager interface {
-	LockedSpawn(ctx context.Context, n int, status string) ([]entity.Message, error)
-	ReserveFromStatus(ctx context.Context, n int, status string) ([]entity.Message, error)
-	Update(context.Context, entity.Message) (entity.Message, error)
-}
-
-type Sender interface {
-	Send(context.Context, entity.Message) error
-}

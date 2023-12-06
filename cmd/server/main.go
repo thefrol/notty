@@ -46,11 +46,11 @@ func main() {
 	sr := sqlrepo.NewSubscriptions(db)
 	stats := sqlrepo.NewStatistics(db)
 
-	ml := log.With().Str("repository", "messages").Logger()
-	mr := sqlrepo.NewMessages(db, ml)
+	//ml := log.With().Str("repository", "messages").Logger()
+	//mr := sqlrepo.NewMessages(db, ml)
 
 	// создаем приложение
-	notty := app.New(cr, sr, stats, mr)
+	notty := app.New(cr, sr, stats)
 
 	// создаем веб-апи
 
