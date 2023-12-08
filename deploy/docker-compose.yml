@@ -8,28 +8,19 @@ services:
       - POSTGRES_PASSWORD=notty.notty.1
       - POSTGRES_DB=notty
       
-  web:
+  notty:
     build:
       context: ..
       args:
-        cmd: server
+        cmd: notty
     restart: always
     environment:
       - NOTTY_DSN=host=db user=notty password=notty.notty.1 dbname=notty
+      - KEY=123
+      - SMS_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzA1NDQwMDksImlzcyI6ImZhYnJpcXVlIiwibmFtZSI6Imh0dHBzOi8vdC5tZS90aGVmcm9sIn0.JBeHeTpnbDUKnKdQi2ujFrAq6NDghwUEBpBriuk2YJw
+      - SMS_ENDPOINT=https://probe.fbrq.cloud/v1/send/
     ports:
       - '80:8080'
-    depends_on:
-      - db
-
-  send:
-    build:
-      context: ..
-      args:
-        cmd: worker
-    restart: always
-    environment:
-      NOTTY_DSN: host=db user=notty password=notty.notty.1 dbname=notty
-      ENDPOINT_TOKEN: ${TOKEN}
     depends_on:
       - db
 
