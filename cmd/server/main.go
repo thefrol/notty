@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
-	"gitlab.com/thefrol/notty/internal/api/config"
 	"gitlab.com/thefrol/notty/internal/app"
+	"gitlab.com/thefrol/notty/internal/config"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 
