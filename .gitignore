@@ -1,2 +1,12 @@
 # vscode
 .vscode/
+
+# binaries
+__debug*
+
+# notes for myself
+.mentor*
+TODO
+
+#tests scrap
+profile.cov

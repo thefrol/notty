@@ -1,0 +1,70 @@
+image: golang:1.21-alpine
+
+variables:
+  # эти значение будут использоваться для запуска тестового стенда в постгре
+  POSTGRES_DB: "test"
+  POSTGRES_USER: "test"
+  POSTGRES_PASSWORD: "test"
+
+  # реестр куда заливать докеры
+  CI_REGISTRY: registry.gitlab.com/thefrol/notty
+
+
+stages:
+  - test
+  - build
+  - deploy
+
+repository_test:
+  stage: test
+  services:
+    - name: postgres
+      alias: test_db
+  script:
+    - export NOTTY_TEST_DB="host=test_db  dbname=test user=test password=test sslmode=disable"
+    - export NOTTY_TEST_NOSKIP=1
+    - go test -v ./test/...
+
+unit_test:
+  stage: test
+  script:
+    - go test ./...
+
+# тут с интегральными тестами сразу считаем покрытие
+coverage:
+  stage: test
+  services:
+    - name: postgres
+      alias: test_db
+  script:
+    - export NOTTY_TEST_DB="host=test_db  dbname=test user=test password=test sslmode=disable"
+    - export NOTTY_TEST_NOSKIP=1
+    - . ./scripts/coverage
+  coverage: /\(statements\)(?:\s+)?(\d+(?:\.\d+)?%)/
+
+update_registry:
+  stage: build
+  image: docker
+  services: 
+    - docker:dind
+  script:
+    - docker login -u oauth -p $GITLAB_REGISTRY_TOKEN registry.gitlab.com/thefrol/notty
+    - sh ./scripts/upload-dockers-sh
+  only:
+    - main
+
+
+deploy_vm:
+  stage: deploy
+  before_script:
+    - 'command -v ssh-agent >/dev/null || ( apk add --update openssh )' 
+    - eval $(ssh-agent -s)
+    - echo "$SSH_VM_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $SSH_VM_IP >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+   - ssh $SSH_VM_USER@$SSH_VM_IP "export TOKEN=$SMS_SEND_TOKEN && sudo -E docker compose down && sudo -E docker compose up -d --pull always"
+  only:
+    - main

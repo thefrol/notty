@@ -1,0 +1,703 @@
+openapi: 3.0.0
+info:
+  title: Нотти. Сервис смс-уведомлений
+  version: '1.4'
+  description: |
+    Отправит уведомления с фильтрацией по тегам и    операторам. Не пропускает мат. За счет конкурентности готов отправлять по миллиону сообщений в минуту.
+
+    Через веб-апи добавляются клиенты и рассылки. У каждой рассылки можно указать время начала и окончания. Если рассылка сейчас активна, то из клиентов отфильтруются те, что подходят по тегам и операторам, и отправит им сообщение.
+
+    Сервис [развертывается за 10 сек](https://gitlab.com/thefrol/notty#быстрое-развертывание-без-скачивания-репозитория)
+
+    Под капотом база данных с двумя микросервисами. Один держит веб-интерфейс, другой проверяет базу и отправляет сообщения. 
+
+    Чтобы все это дело легче было опробовать я подготовил [подборку тестовых запросов](https://gitlab.com/thefrol/notty/-/blob/main/test/prod.http?ref_type=heads)
+
+    [Документация и репозиторий](https://gitlab.com/thefrol/notty)
+
+    Все [допзадания отмечены тут](https://gitlab.com/thefrol/notty#допзадания)
+paths:
+
+  ##
+  ## КЛИЕНТЫ
+  ##
+
+  /customer:
+    post:
+      summary: Добавить клиента
+      operationId: CreateClient
+      tags:
+        - customer
+      description: |
+        Создает клиента. Айдишник можно указывать, а можно нет
+
+        Телефон указывается в формате +72223334455, поддерживаются и коды других стран. Тег и оператор задаются в произовльном формате. Стоит указывать их так, чтобы потом можно было найти при помощи поиска по шалону, когда будете создавать рассылку.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+            examples:
+              'Иван Тестов':
+                summary: айди можно пропустить
+                value:
+                  name: Иван Тестов
+                  phone: "+71112223344"
+                  tag: clients.Moscow
+                  operator: mts
+              'Лиза Суперская':
+                summary: айди можно указать
+                value:
+                  id: liza-topchik
+                  name: Лиза Суперская
+                  phone: "+71112223344"
+                  tag: clients.Sakhalin
+                  operator: beeline
+      responses:
+        201:
+          description: Создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        400:
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                'неправильный айди':
+                  summary: Запрос не прошел валидацию по id
+                  value:
+                    code: invalid id
+                    desc: Запрос не прошел валидацию # todo подставить правильную строку
+                'неправильный телефон':
+                  summary: Неправильный телефон
+                  value:
+                    code: invalid phone
+                    desc: Неправильно задан телефон # todo подставить правильную строку       
+        409:
+          description: Клиент уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                'клиент существует':
+                  summary: Такой клиент уже существует
+                  value:
+                    code: customer exists
+                    desc: Клиент с id my-client-234 уже существует #
+        500:
+          description: Неизвестная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                'Внутренняя ошибка':
+                  summary: какая-то вретренняя ошибка
+                  value:
+                    code: unknown error
+                    desc: sql error near ( in FROM... # todo подставить правильную строку
+
+
+
+
+  /customer/{Id}:
+    summary: "Получить уже существующего клиента"
+    get:
+      operationId: GetClient
+      summary: Возвращает клиента
+      tags:
+        - customer
+      description: Позволяет получить клиента по айдишнику
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          description: Идентификатор клиента состоит из анлийских букв цифр и тире
+          example: my-best-client
+          schema:
+            type: string
+      responses:
+        '200':
+          description: полученный клиент
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Удалить клиента
+      operationId: DeleteClient
+      description: Удаление клиента по айдишнику
+      tags:
+        - customer
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: string
+    post:
+      summary: Изменить клиента
+      operationId: UpdateClient
+      description: Обновить клиента по айди
+      tags:
+        - customer
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+      responses:
+        '200':
+          description: Обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: Данные для изменения клиента не прошли валидацию
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: клиента не существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка при обновлении клиента
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /customer/{Id}/stats:
+    get:
+      operationId: CustomerStats
+      summary: Получить статистику по клиенту
+      tags:
+        - customer
+      description: Возвращает статистику по клиенту. Сколько отправлено и получено сообщений
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Found
+          content:
+            application/json:
+              schema: # map[string]
+                type: object
+                additionalProperties: 
+                  type: integer
+        '404':
+          description: Клиент не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Запрос неправильно сформирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  ##
+  ## Рассылки
+  ##
+
+  /sub:
+    post:
+      summary: Создать рассылку
+      operationId: CreateSubscription
+      tags:
+        - subscription
+      description: |
+        Если не указать айдишник, то создастся UUID
+
+        Фильтры задаются в формате ILIKE, как в SQL. То есть, например, стоит поставить фильтр "clients.%", то подойдут клиенты "clients.best", "clients.moscow" итд.
+
+        В поле Desc задается описание рассылки, чтобы не забывать зачем она нужна. Например, эта рассылает новым клиентам, а эта про черную пятницу.
+
+        В поле текст нельзя указывать мат, такая рассылка просто не создастся
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          description: Запрос неправильно сформирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                'запрос не прошел валидацию':
+                  summary: Данные не прошли валидацию
+                  value:
+                    code: explicit lang
+                    desc: Рассылка содержит мат
+        409:
+          description: Рассылка уже существует
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                'рассылка существует':
+                  summary: Такая рассылка уже существует
+                  value:
+                    code: subscription exists
+                    desc: Рассылка с id black-friday-promo уже существует #
+        '500':
+          description: Ошибка при создании
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                'Внутренняя ошибка':
+                  summary: какая-то вретренняя ошибка
+                  value:
+                    code: unknown error
+                    desc: sql error near ( in FROM... 
+
+  /sub/{Id}:
+    get:
+      summary: Получить уже существующую рассылку
+      operationId: GetSubscription
+      tags:
+        - subscription
+      description: 'Получить рассылку по айдишнику'
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Удалить рассылку
+      operationId: DeleteSubscription
+      tags:
+        - subscription
+      description: 'Удалить рассылку'
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Удалено
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: Не найдена такая подписка
+          content:
+            text/plaint:
+              schema:
+                type: string
+        '500':
+          description: Ошибка при удалении
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      summary: Обновить рассылку
+      operationId: UpdateSubscription
+      tags:
+        - subscription
+      description: Обновить рассылку
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '200':
+          description: Создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          description: Запрос неправильно сформирован, например данные не прошли валидацию
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Ошибка при создании
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /sub/{Id}/stats:
+    get:
+      operationId: SubscriptionStats
+      summary: Получить статистику по рассылке
+      tags:
+        - subscription
+      description: Возвращает статистику по текущей рассылке. Сколько отправлено и получено'
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Found
+          content:
+            application/json:
+              schema: # map[string]
+                type: object
+                additionalProperties: 
+                  type: integer
+        '404':
+          description: Рассылка не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '400':
+          description: Запрос неправильно сформирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /message/{Id}:
+    get:
+      summary: Получить инфу про конкретное сообщение
+      operationId: GetMessage
+      tags:
+        - message
+      description: 'получает данные о сообщении'
+      parameters:
+        - in: path
+          name: Id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /stats: # наверное под статистику стоит выделить отдельный маршрут
+    get:
+      summary: Получить статистику сообщений
+      operationId: FullStats
+
+      tags:
+        - stats
+      description: 'получает статистику по всем сообщениям'
+      # поля с какого по какое время
+      #
+      # parameters:
+      #   - in: path
+      #     name: Id
+      #     required: true
+      #     schema:
+      #       type: string
+      responses:
+        '200':
+          description: Статистика получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stats'
+
+        '500':
+          description: ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+  /stats/subs/{Id}: # наверное под статистику стоит выделить отдельный маршрут
+    get:
+      summary: Получить статистику сообщений по айдишнику рассылки
+      operationId: StatsBySubscriptionId
+      parameters:
+        - in: path
+          name: Id
+          description: Айдишник рассылки
+          required: true
+          schema:
+            type: string
+
+      tags:
+        - stats
+      description: получает статистику по существующей рассылке
+      responses:
+        '200':
+          description: Статистика получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stats'
+        '404':
+          description: Рассылка не найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '500':
+          description: ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /stats/customer/{Id}: # наверное под статистику стоит выделить отдельный маршрут
+    get:
+      summary: Получить статистику сообщений по айдишнику клиента
+      operationId: StatsByCustomerId
+      parameters:
+        - in: path
+          name: Id
+          description: Айдишник рассылки
+          required: true
+          schema:
+            type: string
+
+      tags:
+        - stats
+      description: получает статистику по существующему клиенту
+      responses:
+        '200':
+          description: Статистика получена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Stats'
+        '404':
+          description: Клиент не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+        '500':
+          description: ошибка сервера
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+
+components:
+  schemas:
+    Customer:
+      type: object
+      description: Клиент, которому будет приходить рассылка. Имеет номер телефона, имя оператора и тег, по которому его сможет найти рассылка.
+      required:
+        - id
+        - phone
+        - tag
+        - operator
+        - name
+      properties:
+        id:
+          type: string
+          description: айдишник сообщения, английские буквы и тире. Подойдет UUID
+          example: ivan-testov
+        name:
+          type: string
+          description: имя человека
+          example: Иван Тестов
+        phone:
+          type: string
+          description: номер телефона в формате +71112223344
+          example: "+79161112233"
+        tag:
+          type: string
+          description: тег, по которому можно будет таргетировать рассылку
+          example: moscow-best
+        operator:
+          type: string
+          description: оператор, строка 
+          example: mts
+    Subscription:
+      description: Не смотря на название, это сущности рассылки. Имеет время начала, до которого сообщения рассылаться не будут, и время окончания, после которого тоже не будут рассылаться сообщения. Есть фильтр по тегам и оператору, которые работают в формате постревкого ILIKE. 
+      type: object
+      required:
+        - id
+        - start
+        - end
+        - operator_filter
+        - phone_filter
+        - tag_filter
+        - desc
+        - text
+      properties:
+        id:
+          type: string
+          description: айдишник, английские буквы и тире. Может быть UUID
+          example: send-to-best-clients
+        start:
+          type: string
+          format: date-time
+          description: время начала, до этого времени рассылаться не будет
+        end:
+          type: string
+          format: date-time
+          description: время окончания, после этого времени рассылаться не будет
+        phone_filter:
+          type: string
+          description: фильтр по номеру телефона, сейчас не используется
+        operator_filter:
+          type: string
+          description: фильтр по оператору, работает как ILIKE в SQL
+          example: '%'
+        tag_filter:
+          description: фильтр по оператору, работает как ILIKE в SQL
+          type: string
+          example: 'moscow-%'
+        desc:
+          description: Описание рассылки, просто для чего она создавалась и тд.
+          type: string
+          example: 'Рассылка кредитов нахаляву'
+        text:
+          example: Добрый день! Вам одобрен кредит по 0%
+          description: Текст сообщения в рассылке
+          type: string
+    Message:
+      type: object
+      required:
+        - id
+        - customer_id
+        - subscription_id
+        - text
+        - phone
+        - status
+      properties:
+        id:
+          type: string
+        customer_id:
+          type: string
+        subscription_id:
+          type: string
+        text:
+          type: string
+        phone:
+          type: string
+        status:
+          type: string
+        sent:
+          type: string
+          format: date-time
+    Error:
+      type: object
+      required:
+        - code
+        - desc
+      properties:
+        code:
+          type: string
+          example: "404"
+        desc:
+          type: string
+          example: "Not found"
+    Stats: # map[string]
+      type: object
+      additionalProperties: 
+        type: integer
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+  - name: customer
+    description: Реестр клиентов. Все, что поможет создать и управлять списком клиентов. 
+    externalDocs:
+      description: Узнай больше
+      url: https://gitlab.com/thefrol/notty
+  - name: subscription
+    description: Несмотря на противоречивое название, тут находятся именно рассылки :)
+    externalDocs:
+      description: Узнай больше
+      url: https://gitlab.com/thefrol/notty
+  - name: message
+    description: Отправленные сообщения
+    externalDocs:
+      description: Узнай больше
+      url: https://gitlab.com/thefrol/notty
+  - name: stats
+    description: Статистика
+    externalDocs:
+      description: Узнай больше
+      url: https://gitlab.com/thefrol/notty

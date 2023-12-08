@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Запускает постгрес базу в докере
+# будет доступна по порту 15432
+# просто чтобы не перечить с локальными базами
+
+DB_USER=notty_dev_local
+DB_PASS=local.dev.1
+DB_NAME=notty_dev_local
+DB_PORT=15432
+
+docker rm notty_postgres
+sudo docker run --name notty_postgres \
+    -e POSTGRES_DB=$DB_NAME \
+    -e POSTGRES_USER=$DB_USER \
+    -e POSTGRES_PASSWORD=$DB_PASS \
+    -p $DB_PORT:5432 \
+    -d \
+    postgres
+
+
+export NOTTY_DB_LOCAL="host=localhost dbname=$DB_NAME user=$DB_USER password=$DB_PASS port=$DB_PORT sslmode=disable"
+
+echo База данных для Нотти доступна по такой строке:
+echo $NOTTY_DB_LOCAL
+
+
+

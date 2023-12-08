@@ -1,0 +1,92 @@
+# Этот запрос сработает
+
+
+POST http://158.160.121.21/customer
+Content-Type: application/json
+
+{
+    "name": "Иван Тестов",
+    "tag": "test",
+    "operator": "mts",
+    "phone":"+76662223311"
+}
+
+###
+
+# А этот нет
+
+POST http://158.160.121.21/customer
+Content-Type: application/json
+
+{
+    "name": "Иван Тестов",
+    "tag": "test",
+    "operator": "bee",
+    "phone":"86662223311"
+}
+
+
+###
+
+# А тут Ване отправится сообщение
+# по тегу
+
+POST http://158.160.121.21/sub
+Content-Type: application/json
+
+{
+  "id":"test-sub",
+  "desc": "Это тестовая рассылка отправит человеку сообщение",
+  "start": "2019-08-24T14:15:22Z",
+  "end": "2035-08-24T14:15:22Z",
+  "operator_filter": "%",
+  "phone_filter": "%",
+  "tag_filter": "test",
+  "text": "Привет! Это рассылка"
+}
+
+# send_1  | Отправка {ID:1355975340434202481 phone:76662223311 text:Привет! Это рассылка}
+# send_1  | RESPONSE: 200
+
+###
+
+# А вот этому человек не уйдет сообщение
+# потому что не подходит по тегу
+POST http://158.160.121.21/customer
+Content-Type: application/json
+
+{
+    "name": "Темерлан Стейжи",
+    "tag": "stage",
+    "operator": "bee",
+    "phone":"+71112223311"
+}
+
+###
+
+# Эта рассылка не создастся, потому что содержит мат
+
+POST http://158.160.121.21/sub
+Content-Type: application/json
+
+{
+  "desc": "Это тестовая рассылка отправит человеку сообщение",
+  "start": "2019-08-24T14:15:22Z",
+  "end": "2035-08-24T14:15:22Z",
+  "operator_filter": "%",
+  "phone_filter": "%",
+  "tag_filter": "test",
+  "text": "Привет! Это пиздатая рассылка"
+}
+
+
+###
+#Посмотрим статистику отправок
+
+GET http://158.160.121.21/sub/test-sub/stats
+Content-Type: application/json
+
+# И общую статистику
+
+GET http://158.160.121.21/stats
+Content-Type: application/json
