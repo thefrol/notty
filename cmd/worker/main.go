@@ -10,30 +10,17 @@ package main
 
 import (
 	"context"
-	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"gitlab.com/thefrol/notty/internal/config"
 	"gitlab.com/thefrol/notty/internal/notifyloop"
 	"gitlab.com/thefrol/notty/internal/notifyloop/fabrique"
 	"gitlab.com/thefrol/notty/internal/storage/postgres"
 	"gitlab.com/thefrol/notty/internal/storage/sqlrepo"
 )
-
-const batchSize = 50
-const timeout = 3 * time.Second
-const WorkerCount = 50
-
-const (
-	retryWait  = 3
-	retryCount = 3
-	endpoint   = "https://probe.fbrq.cloud/v1/send/"
-)
-
-var token = os.Getenv("ENDPOINT_TOKEN")
 
 func main() {
 	// это корневой контекст приложения
@@ -45,16 +32,16 @@ func main() {
 		Str("instance_id", uuid.NewString()).
 		Logger()
 
-	// конфигурируем
-	dsn, ok := os.LookupEnv("NOTTY_DSN")
-	if !ok {
-		rootLogger.Info().
-			Msg("Неправильная конфигурации. Нужно передать строку подключения в переменной NOTTY_DSN")
-		os.Exit(3)
+	// читаем переменные окружения
+	cfg, err := config.ForWorker()
+	if err != nil {
+		rootLogger.Fatal().
+			Err(err).
+			Msg("Ошибка конфигурации")
 	}
 
 	// соединяемся с БД
-	db, err := postgres.Connect(dsn)
+	db, err := postgres.Connect(cfg.DSN)
 	if err != nil {
 		rootLogger.Fatal().
 			Err(err).
@@ -63,15 +50,19 @@ func main() {
 
 	//создаем репозитории/адаптеры
 	mr := sqlrepo.NewMessages(db, rootLogger)
-	sender := fabrique.NewEndpoint(endpoint, retryWait, retryCount, token)
-
-	notty := notifyloop.NewNotifyer(mr, sender)
+	sender := fabrique.NewEndpoint(
+		cfg.SMSEndoint,
+		int(cfg.RetryInterval),
+		int(cfg.RetryCount),
+		cfg.SMSToken)
 
 	// создаем приложение
+	notty := notifyloop.NewNotifyer(mr, sender)
+
 	worker := notifyloop.Worker{
 		Notifyer:  notty,
-		Timeout:   timeout,
-		BatchSize: batchSize,
+		Timeout:   cfg.Interval,
+		BatchSize: int(cfg.BatchSize),
 		Logger:    rootLogger,
 	}
 
