@@ -26,7 +26,7 @@ func main() {
 		Logger()
 
 	// читаем переменные окружения
-	cfg, err := config.Parse()
+	cfg, err := config.ForAPI()
 	if err != nil {
 		rootLogger.Fatal().
 			Err(err).

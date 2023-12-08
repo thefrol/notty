@@ -7,7 +7,6 @@ import (
 )
 
 type Config struct {
-
 	// адрес, на котором сервер будет слушать
 	Addr string `env:"ADDR" envDefault:":8080"`
 
@@ -18,13 +17,9 @@ type Config struct {
 	Key string `env:"KEY"`
 }
 
-// Parse забирает переменные окружения в структуру Config,
+// ForAPI забирает переменные окружения в структуру Config,
 // если конфиг не удался завершает работу программы.
-//
-// Используются переменные:
-// NOTTY_DSN - строка соединения с БД
-// ADDR - адрес создаваемого сервера, по умолчанию ":8080"
-func Parse() (Config, error) {
+func ForAPI() (Config, error) {
 	cfg := Config{}
 	err := env.Parse(&cfg)
 	if err != nil {
