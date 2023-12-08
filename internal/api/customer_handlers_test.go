@@ -84,7 +84,7 @@ func (suite *ApiTestSuite) SetupTest() {
 	})
 
 	// app
-	app := app.New(suite.customersRepoMock, nil, nil, nil)
+	app := app.New(suite.customersRepoMock, nil, nil)
 	//api
 	suite.api = api.New(app, log.Logger)
 	suite.handlers = suite.api.Handler()

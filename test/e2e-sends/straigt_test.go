@@ -9,7 +9,7 @@ import (
 
 	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
-	"gitlab.com/thefrol/notty/internal/service"
+	"gitlab.com/thefrol/notty/internal/notifyloop"
 )
 
 // TestSendingByTag проверяет что отправляются два сообщения, которые
@@ -31,7 +31,7 @@ func (suite *FromDbToSend) TestSendingByTag() {
 	})
 
 	// сконфигурируем сервис отправки
-	worker := service.Worker{
+	worker := notifyloop.Worker{
 		Notifyer:  suite.app,
 		Timeout:   0,
 		BatchSize: 50,

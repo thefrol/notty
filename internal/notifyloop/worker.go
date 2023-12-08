@@ -1,4 +1,4 @@
-package service
+package notifyloop
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"gitlab.com/thefrol/notty/internal/app"
 	"gitlab.com/thefrol/notty/internal/entity"
 	"gitlab.com/thefrol/notty/pkg/chans"
 )
@@ -16,7 +15,7 @@ import (
 // генерировать и отправлять сообщения
 type Worker struct {
 	// Сервисное приложение, которое будет использоваться
-	Notifyer *app.Notifyerrrr
+	Notifyer *Notifyer
 
 	// таймаут между обращением на поиск новых сообщений в базе,
 	// которые можно отправить. Например, если не отправлено
@@ -88,7 +87,7 @@ loop:
 		// Также резервируем сообщения из тех, что ранее не получилось
 		// отправить. Они лежат в базе со статусов `fail`
 		resendsMessages := chans.GeneratorFunc(func() []entity.Message {
-			ts, err := w.Notifyer.ReserveMessages(workContext, w.BatchSize, entity.StatusFailed)
+			ts, err := w.Notifyer.ReserveFailed(workContext, w.BatchSize)
 			if err != nil {
 				// продолждаем работу если ошибка, просто опять уходим в таймаут
 				w.Logger.Error().
